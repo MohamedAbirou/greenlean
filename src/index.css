@@ -1,0 +1,7 @@
+:root {
+  --primary-color: #22C55E; /* Default color */
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
