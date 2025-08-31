@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Settings } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabase';
-import OverviewTab from '../components/admin/OverviewTab';
+import { Loader, Settings } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import AdminNav from '../components/admin/AdminNav';
 import ChallengesTab from '../components/admin/ChallengesTab';
-import UsersTab from '../components/admin/UsersTab';
+import OverviewTab from '../components/admin/OverviewTab';
 import RewardsTab from '../components/admin/RewardsTab';
 import SettingsTab from '../components/admin/SettingsTab';
-import AdminNav from '../components/admin/AdminNav';
-import { Loader } from 'lucide-react';
+import UsersTab from '../components/admin/UsersTab';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 
 const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');

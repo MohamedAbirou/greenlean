@@ -1,25 +1,25 @@
-import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Menu,
-  X,
-  Leaf,
-  UserCircle,
-  Moon,
-  Sun,
-  LogOut,
-  Settings,
+  Camera,
   History,
   LayoutDashboard,
-  Camera,
-  Users,
-  Trophy,
+  Leaf,
+  LogOut,
+  Menu,
+  Moon,
+  Settings,
   Shield,
+  Sun,
+  Trophy,
+  UserCircle,
+  Users,
+  X,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useThemeStore } from "../../store/themeStore";
+import React, { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../lib/supabase";
+import { useThemeStore } from "../../store/themeStore";
 import AuthModal from "../auth/AuthModal";
 
 interface NavbarProps {

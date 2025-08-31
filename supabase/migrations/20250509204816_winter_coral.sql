@@ -31,32 +31,55 @@ CREATE TABLE IF NOT EXISTS progress_photos (
 -- Enable RLS
 ALTER TABLE progress_photos ENABLE ROW LEVEL SECURITY;
 
--- Create policies
-CREATE POLICY "Users can manage their own progress photos"
-ON progress_photos
-FOR ALL
-TO authenticated
-USING (auth.uid() = user_id)
-WITH CHECK (auth.uid() = user_id);
+-- Drop and recreate policies on progress_photos
+DO $$
+BEGIN
+  DROP POLICY IF EXISTS "Users can manage their own progress photos" ON progress_photos;
+  CREATE POLICY "Users can manage their own progress photos"
+  ON progress_photos
+  FOR ALL
+  TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+END $$;
 
--- Create index for faster lookups
-CREATE INDEX progress_photos_user_id_idx ON progress_photos(user_id);
-CREATE INDEX progress_photos_week_number_idx ON progress_photos(week_number);
+-- Create indexes if they don't exist
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_indexes WHERE indexname = 'progress_photos_user_id_idx'
+  ) THEN
+    CREATE INDEX progress_photos_user_id_idx ON progress_photos(user_id);
+  END IF;
 
--- Create storage bucket for progress photos
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_indexes WHERE indexname = 'progress_photos_week_number_idx'
+  ) THEN
+    CREATE INDEX progress_photos_week_number_idx ON progress_photos(week_number);
+  END IF;
+END $$;
+
+-- Create storage bucket for progress photos (only if not exists)
 INSERT INTO storage.buckets (id, name, public)
-VALUES ('progress-photos', 'progress-photos', false);
-
--- Create storage policies
-CREATE POLICY "Users can manage their own progress photos"
-ON storage.objects
-FOR ALL
-TO authenticated
-USING (
-  bucket_id = 'progress-photos' 
-  AND (storage.foldername(name))[1] = auth.uid()::text
-)
-WITH CHECK (
-  bucket_id = 'progress-photos'
-  AND (storage.foldername(name))[1] = auth.uid()::text
+SELECT 'progress-photos', 'progress-photos', false
+WHERE NOT EXISTS (
+  SELECT 1 FROM storage.buckets WHERE id = 'progress-photos'
 );
+
+-- Drop and recreate storage policies
+DO $$
+BEGIN
+  DROP POLICY IF EXISTS "Users can manage their own progress photos" ON storage.objects;
+  CREATE POLICY "Users can manage their own progress photos"
+  ON storage.objects
+  FOR ALL
+  TO authenticated
+  USING (
+    bucket_id = 'progress-photos' 
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  )
+  WITH CHECK (
+    bucket_id = 'progress-photos'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
+END $$;
