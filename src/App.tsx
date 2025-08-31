@@ -27,6 +27,7 @@ import ProgressPhotos from "./pages/ProgressPhotos";
 import CommunityPhotos from "./pages/CommunityPhotos";
 import Challenges from "./pages/Challenges";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminBootstrap from "./components/admin/AdminBootstrap";
 import { PlatformProvider } from "./contexts/PlatformContext";
 
 function App() {
@@ -110,6 +111,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <AdminDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="admin-bootstrap"
+                  element={
+                    <ProtectedRoute>
+                      <AdminBootstrap />
                     </ProtectedRoute>
                   }
                 />
