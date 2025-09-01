@@ -9,5 +9,13 @@ export default {
       }
     }
   },
+  safelist: [
+    {
+      pattern: /(bg|text|border|hover:bg)-(green|blue|purple|red|orange|pink|indigo|teal|yellow|gray)-(400|500|600)/,
+    },
+    {
+      pattern: /bg-(green|blue|purple|red|orange|pink|indigo|teal|yellow|gray)-(500)\/20/,
+    }
+  ],
   plugins: [],
 };

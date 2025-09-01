@@ -29,134 +29,86 @@ interface Question {
 }
 
 const questions: Question[] = [
-  {
-    id: 1,
-    question: "What is your age?",
-    type: "number",
-    min: 12,
-    max: 100,
-    required: true,
-  },
-  {
-    id: 2,
-    question: "What is your gender?",
-    type: "select",
-    options: ["Male", "Female"],
-    required: true,
-  },
-  {
-    id: 3,
-    question: "What is your current weight?",
-    type: "number",
-    unit: "kg",
-    min: 30,
-    max: 300,
-    required: true,
-  },
-  {
-    id: 4,
-    question: "What is your height?",
-    type: "number",
-    unit: "cm",
-    min: 100,
-    max: 250,
-    required: true,
-  },
-  {
-    id: 5,
-    question: "What is your target weight?",
-    type: "number",
-    unit: "kg",
-    min: 30,
-    max: 300,
-    required: true,
-  },
+  { id: 1, question: "How old are you?", type: "number", min: 12, max: 100, required: true },
+  { id: 2, question: "What is your gender?", type: "select", options: ["Male", "Female"], required: true },
+  { id: 3, question: "What is your current weight?", type: "number", unit: "kg", min: 30, max: 300, required: true },
+  { id: 4, question: "What is your height?", type: "number", unit: "cm", min: 100, max: 250, required: true },
+  { id: 5, question: "What is your target weight?", type: "number", unit: "kg", min: 30, max: 300, required: true },
   {
     id: 6,
-    question: "How would you describe your activity level?",
+    question: "How active are you on a typical day?",
     type: "radio",
     options: [
       "Sedentary (little or no exercise)",
-      "Lightly active (light exercise/sports 1-3 days/week)",
-      "Moderately active (moderate exercise/sports 3-5 days/week)",
-      "Very active (hard exercise/sports 6-7 days/week)",
-      "Extra active (very hard exercise/sports & physical job)",
+      "Lightly active (1–3 days/week of light exercise)",
+      "Moderately active (3–5 days/week of moderate exercise)",
+      "Very active (6–7 days/week of intense exercise)",
+      "Extremely active (physical job + daily training)",
     ],
     required: true,
-    info: "Your activity level helps us determine your daily caloric needs",
+    info: "Your activity level helps us estimate your calorie needs",
   },
   {
     id: 7,
-    question: "Do you have any dietary restrictions?",
+    question: "Do you follow a specific diet or have restrictions?",
     type: "select",
     options: [
       "None",
       "Vegetarian",
       "Vegan",
+      "Pescatarian",
+      "Keto",
       "Gluten-free",
       "Lactose intolerant",
-      "Keto",
+      "omnivore",
       "Other",
     ],
     required: true,
   },
   {
     id: 8,
-    question: "What is your primary goal?",
+    question: "What is your main goal?",
     type: "radio",
     options: [
-      "Lose weight",
+      "Lose fat",
       "Build muscle",
       "Maintain weight",
-      "Improve overall health",
-      "Increase energy levels",
+      "Improve health & wellbeing",
     ],
     required: true,
   },
   {
     id: 9,
-    question: "How many meals do you prefer per day?",
+    question: "How many meals do you prefer each day?",
     type: "select",
-    options: ["2 meals", "3 meals", "4 meals", "5 meals", "6 meals"],
+    options: ["2 (intermittent fasting)", "3 (standard)", "4 meals", "5 meals", "6 small meals"],
     required: true,
   },
   {
     id: 10,
-    question: "Do you have any health conditions?",
+    question: "Do you have any health conditions we should consider?",
     type: "select",
-    options: [
-      "None",
-      "Diabetes",
-      "High blood pressure",
-      "Heart disease",
-      "Thyroid issues",
-      "Other",
-    ],
+    options: ["None", "Diabetes", "High blood pressure", "Heart disease", "Thyroid issues", "Other"],
     required: true,
-    info: "This helps us customize your plan safely",
+    info: "This ensures your plan is safe and effective",
   },
   {
     id: 11,
-    question: "How much time can you dedicate to exercise per day?",
+    question: "How much time can you usually dedicate to exercise per day?",
     type: "select",
-    options: [
-      "Less than 30 minutes",
-      "30-45 minutes",
-      "45-60 minutes",
-      "More than 60 minutes",
-    ],
+    options: ["Less than 30 minutes", "30–60 minutes", "More than 1 hour"],
     required: true,
   },
   {
     id: 12,
-    question: "What type of exercises do you prefer?",
+    question: "What type of exercise do you enjoy the most?",
     type: "radio",
     options: [
       "Cardio (running, cycling, swimming)",
       "Strength training",
       "High-Intensity Interval Training (HIIT)",
-      "Low-impact exercises (yoga, pilates)",
-      "Mix of different exercises",
+      "Low-impact (yoga, pilates)",
+      "A mix (variety of workouts)",
     ],
     required: true,
   },
@@ -283,32 +235,30 @@ const Quiz: React.FC = () => {
 
     // --- TDEE ---
     let tdee;
-    switch (activityLevel) {
-      case "Sedentary (little or no exercise)":
-        tdee = bmr * 1.2;
-        break;
-      case "Lightly active":
-        tdee = bmr * 1.375;
-        break;
-      case "Moderately active":
-        tdee = bmr * 1.55;
-        break;
-      case "Very active":
-        tdee = bmr * 1.725;
-        break;
-      case "Extremely active":
-        tdee = bmr * 1.9;
-        break;
-      default:
-        tdee = bmr * 1.2;
+    if (activityLevel.includes("Sedentary")) {
+      tdee = bmr * 1.2;
+    } else if (activityLevel.includes("Lightly active")) {
+      tdee = bmr * 1.375;
+    } else if (activityLevel.includes("Moderately active")) {
+      tdee = bmr * 1.55;
+    } else if (activityLevel.includes("Very active")) {
+      tdee = bmr * 1.725;
+    } else if (activityLevel.includes("Extremely active")) {
+      tdee = bmr * 1.9;
+    } else {
+      tdee = bmr * 1.2; // Default to sedentary
     }
 
     // --- Goal Calories ---
     let goalCalories = tdee;
-    if (goal === "Lose weight") {
+    if (goal === "Lose fat") {
       goalCalories = tdee - 500; // ~0.5kg/week deficit
-    } else if (goal === "Gain weight") {
-      goalCalories = tdee + 500; // ~0.5kg/week surplus
+    } else if (goal === "Build muscle") {
+      goalCalories = tdee + 300; // Moderate surplus for muscle building
+    } else if (goal === "Maintain weight") {
+      goalCalories = tdee; // No change
+    } else if (goal === "Improve health & wellbeing") {
+      goalCalories = tdee - 200; // Slight deficit for health
     }
 
     // --- Estimate Time to Reach Goal ---

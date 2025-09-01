@@ -6,7 +6,7 @@ import {
   Loader,
   MessageCircle,
   Send,
-  Users
+  Users,
 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -82,6 +82,20 @@ const CommunityPhotos: React.FC = () => {
     }
   }, [photos]);
 
+  const getSignedUrl = async (filePath: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from("progress-photos")
+        .createSignedUrl(filePath, 3600); // 1 hour expiry
+
+      if (error) throw error;
+      return data.signedUrl;
+    } catch (error) {
+      console.error("Error getting signed URL:", error);
+      return null;
+    }
+  };
+
   const fetchPhotos = async () => {
     try {
       if (!user) return;
@@ -105,9 +119,22 @@ const CommunityPhotos: React.FC = () => {
 
       if (photosError) throw photosError;
 
+      // Get signed URLs for all photos
+      const urlPromises =
+        photosData?.map(async (photo) => {
+          const urlParts = photo.photo_url.split("/");
+          const filePath = `${user.id}/${photo.week_number}/${
+            urlParts[urlParts.length - 1]
+          }`;
+          const signedUrl = await getSignedUrl(filePath);
+          return { ...photo, photo_url: signedUrl || photo.photo_url };
+        }) || [];
+
+      const photosWithSignedUrls = await Promise.all(urlPromises);
+
       // Get likes for each photo
       const photosWithLikes = await Promise.all(
-        photosData.map(async (photo) => {
+        photosWithSignedUrls.map(async (photo) => {
           const { count: likesCount } = await supabase
             .from("photo_likes")
             .select("id", { count: "exact" })
@@ -138,6 +165,8 @@ const CommunityPhotos: React.FC = () => {
             .eq("photo_id", photo.id)
             .is("parent_id", null)
             .order("created_at", { ascending: true });
+
+          if (!comments) return null;
 
           // Get comment likes and replies
           const commentsWithDetails = await Promise.all(
@@ -171,6 +200,8 @@ const CommunityPhotos: React.FC = () => {
                 )
                 .eq("parent_id", comment.id)
                 .order("created_at", { ascending: true });
+
+              if (!replies) return null;
 
               // Get likes for each reply
               const repliesWithLikes = await Promise.all(
@@ -585,8 +616,11 @@ const CommunityPhotos: React.FC = () => {
                           </div>
                         )}
                       </div>
-                      <p className="font-medium text-gray-800 dark:text-white">
+                      <p className="flex flex-col font-medium text-gray-800 dark:text-white">
                         {photo.user.username}
+                        <span className="text-xs text-zinc-400 dark:text-gray-400">
+                          {formatDistanceToNow(photo.created_at)}
+                        </span>
                       </p>
                     </div>
                     {/* <button className="text-gray-500 dark:text-gray-400">

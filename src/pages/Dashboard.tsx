@@ -5,7 +5,7 @@ import {
   LinearScale,
   LineElement,
   PointElement,
-  Tooltip
+  Tooltip,
 } from "chart.js";
 import { motion } from "framer-motion";
 import {
@@ -17,9 +17,9 @@ import {
   Scale,
   Target,
   Trash2,
-  X
+  X,
 } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Line } from "react-chartjs-2";
 import DailyTip from "../components/DailyTip";
 import { useAuth } from "../contexts/AuthContext";
@@ -27,6 +27,7 @@ import { usePlatform } from "../contexts/PlatformContext";
 import { supabase } from "../lib/supabase";
 import { useColorTheme } from "../utils/colorUtils";
 import { logError } from "../utils/errorLogger";
+import { generateMealPlan } from "../utils/mealPlan";
 ChartJS.register(
   LineElement,
   PointElement,
@@ -46,15 +47,15 @@ interface HealthProfile {
 }
 
 // Add ActivityLog type
-  interface ActivityLog {
-    id: string;
-    activity_date: string;
-    activity_type: string;
-    duration_minutes?: number;
-    calories_burned?: number;
-    steps?: number;
-    notes?: string;
-  }
+interface ActivityLog {
+  id: string;
+  activity_date: string;
+  activity_type: string;
+  duration_minutes?: number;
+  calories_burned?: number;
+  steps?: number;
+  notes?: string;
+}
 
 const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -71,7 +72,6 @@ const Dashboard: React.FC = () => {
     notes: "",
   });
   const [logLoading, setLogLoading] = useState(false);
-  // const [logError, setLogError] = useState<string | null>(null);
   // Add state for editing/deleting
   const [editLog, setEditLog] = useState<ActivityLog | null>(null);
   const [editForm, setEditForm] = useState({
@@ -105,18 +105,30 @@ const Dashboard: React.FC = () => {
       if (error) {
         console.error("Error fetching activity logs:", error);
         try {
-          await logError('error', 'frontend', 'Failed to fetch activity logs', error.message, { userId: user.id });
+          await logError(
+            "error",
+            "frontend",
+            "Failed to fetch activity logs",
+            error.message,
+            { userId: user.id }
+          );
         } catch (logErr) {
-          console.error('Failed to log error:', logErr);
+          console.error("Failed to log error:", logErr);
         }
       }
     } catch (err) {
       console.error("Error fetching activity logs:", err);
       const errorMessage = err instanceof Error ? err.stack : String(err);
       try {
-        await logError('error', 'frontend', 'Exception while fetching activity logs', errorMessage, { userId: user.id });
+        await logError(
+          "error",
+          "frontend",
+          "Exception while fetching activity logs",
+          errorMessage,
+          { userId: user.id }
+        );
       } catch (logErr) {
-        console.error('Failed to log error:', logErr);
+        console.error("Failed to log error:", logErr);
       }
     }
   };
@@ -146,23 +158,195 @@ const Dashboard: React.FC = () => {
         if (error) {
           console.error("Error fetching quiz result:", error);
           try {
-            await logError('error', 'frontend', 'Failed to fetch quiz result', error.message, { userId: user.id });
+            await logError(
+              "error",
+              "frontend",
+              "Failed to fetch quiz result",
+              error.message,
+              { userId: user.id }
+            );
           } catch (logErr) {
-            console.error('Failed to log error:', logErr);
+            console.error("Failed to log error:", logErr);
           }
         }
       } catch (err) {
         console.error("Error fetching quiz result:", err);
         const errorMessage = err instanceof Error ? err.stack : String(err);
         try {
-          await logError('error', 'frontend', 'Exception while fetching quiz result', errorMessage, { userId: user.id });
+          await logError(
+            "error",
+            "frontend",
+            "Exception while fetching quiz result",
+            errorMessage,
+            { userId: user.id }
+          );
         } catch (logErr) {
-          console.error('Failed to log error:', logErr);
+          console.error("Failed to log error:", logErr);
         }
       }
     };
     fetchQuizResult();
   }, [user]);
+
+  // Memoized calculations to prevent regeneration on tab switches
+  const healthCalculations = useMemo(() => {
+    if (!healthProfile) return null; // fallback
+    // calculations using healthProfile.answers and healthProfile.calculations
+    const { answers, calculations } = healthProfile;
+
+    // Calculate weight status based on BMI
+    const getBMIStatus = (bmi: number) => {
+      if (bmi < 18.5) return { status: "Underweight", color: "text-blue-500" };
+      if (bmi < 25) return { status: "Normal", color: "text-green-500" };
+      if (bmi < 30) return { status: "Overweight", color: "text-yellow-500" };
+      return { status: "Obese", color: "text-red-500" };
+    };
+
+    const bmiStatus = getBMIStatus(calculations.bmi);
+
+    // Enhanced goal adjustment based on multiple factors
+    const getGoalAdjustment = () => {
+      const goal = answers[8] as string;
+      const activityLevel = answers[6] as string;
+      const age = answers[1] as number;
+      const gender = answers[2] as string;
+
+      let baseAdjustment = 0;
+
+      // Base goal adjustments
+      if (goal === "Lose fat") {
+        baseAdjustment = -500; // 1 lb per week deficit
+      } else if (goal === "Build muscle") {
+        baseAdjustment = 300; // Moderate surplus
+      } else if (goal === "Maintain weight") {
+        baseAdjustment = 0;
+      } else if (goal === "Improve health & wellbeing") {
+        baseAdjustment = -200; // Slight deficit for health
+      }
+
+      // Adjust based on activity level
+      if (
+        activityLevel.includes("Very active") ||
+        activityLevel.includes("Extremely active")
+      ) {
+        baseAdjustment += 200; // More calories for high activity
+      } else if (activityLevel.includes("Sedentary")) {
+        baseAdjustment -= 200; // Fewer calories for sedentary
+      }
+
+      // Adjust based on age (metabolism slows with age)
+      if (age > 40) {
+        baseAdjustment -= 100;
+      } else if (age > 50) {
+        baseAdjustment -= 200;
+      }
+
+      // Adjust based on gender (men typically need more calories)
+      if (gender === "Male") {
+        baseAdjustment += 100;
+      }
+
+      return baseAdjustment;
+    };
+
+    const goalAdjustment = getGoalAdjustment();
+    const dailyCalorieTarget = Math.round(calculations.tdee + goalAdjustment);
+
+    // Enhanced macro split based on goal, diet type, and activity level
+    const getMacroSplit = () => {
+      const goal = answers[8] as string;
+      const dietType = answers[7] as string;
+      const activityLevel = answers[6] as string;
+
+      let protein = 30,
+        carbs = 40,
+        fats = 30; // Default
+
+      // Goal-based adjustments
+      if (goal === "Lose fat") {
+        protein = 35;
+        carbs = 35;
+        fats = 30; // Higher protein for satiety
+      } else if (goal === "Build muscle") {
+        protein = 40;
+        carbs = 40;
+        fats = 20; // Higher protein and carbs
+      } else if (goal === "Maintain weight") {
+        protein = 30;
+        carbs = 40;
+        fats = 30; // Balanced
+      } else if (goal === "Improve health & wellbeing") {
+        protein = 30;
+        carbs = 35;
+        fats = 35; // Higher healthy fats
+      }
+
+      // Diet type adjustments
+      if (dietType === "Keto") {
+        protein = 25;
+        carbs = 5;
+        fats = 70; // Keto macros
+      } else if (dietType === "Vegan") {
+        protein = 25;
+        carbs = 45;
+        fats = 30; // Plant-based adjustments
+      } else if (dietType === "Vegetarian") {
+        protein = 30;
+        carbs = 40;
+        fats = 30; // Slightly higher protein
+      }
+
+      // Activity level adjustments
+      if (
+        activityLevel.includes("Very active") ||
+        activityLevel.includes("Extremely active")
+      ) {
+        carbs += 5; // More carbs for high activity
+        protein += 2; // Slightly more protein
+        fats -= 2; // Slightly less fat
+      }
+
+      return { protein, carbs, fats };
+    };
+
+    const macros = getMacroSplit();
+
+    return {
+      bmiStatus,
+      dailyCalorieTarget,
+      macros,
+      goalAdjustment,
+    };
+  }, [healthProfile]);
+
+  // Memoized meal plan to prevent regeneration on tab switches
+  const mealPlan = useMemo(() => {
+    if (!healthProfile) return null; // fallback
+    // calculations using healthProfile.answers and healthProfile.calculations
+    const { answers } = healthProfile;
+
+    if (!healthCalculations) return null;
+
+    const plan = generateMealPlan(
+      healthCalculations.dailyCalorieTarget,
+      healthCalculations.macros,
+      answers[7] as string, // restriction - will be normalized in the function
+      answers[8] as
+        | "Lose fat"
+        | "Build muscle"
+        | "Maintain weight"
+        | "Improve health & wellbeing", // goal
+      answers[9] as string | number, // meals per day - could be string like "2 (intermittent fasting)"
+      answers // Pass all quiz answers for better personalization
+    );
+
+    // Debug: Check if meal plan is empty
+    if (!plan || plan.length === 0) {
+      console.error("Meal plan is empty! Check the generation logic.");
+    }
+
+    return plan;
+  }, [healthProfile, healthCalculations]);
 
   if (!healthProfile) {
     return (
@@ -187,37 +371,8 @@ const Dashboard: React.FC = () => {
 
   const { answers, calculations } = healthProfile;
 
-  // Calculate weight status based on BMI
-  const getBMIStatus = (bmi: number) => {
-    if (bmi < 18.5) return { status: "Underweight", color: "text-blue-500" };
-    if (bmi < 25) return { status: "Normal", color: "text-green-500" };
-    if (bmi < 30) return { status: "Overweight", color: "text-yellow-500" };
-    return { status: "Obese", color: "text-red-500" };
-  };
-
-  const bmiStatus = getBMIStatus(calculations.bmi);
-
-  // Calculate daily calorie target based on goal
-  const goalAdjustment =
-    answers[8] === "Lose weight"
-      ? -500
-      : answers[8] === "Build muscle"
-      ? 300
-      : 0;
-  const dailyCalorieTarget = Math.round(calculations.tdee + goalAdjustment);
-
-  // Recommended macros based on goal
-  const getMacroSplit = () => {
-    if (answers[8] === "Lose weight") {
-      return { protein: 40, carbs: 30, fats: 30 };
-    }
-    if (answers[8] === "Build muscle") {
-      return { protein: 35, carbs: 45, fats: 20 };
-    }
-    return { protein: 30, carbs: 40, fats: 30 };
-  };
-
-  const macros = getMacroSplit();
+  // Extract values for easier access
+  const { bmiStatus, dailyCalorieTarget, macros } = healthCalculations;
 
   // Helper: Today's logs and summary
   const today = new Date().toISOString().slice(0, 10);
@@ -243,9 +398,10 @@ const Dashboard: React.FC = () => {
     setLogLoading(true);
 
     if (!user) return;
-    
+
     try {
-      const { activity_type, duration_minutes, calories_burned, steps, notes } = logForm;
+      const { activity_type, duration_minutes, calories_burned, steps, notes } =
+        logForm;
       const { error } = await supabase.from("user_activity_logs").insert([
         {
           user_id: user.id,
@@ -256,13 +412,25 @@ const Dashboard: React.FC = () => {
           notes,
         },
       ]);
-      
+
       if (error) {
-        await logError('error', 'backend', 'Failed to log activity. Please try again.', error.message, { userId: user.id });
+        await logError(
+          "error",
+          "backend",
+          "Failed to log activity. Please try again.",
+          error.message,
+          { userId: user.id }
+        );
         try {
-          await logError('error', 'frontend', 'Failed to log activity', error.message, { userId: user.id, activityType: activity_type });
+          await logError(
+            "error",
+            "frontend",
+            "Failed to log activity",
+            error.message,
+            { userId: user.id, activityType: activity_type }
+          );
         } catch (logErr) {
-          console.error('Failed to log error:', logErr);
+          console.error("Failed to log error:", logErr);
         }
       } else {
         setShowLogModal(false);
@@ -274,17 +442,29 @@ const Dashboard: React.FC = () => {
           notes: "",
         });
         try {
-          await logError('info', 'frontend', 'Activity logged successfully', undefined, { userId: user.id, activityType: activity_type });
+          await logError(
+            "info",
+            "frontend",
+            "Activity logged successfully",
+            undefined,
+            { userId: user.id, activityType: activity_type }
+          );
         } catch (logErr) {
-          console.error('Failed to log info:', logErr);
+          console.error("Failed to log info:", logErr);
         }
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.stack : String(err);
       try {
-        await logError('error', 'frontend', 'Exception while logging activity', errorMessage, { userId: user.id });
+        await logError(
+          "error",
+          "frontend",
+          "Exception while logging activity",
+          errorMessage,
+          { userId: user.id }
+        );
       } catch (logErr) {
-        console.error('Failed to log error:', logErr);
+        console.error("Failed to log error:", logErr);
       }
     } finally {
       setLogLoading(false);
@@ -302,14 +482,16 @@ const Dashboard: React.FC = () => {
       notes: log.notes || "",
     });
   };
+
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editLog || !user) return;
     setEditLoading(true);
     setEditError(null);
-    
+
     try {
-      const { activity_type, duration_minutes, calories_burned, steps, notes } = editForm;
+      const { activity_type, duration_minutes, calories_burned, steps, notes } =
+        editForm;
       const { error } = await supabase
         .from("user_activity_logs")
         .update({
@@ -321,71 +503,108 @@ const Dashboard: React.FC = () => {
         })
         .eq("id", editLog.id)
         .eq("user_id", user.id);
-        
+
       if (error) {
         setEditError("Failed to update activity. Please try again.");
         try {
-          await logError('error', 'frontend', 'Failed to update activity', error.message, { userId: user.id, activityId: editLog.id });
+          await logError(
+            "error",
+            "frontend",
+            "Failed to update activity",
+            error.message,
+            { userId: user.id, activityId: editLog.id }
+          );
         } catch (logErr) {
-          console.error('Failed to log error:', logErr);
+          console.error("Failed to log error:", logErr);
         }
       } else {
         setEditLog(null);
         fetchLogs(); // Refresh logs after edit
         try {
-          await logError('info', 'frontend', 'Activity updated successfully', undefined, { userId: user.id, activityId: editLog.id });
+          await logError(
+            "info",
+            "frontend",
+            "Activity updated successfully",
+            undefined,
+            { userId: user.id, activityId: editLog.id }
+          );
         } catch (logErr) {
-          console.error('Failed to log info:', logErr);
+          console.error("Failed to log info:", logErr);
         }
       }
     } catch (err) {
       setEditError("Failed to update activity. Please try again.");
       const errorMessage = err instanceof Error ? err.stack : String(err);
       try {
-        await logError('error', 'frontend', 'Exception while updating activity', errorMessage, { userId: user.id, activityId: editLog.id });
+        await logError(
+          "error",
+          "frontend",
+          "Exception while updating activity",
+          errorMessage,
+          { userId: user.id, activityId: editLog.id }
+        );
       } catch (logErr) {
-        console.error('Failed to log error:', logErr);
+        console.error("Failed to log error:", logErr);
       }
     } finally {
       setEditLoading(false);
     }
   };
+
   // Delete log handlers
   const handleDelete = async () => {
     if (!deleteLogId || !user) return;
     setDeleteLoading(true);
     setDeleteError(null);
-    
+
     try {
       const { error } = await supabase
         .from("user_activity_logs")
         .delete()
         .eq("id", deleteLogId)
         .eq("user_id", user.id);
-        
+
       if (error) {
         setDeleteError("Failed to delete activity. Please try again.");
         try {
-          await logError('error', 'frontend', 'Failed to delete activity', error.message, { userId: user.id, activityId: deleteLogId });
+          await logError(
+            "error",
+            "frontend",
+            "Failed to delete activity",
+            error.message,
+            { userId: user.id, activityId: deleteLogId }
+          );
         } catch (logErr) {
-          console.error('Failed to log error:', logErr);
+          console.error("Failed to log error:", logErr);
         }
       } else {
         setDeleteLogId(null);
         fetchLogs(); // Refresh logs after delete
         try {
-          await logError('info', 'frontend', 'Activity deleted successfully', undefined, { userId: user.id, activityId: deleteLogId });
+          await logError(
+            "info",
+            "frontend",
+            "Activity deleted successfully",
+            undefined,
+            { userId: user.id, activityId: deleteLogId }
+          );
         } catch (logErr) {
-          console.error('Failed to log info:', logErr);
+          console.error("Failed to log info:", logErr);
         }
       }
     } catch (err) {
       setDeleteError("Failed to delete activity. Please try again.");
       const errorMessage = err instanceof Error ? err.stack : String(err);
       try {
-        await logError('error', 'frontend', 'Exception while deleting activity', errorMessage, { userId: user.id, activityId: deleteLogId });
+        await logError(
+          "error",
+          "frontend",
+          "Exception while deleting activity",
+          errorMessage,
+          { userId: user.id, activityId: deleteLogId }
+        );
       } catch (logErr) {
-        console.error('Failed to log error:', logErr);
+        console.error("Failed to log error:", logErr);
       }
     } finally {
       setDeleteLoading(false);
@@ -655,19 +874,25 @@ const Dashboard: React.FC = () => {
                   </h3>
                   <ul className="space-y-3">
                     <li className="flex items-start">
-                    <Check className={`h-5 w-5 ${colorTheme.primaryText} mr-2 flex-shrink-0 mt-0.5`} />
+                      <Check
+                        className={`h-5 w-5 ${colorTheme.primaryText} mr-2 flex-shrink-0 mt-0.5`}
+                      />
                       <span className="text-gray-600 dark:text-gray-300">
                         Primary Goal: {answers[8] as string}
                       </span>
                     </li>
                     <li className="flex items-start">
-                      <Check className={`h-5 w-5 ${colorTheme.primaryText} mr-2 flex-shrink-0 mt-0.5`} />
+                      <Check
+                        className={`h-5 w-5 ${colorTheme.primaryText} mr-2 flex-shrink-0 mt-0.5`}
+                      />
                       <span className="text-gray-600 dark:text-gray-300">
                         Target Weight: {answers[5]} kg
                       </span>
                     </li>
                     <li className="flex items-start">
-                      <Check className={`h-5 w-5 ${colorTheme.primaryText} mr-2 flex-shrink-0 mt-0.5`} />
+                      <Check
+                        className={`h-5 w-5 ${colorTheme.primaryText} mr-2 flex-shrink-0 mt-0.5`}
+                      />
                       <span className="text-gray-600 dark:text-gray-300">
                         Preferred Exercise: {answers[12] as string}
                       </span>
@@ -681,7 +906,9 @@ const Dashboard: React.FC = () => {
                   </h3>
                   <ul className="space-y-3">
                     <li className="flex items-start">
-                      <Check className={`h-5 w-5 ${colorTheme.primaryText} mr-2 flex-shrink-0 mt-0.5`} />
+                      <Check
+                        className={`h-5 w-5 ${colorTheme.primaryText} mr-2 flex-shrink-0 mt-0.5`}
+                      />
                       <span className="text-gray-600 dark:text-gray-300">
                         Focus on{" "}
                         {answers[8] === "Lose weight"
@@ -692,13 +919,17 @@ const Dashboard: React.FC = () => {
                       </span>
                     </li>
                     <li className="flex items-start">
-                      <Check className={`h-5 w-5 ${colorTheme.primaryText} mr-2 flex-shrink-0 mt-0.5`} />
+                      <Check
+                        className={`h-5 w-5 ${colorTheme.primaryText} mr-2 flex-shrink-0 mt-0.5`}
+                      />
                       <span className="text-gray-600 dark:text-gray-300">
                         Exercise {answers[11] as string} per day
                       </span>
                     </li>
                     <li className="flex items-start">
-                      <Check className={`h-5 w-5 ${colorTheme.primaryText} mr-2 flex-shrink-0 mt-0.5`} />
+                      <Check
+                        className={`h-5 w-5 ${colorTheme.primaryText} mr-2 flex-shrink-0 mt-0.5`}
+                      />
                       <span className="text-gray-600 dark:text-gray-300">
                         {answers[9] as string} meals per day
                       </span>
@@ -741,18 +972,18 @@ const Dashboard: React.FC = () => {
                       <span className="font-semibold text-gray-800 dark:text-white">
                         {Math.round(
                           (dailyCalorieTarget * (macros.protein / 100)) / 4
-                        )}
+                        )}{" "}
                         g
                       </span>
                     </li>
                     <li className="flex justify-between items-center">
                       <span className="text-gray-600 dark:text-gray-300">
-                        Carbohydrates
+                        Carbs
                       </span>
                       <span className="font-semibold text-gray-800 dark:text-white">
                         {Math.round(
                           (dailyCalorieTarget * (macros.carbs / 100)) / 4
-                        )}
+                        )}{" "}
                         g
                       </span>
                     </li>
@@ -763,75 +994,129 @@ const Dashboard: React.FC = () => {
                       <span className="font-semibold text-gray-800 dark:text-white">
                         {Math.round(
                           (dailyCalorieTarget * (macros.fats / 100)) / 9
-                        )}
+                        )}{" "}
                         g
                       </span>
                     </li>
                   </ul>
                 </div>
 
-                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6">
-                  <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+                {/* Meal distribution */}
+                <div className="bg-gray-50 dark:bg-gray-700/50 text-gray-800 dark:text-white rounded-lg p-6">
+                  <h3 className="text-xl font-semibold mb-4">
                     Meal Distribution
                   </h3>
-                  <div className="space-y-4">
-                    {["Breakfast", "Lunch", "Dinner", "Snacks"].map(
-                      (meal) => (
-                        <div
-                          key={meal}
-                          className="flex justify-between items-center"
-                        >
-                          <span className="text-gray-600 dark:text-gray-300">
-                            {meal}
-                          </span>
-                          <span className="font-semibold text-gray-800 dark:text-white">
-                            {Math.round(
-                              dailyCalorieTarget *
-                                (meal === "Snacks" ? 0.1 : 0.3)
-                            )}{" "}
-                            kcal
-                          </span>
-                        </div>
-                      )
-                    )}
-                  </div>
+                  {mealPlan && mealPlan.length > 0 ? (
+                    mealPlan.map((meal) => (
+                      <div
+                        key={meal.name}
+                        className="flex justify-between items-center mb-2"
+                      >
+                        <span>{meal.name}</span>
+                        <span>{Math.round(meal.total.calories)} kcal</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">
+                      No meal distribution available
+                    </p>
+                  )}
                 </div>
               </div>
 
-              {/* Sample Meal Plan */}
+              {/* Meal plan */}
               <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6">
-                <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-6">
-                  Sample Meal Plan
+                <h3 className="text-xl font-semibold mb-6 text-gray-800 dark:text-white">
+                  Your Personalized Meal Plan
                 </h3>
-                <div className="space-y-6">
-                  {["Breakfast", "Lunch", "Dinner", "Snacks"].map(
-                    (meal) => (
-                      <div
-                        key={meal}
-                        className="border-b dark:border-gray-600 last:border-0 pb-6 last:pb-0"
-                      >
-                        <h4 className="font-medium text-gray-800 dark:text-white mb-3">
-                          {meal}
+                {mealPlan && mealPlan.length > 0 ? (
+                  mealPlan.map((meal) => (
+                    <div
+                      key={meal.name}
+                      className="mb-6 border-b pb-6 last:border-0 last:pb-0"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3">
+                        <h4 className="font-medium text-lg text-gray-800 dark:text-white">
+                          {meal.name}
                         </h4>
-                        <ul className="space-y-2">
-                          {[
-                            "Oatmeal with berries and nuts",
-                            "Greek yogurt with honey",
-                            "Whole grain toast with avocado",
-                          ].map((item, i) => (
-                            <li
-                              key={i}
-                              className="flex items-center text-gray-600 dark:text-gray-300"
+                        <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                          {meal.templateName && (
+                            <span className="italic">
+                              "{meal.templateName}"
+                            </span>
+                          )}
+                          {meal.difficulty && (
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs ${
+                                meal.difficulty === "easy"
+                                  ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                                  : meal.difficulty === "medium"
+                                  ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
+                                  : "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
+                              }`}
                             >
-                              <Check className={`h-4 w-4 ${colorTheme.primaryText} mr-2`} />
-                              {item}
-                            </li>
-                          ))}
-                        </ul>
+                              {meal.difficulty}
+                            </span>
+                          )}
+                          {meal.prepTime && (
+                            <span className="flex items-center">
+                              <Activity className="h-4 w-4 mr-1" />
+                              {meal.prepTime} min
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    )
-                  )}
-                </div>
+                      <ul className="space-y-2">
+                        {meal.items.map((item, i) => (
+                          <li
+                            key={i}
+                            className="flex flex-col sm:flex-row sm:items-center text-gray-600 dark:text-gray-300"
+                          >
+                            <div className="flex items-center">
+                              <Check
+                                className={`h-4 w-4 ${colorTheme.primaryText} mr-2`}
+                              />
+                              <span className="font-medium">{item.food}</span>
+                              <span className="ml-2 text-sm text-gray-500">
+                                ({item.grams}g)
+                              </span>
+                            </div>
+                            <div className="sm:ml-auto text-sm text-gray-500 dark:text-gray-300">
+                              {item.protein}g P • {item.carbs}g C • {item.fats}g
+                              F • {item.calories} kcal
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                        <div className="flex justify-between text-sm font-medium text-gray-700 dark:text-gray-300">
+                          <span>
+                            Total: {Math.round(meal.total.calories)} kcal
+                          </span>
+                          <span>
+                            {Math.round(meal.total.protein)}g P •{" "}
+                            {Math.round(meal.total.carbs)}g C •{" "}
+                            {Math.round(meal.total.fats)}g F
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-600 dark:text-gray-300 mb-4">
+                      No meal plan generated. This might be due to:
+                    </p>
+                    <ul className="text-sm text-gray-500 dark:text-gray-400 space-y-1">
+                      <li>• Missing quiz answers</li>
+                      <li>• Invalid diet type selection</li>
+                      <li>• No suitable meal templates found</li>
+                    </ul>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
+                      Check the browser console for debugging information.
+                    </p>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
@@ -886,19 +1171,25 @@ const Dashboard: React.FC = () => {
                   </h3>
                   <ul className="space-y-3">
                     <li className="flex items-center">
-                      <Check className={`h-5 w-5 ${colorTheme.primaryText} mr-2`} />
+                      <Check
+                        className={`h-5 w-5 ${colorTheme.primaryText} mr-2`}
+                      />
                       <span className="text-gray-600 dark:text-gray-300">
                         Complete 4-5 workout sessions
                       </span>
                     </li>
                     <li className="flex items-center">
-                      <Check className={`h-5 w-5 ${colorTheme.primaryText} mr-2`} />
+                      <Check
+                        className={`h-5 w-5 ${colorTheme.primaryText} mr-2`}
+                      />
                       <span className="text-gray-600 dark:text-gray-300">
                         Maintain consistent intensity
                       </span>
                     </li>
                     <li className="flex items-center">
-                      <Check className={`h-5 w-5 ${colorTheme.primaryText} mr-2`} />
+                      <Check
+                        className={`h-5 w-5 ${colorTheme.primaryText} mr-2`}
+                      />
                       <span className="text-gray-600 dark:text-gray-300">
                         Include both cardio and strength
                       </span>

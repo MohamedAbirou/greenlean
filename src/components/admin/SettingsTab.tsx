@@ -707,7 +707,7 @@ const SettingsTab: React.FC = () => {
               </button>
               <button
                 onClick={clearLogs}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center"
               >
                 <Trash2 className="h-4 w-4" />
                 <span className="ml-2">Clear All</span>
