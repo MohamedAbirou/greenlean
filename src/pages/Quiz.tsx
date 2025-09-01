@@ -261,17 +261,19 @@ const Quiz: React.FC = () => {
   };
 
   const calculateAndNavigate = async () => {
-    const weight = parseFloat(answers[1] as string);
-    const height = parseFloat(answers[2] as string);
-    const age = parseInt(answers[3] as string);
-    const gender = answers[4] as string;
+    const weight = parseFloat(answers[3] as string); // current weight
+    const height = parseFloat(answers[4] as string);
+    const goalWeight = parseFloat(answers[5] as string);
+    const age = parseInt(answers[1] as string);
+    const gender = answers[2] as string;
     const activityLevel = answers[6] as string;
+    const goal = answers[8] as string; // "Lose weight", "Gain weight", "Maintain"
 
-    // Calculate BMI
+    // --- BMI ---
     const heightInMeters = height / 100;
     const bmi = weight / (heightInMeters * heightInMeters);
 
-    // Calculate BMR using Mifflin-St Jeor Equation
+    // --- BMR ---
     let bmr;
     if (gender === "Male") {
       bmr = 10 * weight + 6.25 * height - 5 * age + 5;
@@ -279,10 +281,10 @@ const Quiz: React.FC = () => {
       bmr = 10 * weight + 6.25 * height - 5 * age - 161;
     }
 
-    // Calculate TDEE based on activity level
+    // --- TDEE ---
     let tdee;
     switch (activityLevel) {
-      case "Sedentary":
+      case "Sedentary (little or no exercise)":
         tdee = bmr * 1.2;
         break;
       case "Lightly active":
@@ -301,10 +303,31 @@ const Quiz: React.FC = () => {
         tdee = bmr * 1.2;
     }
 
+    // --- Goal Calories ---
+    let goalCalories = tdee;
+    if (goal === "Lose weight") {
+      goalCalories = tdee - 500; // ~0.5kg/week deficit
+    } else if (goal === "Gain weight") {
+      goalCalories = tdee + 500; // ~0.5kg/week surplus
+    }
+
+    // --- Estimate Time to Reach Goal ---
+    const weightDiff = goalWeight - weight; // negative if losing
+    const caloriesPerKg = 7700; // ~7700 kcal = 1kg fat
+    const weeklyChange = (goalCalories - tdee) * 7; // kcal/week
+    let estimatedWeeks: number | null = null;
+
+    if (weeklyChange !== 0) {
+      estimatedWeeks = Math.abs((weightDiff * caloriesPerKg) / weeklyChange);
+    }
+
     const calculations = {
       bmi: Math.round(bmi * 10) / 10,
       bmr: Math.round(bmr),
       tdee: Math.round(tdee),
+      goalCalories: Math.round(goalCalories),
+      goalWeight,
+      estimatedWeeks: estimatedWeeks ? Math.round(estimatedWeeks) : null,
     };
 
     // Save to localStorage
@@ -324,13 +347,21 @@ const Quiz: React.FC = () => {
 
         if (error) {
           console.error("Error saving quiz result:", error);
-          await logFrontendError("Failed to save quiz result", error.message, { userId: user.id });
+          await logFrontendError("Failed to save quiz result", error.message, {
+            userId: user.id,
+          });
         } else {
-          await logInfo('frontend', 'Quiz result saved successfully', { userId: user.id });
+          await logInfo("frontend", "Quiz result saved successfully", {
+            userId: user.id,
+          });
         }
       } catch (err) {
         console.error("Error saving quiz result:", err);
-        await logFrontendError("Exception while saving quiz result", err instanceof Error ? err : String(err), { userId: user.id });
+        await logFrontendError(
+          "Exception while saving quiz result",
+          err instanceof Error ? err : String(err),
+          { userId: user.id }
+        );
       }
     }
 
@@ -460,7 +491,9 @@ const Quiz: React.FC = () => {
               animate={{ opacity: 1, scale: 1 }}
               className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 text-center"
             >
-              <LogIn className={`h-16 w-16 ${colorTheme.primaryText} mx-auto mb-6`} />
+              <LogIn
+                className={`h-16 w-16 ${colorTheme.primaryText} mx-auto mb-6`}
+              />
               <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
                 Sign In to Take the Quiz
               </h2>
@@ -580,7 +613,9 @@ const Quiz: React.FC = () => {
                 transition={{ duration: 0.5 }}
                 className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 text-center"
               >
-                <div className={`w-16 h-16 ${colorTheme.primaryBg}/20 dark:bg-${colorTheme.primaryDark}/20 rounded-full flex items-center justify-center mx-auto mb-6`}>
+                <div
+                  className={`w-16 h-16 ${colorTheme.primaryBg}/20 dark:bg-${colorTheme.primaryDark}/20 rounded-full flex items-center justify-center mx-auto mb-6`}
+                >
                   <Check className={`h-8 w-8 ${colorTheme.primaryText}`} />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
@@ -591,7 +626,9 @@ const Quiz: React.FC = () => {
                   exercise plan that fits your goals and lifestyle.
                 </p>
                 <div className="flex justify-center">
-                  <div className={`w-8 h-8 border-4 ${colorTheme.primaryBorder} border-t-transparent rounded-full animate-spin`}></div>
+                  <div
+                    className={`w-8 h-8 border-4 ${colorTheme.primaryBorder} border-t-transparent rounded-full animate-spin`}
+                  ></div>
                 </div>
               </motion.div>
             )}
