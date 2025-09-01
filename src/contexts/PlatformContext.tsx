@@ -10,12 +10,12 @@ interface PlatformSettings {
 
 interface PlatformContextType {
   settings: PlatformSettings | null;
-  refresh: () => Promise<void>;
+  refreshSettings: () => Promise<void>;
 }
 
 const PlatformContext = createContext<PlatformContextType>({
   settings: null,
-  refresh: async () => {
+  refreshSettings: async () => {
     // Default empty async function
   },
 });
@@ -25,7 +25,7 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [settings, setSettings] = useState<PlatformSettings | null>(null);
 
-  const refresh = async () => {
+  const refreshSettings = async () => {
     try {
       const { data } = await supabase
         .from("platform_settings")
@@ -55,14 +55,15 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   useEffect(() => {
-    refresh();
+    refreshSettings();
   }, []);
 
   return (
-    <PlatformContext.Provider value={{ settings, refresh }}>
+    <PlatformContext.Provider value={{ settings, refreshSettings }}>
       {children}
     </PlatformContext.Provider>
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const usePlatform = () => useContext(PlatformContext);

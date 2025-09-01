@@ -7,13 +7,17 @@ import RewardsTab from '../components/admin/RewardsTab';
 import SettingsTab from '../components/admin/SettingsTab';
 import UsersTab from '../components/admin/UsersTab';
 import { useAuth } from '../contexts/AuthContext';
+import { usePlatform } from '../contexts/PlatformContext';
 import { supabase } from '../lib/supabase';
+import { useColorTheme } from '../utils/colorUtils';
 
 const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const platform = usePlatform();
+  const colorTheme = useColorTheme(platform.settings?.theme_color);
 
   useEffect(() => {
     checkAdminStatus();
@@ -41,7 +45,7 @@ const AdminDashboard: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
-        <Loader className="h-8 w-8 animate-spin text-green-500" />
+        <Loader className={`h-8 w-8 animate-spin ${colorTheme.primaryText}`} />
       </div>
     );
   }
@@ -67,13 +71,13 @@ const AdminDashboard: React.FC = () => {
       case 'overview':
         return <OverviewTab />;
       case 'challenges':
-        return <ChallengesTab />;
+        return <ChallengesTab colorTheme={colorTheme} />;
       case 'users':
-        return <UsersTab />;
+        return <UsersTab colorTheme={colorTheme} />;
       case 'rewards':
-        return <RewardsTab />;
+        return <RewardsTab colorTheme={colorTheme} />;
       case 'settings':
-        return <SettingsTab />;
+        return <SettingsTab colorTheme={colorTheme} />;
       default:
         return null;
     }
@@ -86,7 +90,7 @@ const AdminDashboard: React.FC = () => {
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <Settings className="h-8 w-8 text-green-500 mr-3" />
+              <Settings className={`h-8 w-8 ${colorTheme.primaryText} mr-3`} />
               <div>
                 <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
                   Admin Dashboard
@@ -100,7 +104,7 @@ const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Navigation Tabs */}
-        <AdminNav activeTab={activeTab} setActiveTab={setActiveTab} />
+        <AdminNav activeTab={activeTab} setActiveTab={setActiveTab} colorTheme={colorTheme} />
 
         {/* Tab Content */}
         <div className="mb-8">

@@ -1,18 +1,21 @@
-import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
-  Settings,
+  AlertTriangle,
   Bell,
+  Eye,
+  Loader,
+  Save,
+  Settings,
   Shield,
   PenTool as Tool,
-  AlertTriangle,
-  Clock,
+  Trash2,
   Upload,
-  Save,
-  Loader,
 } from "lucide-react";
-import { supabase } from "../../lib/supabase";
+import React, { useEffect, useState } from "react";
 import { usePlatform } from "../../contexts/PlatformContext";
+import { supabase } from "../../lib/supabase";
+import { useColorTheme } from "../../utils/colorUtils";
+import { logFrontendError, logInfo } from "../../utils/errorLogger";
 
 interface PlatformSettings {
   id: string;
@@ -32,20 +35,29 @@ interface PlatformSettings {
   notification_frequency: "daily" | "weekly" | "monthly";
 }
 
+interface Log {
+  id: string;
+  level: "error" | "warning" | "info" | "debug" | string;
+  message: string;
+  source: string;
+  created_at: string;
+}
+
 const SettingsTab: React.FC = () => {
   const [settings, setSettings] = useState<PlatformSettings | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<string>("customization");
-  const [logs, setLogs] = useState<string[]>([]);
-  const [showLogs, setShowLogs] = useState(false);
+  const [logs, setLogs] = useState<Log[]>([]);
+  const [logsLoading, setLogsLoading] = useState(false);
 
   const platform = usePlatform();
+  const colorTheme = useColorTheme(platform.settings?.theme_color);
 
   useEffect(() => {
     fetchSettings();
+    fetchLogs();
   }, []);
 
   useEffect(() => {
@@ -86,34 +98,65 @@ const SettingsTab: React.FC = () => {
     }
   };
 
-  const handleSettingChange = (key: keyof PlatformSettings, value: any) => {
+  const handleSettingChange = (key: keyof PlatformSettings, value: unknown) => {
     if (!settings) return;
     setSettings({ ...settings, [key]: value });
   };
 
-  const handleSave = async () => {
-    if (!settings) return;
-    setSaving(true);
+  const handleSaveSettings = async (section: string) => {
+    setLoading(true);
     setError(null);
     setSuccess(null);
 
     try {
+      let updateData: Partial<PlatformSettings> = {};
+      if (!settings) return;
+      if (section === "customization") {
+        updateData = {
+          id: settings.id,
+          platform_name: settings.platform_name,
+          theme_color: settings.theme_color,
+          logo_url: settings.logo_url,
+        };
+      } else if (section === "security") {
+        updateData = {
+          id: settings.id,
+          admin_2fa_required: settings.admin_2fa_required,
+          account_lockout_attempts: settings.account_lockout_attempts,
+          session_timeout_minutes: settings.session_timeout_minutes,
+        };
+      } else if (section === "notifications") {
+        updateData = {
+          id: settings.id,
+          email_notifications_enabled: settings.email_notifications_enabled,
+          notification_frequency: settings.notification_frequency,
+        };
+      }
+
       const { error } = await supabase
         .from("platform_settings")
-        .update(settings)
-        .eq("id", settings.id);
+        .upsert([updateData], { onConflict: "id" });
 
-      if (error) throw error;
-      setSuccess("Settings saved successfully");
-
-      if (platform?.refresh) {
-        await platform.refresh(); // Add refresh method to your PlatformContext
+      if (error) {
+        setError(`Failed to save ${section} settings`);
+        await logFrontendError(
+          `Failed to save ${section} settings`,
+          error.message
+        );
+      } else {
+        setSuccess(`${section} settings saved successfully`);
+        await logInfo("frontend", `${section} settings updated successfully`);
+        // Refresh platform settings
+        platform.refreshSettings();
       }
-    } catch (error) {
-      console.error("Error saving settings:", error);
-      setError("Failed to save settings");
+    } catch (err) {
+      setError(`Failed to save ${section} settings`);
+      await logFrontendError(
+        `Exception while saving ${section} settings`,
+        err instanceof Error ? err : String(err)
+      );
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   };
 
@@ -158,6 +201,59 @@ const SettingsTab: React.FC = () => {
     }
   };
 
+  const fetchLogs = async () => {
+    setLogsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("admin_logs")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      console.log(data);
+
+      if (error) {
+        await logFrontendError("Failed to fetch admin logs", error.message);
+      } else {
+        setLogs(data || []);
+        await logInfo("frontend", "Admin logs fetched successfully");
+      }
+    } catch (err) {
+      await logFrontendError(
+        "Exception while fetching admin logs",
+        err instanceof Error ? err : String(err)
+      );
+    } finally {
+      setLogsLoading(false);
+    }
+  };
+
+  const clearLogs = async () => {
+    if (!confirm("Are you sure you want to clear all logs?")) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("admin_logs")
+        .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000");
+
+      if (error) {
+        await logFrontendError("Failed to clear admin logs", error.message);
+      } else {
+        setLogs([]);
+        setSuccess("All logs cleared successfully");
+        await logInfo("frontend", "Admin logs cleared successfully");
+      }
+    } catch (err) {
+      await logFrontendError(
+        "Exception while clearing admin logs",
+        err instanceof Error ? err : String(err)
+      );
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-6">
@@ -182,21 +278,16 @@ const SettingsTab: React.FC = () => {
           Platform Settings
         </h2>
         <button
-          onClick={handleSave}
-          disabled={saving}
-          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+          onClick={() => handleSaveSettings(activeSection)}
+          className={`px-4 py-2 ${colorTheme.primaryBg} text-white rounded-lg hover:${colorTheme.primaryHover} transition-colors flex items-center`}
+          disabled={loading}
         >
-          {saving ? (
-            <>
-              <Loader className="animate-spin -ml-1 mr-2 h-5 w-5" />
-              Saving...
-            </>
+          {loading ? (
+            <Loader className="h-4 w-4 animate-spin mr-2" />
           ) : (
-            <>
-              <Save className="h-5 w-5 mr-2" />
-              Save Changes
-            </>
+            <Save className="h-4 w-4 mr-2" />
           )}
+          Save Changes
         </button>
       </div>
 
@@ -597,34 +688,78 @@ const SettingsTab: React.FC = () => {
 
         {/* Logs Section */}
         {activeSection === "logs" && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="space-y-6"
-          >
+          <motion.div animate={{ opacity: 1 }} className="space-y-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-medium dark:text-white">
                 System Logs
               </h3>
               <button
-                onClick={() => setShowLogs(!showLogs)}
-                className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                onClick={fetchLogs}
+                className={`px-4 py-2 ${colorTheme.primaryBg} text-white rounded-lg hover:${colorTheme.primaryHover} transition-colors flex items-center`}
+                disabled={logsLoading}
               >
-                {showLogs ? "Hide" : "Show"} Logs
+                {logsLoading ? (
+                  <Loader className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+                <span className="ml-2">Refresh</span>
+              </button>
+              <button
+                onClick={clearLogs}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span className="ml-2">Clear All</span>
               </button>
             </div>
 
-            {showLogs && (
-              <div className="bg-gray-900 text-green-400 font-mono text-sm p-4 rounded-lg h-96 overflow-auto">
-                <div className="space-y-2">
-                  {logs.length === 0 ? (
-                    <p className="text-gray-500">No logs available</p>
-                  ) : (
-                    logs.map((log, index) => <p key={index}>{log}</p>)
-                  )}
-                </div>
+            <div className="bg-gray-100/50 dark:bg-gray-900 font-mono text-sm p-4 rounded-lg h-96 overflow-auto">
+              <div className="space-y-2">
+                {logs.length === 0 ? (
+                  <p className="text-gray-500">No logs available</p>
+                ) : (
+                  logs.map((log) => {
+                    // Determine color based on log level
+                    let levelColor = "";
+                    switch (log.level.toLowerCase()) {
+                      case "error":
+                        levelColor = "text-red-500";
+                        break;
+                      case "warning":
+                        levelColor = "text-yellow-400";
+                        break;
+                      case "info":
+                        levelColor = "text-blue-400";
+                        break;
+                      case "debug":
+                        levelColor = "text-gray-400";
+                        break;
+                      default:
+                        levelColor = "text-green-400"; // fallback
+                    }
+
+                    return (
+                      <div
+                        key={log.id}
+                        className="border-b border-gray-700 py-1"
+                      >
+                        <p className={`${levelColor}`}>
+                          <span className="font-semibold">
+                            [{log.level}]
+                          </span>{" "}
+                          {log.message}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(log.created_at).toLocaleString()} —{" "}
+                          {log.source}
+                        </p>
+                      </div>
+                    );
+                  })
+                )}
               </div>
-            )}
+            </div>
           </motion.div>
         )}
       </div>

@@ -1,10 +1,12 @@
+import { motion } from "framer-motion";
+import { ArrowRight, Award, Dumbbell, Heart, Utensils } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { ArrowRight, Heart, Utensils, Dumbbell, Award } from "lucide-react";
 
 // Components
 import TestimonialCard from "../components/ui/TestimonialCard";
+import { usePlatform } from "../contexts/PlatformContext";
+import { useColorTheme } from "../utils/colorUtils";
 
 const Home: React.FC = () => {
   const benefits = [
@@ -61,6 +63,9 @@ const Home: React.FC = () => {
     },
   ];
 
+  const platform = usePlatform();
+  const colorTheme = useColorTheme(platform.settings?.theme_color);
+
   return (
     <div>
       {/* Hero Section */}
@@ -83,7 +88,7 @@ const Home: React.FC = () => {
               transition={{ duration: 0.5 }}
             >
               Your Journey to a{" "}
-              <span className="text-green-400">Healthier You</span> Starts Here
+              <span className={`${colorTheme.primaryText}`}>Healthier You</span> Starts Here
             </motion.h1>
 
             <motion.p
@@ -105,15 +110,15 @@ const Home: React.FC = () => {
             >
               <Link
                 to="/quiz"
-                className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full transition-colors duration-300 flex items-center justify-center"
+                className={`inline-flex items-center px-8 py-4 ${colorTheme.primaryBg} text-white rounded-full font-semibold text-lg hover:${colorTheme.primaryHover} transition-colors duration-300 shadow-lg hover:shadow-xl`}
               >
-                Take the Quiz <ArrowRight className="ml-2 h-5 w-5" />
+                Take the Quiz <ArrowRight className="ml-2 h-6 w-6" />
               </Link>
               <Link
                 to="/diet-plans"
-                className="px-6 py-3 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-full transition-colors duration-300 flex items-center justify-center"
+                className={`inline-flex items-center px-6 py-3 ${colorTheme.primaryBg} text-white rounded-full font-medium hover:${colorTheme.primaryHover} transition-colors`}
               >
-                Explore Diet Plans
+                View Plans <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </motion.div>
           </div>
@@ -199,7 +204,7 @@ const Home: React.FC = () => {
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 viewport={{ once: true }}
               >
-                <div className="text-5xl font-bold text-green-200 dark:text-green-400 absolute top-0 left-0">
+                <div className={`text-5xl font-bold ${colorTheme.primaryText} dark:${colorTheme.primaryDark} absolute top-0 left-0`}>
                   {step.number}
                 </div>
                 <div className="relative z-10 mt-8">
@@ -217,9 +222,9 @@ const Home: React.FC = () => {
           <div className="text-center mt-12">
             <Link
               to="/quiz"
-              className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full transition-colors duration-300 inline-flex items-center"
+              className={`inline-flex items-center px-6 py-3 ${colorTheme.primaryBg} text-white rounded-full font-medium hover:${colorTheme.primaryHover} transition-colors`}
             >
-              Start Now <ArrowRight className="ml-2 h-5 w-5" />
+              Start Your Journey <ArrowRight className="ml-2 h-6 w-6" />
             </Link>
           </div>
         </div>
@@ -239,14 +244,14 @@ const Home: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <TestimonialCard key={index} testimonial={testimonial} />
+              <TestimonialCard key={index} testimonial={testimonial} colorTheme={colorTheme}/>
             ))}
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-green-500">
+      <section className={`py-16 ${colorTheme.primaryBg}`}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center text-white">
             <h2 className="text-3xl font-bold mb-4">
@@ -258,7 +263,7 @@ const Home: React.FC = () => {
             </p>
             <Link
               to="/quiz"
-              className="px-8 py-4 bg-white text-green-500 font-bold rounded-full hover:bg-gray-100 transition-colors duration-300 inline-flex items-center"
+              className={`inline-flex items-center px-8 py-4 ${colorTheme.primaryBg} text-white rounded-full font-bold transition-colors duration-300 inline-flex items-center`}
             >
               Take the Quiz <ArrowRight className="ml-2 h-5 w-5" />
             </Link>

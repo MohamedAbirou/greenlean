@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Search } from 'lucide-react';
+import { Edit, Plus, Search, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { ColorTheme } from '../../utils/colorUtils';
 import ChallengeForm from './ChallengeForm';
 
 interface Challenge {
@@ -37,7 +38,7 @@ interface ChallengeParticipant {
   streak_count: number;
 }
 
-const ChallengesTab: React.FC = () => {
+const ChallengesTab = ({colorTheme}: ColorTheme) => {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [selectedChallenge, setSelectedChallenge] = useState<string | null>(null);
   const [participants, setParticipants] = useState<ChallengeParticipant[]>([]);
@@ -176,7 +177,7 @@ const ChallengesTab: React.FC = () => {
         <h2 className="text-2xl font-bold dark:text-white">Challenge Management</h2>
         <button
           onClick={() => setShowForm(true)}
-          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center"
+          className={`px-4 py-2 ${colorTheme.primaryBg} text-white rounded-lg hover:${colorTheme.primaryBg} flex items-center`}
         >
           <Plus className="h-5 w-5 mr-2" />
           Create Challenge
@@ -330,6 +331,7 @@ const ChallengesTab: React.FC = () => {
             setShowForm(false);
             setEditingChallenge(null);
           }}
+          colorTheme={colorTheme}
         />
       )}
     </div>

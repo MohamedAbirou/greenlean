@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Lightbulb, BookmarkPlus, BookmarkCheck, Share2 } from "lucide-react";
+import { BookmarkCheck, BookmarkPlus, Lightbulb, Share2 } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../lib/supabase";
+import { ColorTheme } from "../utils/colorUtils";
 
 interface Tip {
   id: number;
@@ -48,8 +49,11 @@ const tips: Tip[] = [
       "Drink water throughout the day. A good rule is to consume half your body weight (in pounds) in ounces of water daily.",
   },
 ];
+interface DailyTipProps {
+  colorTheme: ColorTheme;
+}
 
-const DailyTip: React.FC = () => {
+const DailyTip: React.FC<DailyTipProps> = ({colorTheme}) => {
   const [currentTip, setCurrentTip] = useState<Tip | null>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
@@ -146,12 +150,12 @@ const DailyTip: React.FC = () => {
       transition={{ duration: 0.5 }}
       className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 relative overflow-hidden"
     >
-      <div className="absolute top-0 left-0 w-2 h-full bg-green-500" />
+      <div className={`absolute top-0 left-0 w-2 h-full ${colorTheme.primaryBg}`} />
 
       <div className="flex items-start justify-between">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
-            <Lightbulb className="h-6 w-6 text-green-500" />
+          <div className={`p-2 ${colorTheme.primaryBg}/20 dark:bg-${colorTheme.primaryDark} rounded-lg`}>
+            <Lightbulb className={`h-6 w-6 ${colorTheme.primaryText}`} />
           </div>
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
             Tip of the Day
@@ -165,9 +169,9 @@ const DailyTip: React.FC = () => {
             title={isBookmarked ? "Remove from saved tips" : "Save tip"}
           >
             {isBookmarked ? (
-              <BookmarkCheck className="h-5 w-5 text-green-500" />
+              <BookmarkCheck className={`h-5 w-5 ${colorTheme.primaryText}`} />
             ) : (
-              <BookmarkPlus className="h-5 w-5 text-gray-400 hover:text-green-500" />
+              <BookmarkPlus className={`h-5 w-5 text-gray-400 hover:${colorTheme.primaryText}`} />
             )}
           </button>
 
@@ -176,7 +180,7 @@ const DailyTip: React.FC = () => {
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
             title="Share tip"
           >
-            <Share2 className="h-5 w-5 text-gray-400 hover:text-green-500" />
+            <Share2 className={`h-5 w-5 text-gray-400 hover:${colorTheme.primaryText}`} />
           </button>
         </div>
       </div>

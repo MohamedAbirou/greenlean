@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Calendar, Activity, Scale, Flame, Loader } from 'lucide-react';
+import { Activity, ArrowLeft, Calendar, Flame, Loader, Scale } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { usePlatform } from '../contexts/PlatformContext';
 import { supabase } from '../lib/supabase';
+import { useColorTheme } from '../utils/colorUtils';
 
 interface QuizResult {
   id: string;
@@ -23,6 +25,8 @@ const QuizResult: React.FC = () => {
   const { user } = useAuth();
   const [result, setResult] = useState<QuizResult | null>(null);
   const [loading, setLoading] = useState(true);
+  const platform = usePlatform();
+  const colorTheme = useColorTheme(platform.settings?.theme_color);
 
   useEffect(() => {
     const fetchQuizResult = async () => {
@@ -95,7 +99,7 @@ const QuizResult: React.FC = () => {
           <div className="mb-8">
             <Link 
               to="/quiz-history" 
-              className="inline-flex items-center text-green-500 hover:text-green-600"
+              className={`inline-flex items-center ${colorTheme.primaryText} hover:${colorTheme.primaryText}`}
             >
               <ArrowLeft className="mr-2 h-5 w-5" />
               Back to Quiz History
@@ -132,7 +136,7 @@ const QuizResult: React.FC = () => {
                     <span className="text-gray-600 dark:text-gray-300">BMI</span>
                   </div>
                   <div className="text-2xl font-bold text-gray-800 dark:text-white">
-                    {result.calculations.bmi.toFixed(1)}
+                    {result.calculations.bmi?.toFixed(1)}
                   </div>
                   <div className={`text-sm ${bmiStatus.color}`}>
                     {bmiStatus.status}

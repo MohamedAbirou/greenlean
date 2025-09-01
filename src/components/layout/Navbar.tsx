@@ -18,8 +18,10 @@ import {
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { usePlatform } from "../../contexts/PlatformContext";
 import { supabase } from "../../lib/supabase";
 import { useThemeStore } from "../../store/themeStore";
+import { useColorTheme } from "../../utils/colorUtils";
 import AuthModal from "../auth/AuthModal";
 
 interface NavbarProps {
@@ -41,6 +43,8 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled }) => {
   const location = useLocation();
   const { isDarkMode, toggleTheme } = useThemeStore();
   const { user, signOut } = useAuth();
+  const platform = usePlatform();
+  const colorTheme = useColorTheme(platform.settings?.theme_color);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -151,13 +155,21 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled }) => {
           <div className="flex justify-between items-center py-4">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2">
-              <Leaf size={32} className="text-green-500" />
+              {platform.settings?.logo_url ? (
+                <img
+                  src={platform.settings.logo_url}
+                  alt="Logo"
+                  className="w-8 h-8 object-contain"
+                  style={{ filter: isDarkMode ? "invert(1)" : undefined }}
+                />
+              ) : (
+                <Leaf size={32} className={colorTheme.primaryText} />
+              )}
               <span
-                className={`text-xl font-bold ${
-                  isDarkMode ? "text-white" : "text-green-500"
-                }`}
+                className="text-xl font-bold"
+                style={{ color: platform.settings?.theme_color || undefined }}
               >
-                GreenLean
+                {platform.settings?.platform_name || "GreenLean"}
               </span>
             </Link>
 
@@ -167,12 +179,10 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled }) => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`text-base font-medium transition-colors hover:text-green-500 ${
+                  className={`text-base font-medium transition-colors ${
                     location.pathname === item.path
-                      ? "text-green-500"
-                      : isDarkMode
-                      ? "text-gray-300"
-                      : "text-gray-800"
+                      ? colorTheme.primaryText
+                      : "text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
                   }`}
                 >
                   {item.label}
@@ -283,7 +293,7 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled }) => {
               ) : (
                 <button
                   onClick={() => setShowAuthModal(true)}
-                  className="flex items-center px-4 py-2 rounded-full bg-green-500 text-white hover:bg-green-600 transition-colors duration-300"
+                  className={`flex items-center px-4 py-2 rounded-full ${colorTheme.primaryBg} text-white hover:${colorTheme.primaryHover} transition-colors duration-300`}
                 >
                   <UserCircle size={18} className="mr-2" />
                   <span>Sign In</span>
@@ -344,12 +354,10 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled }) => {
                     <Link
                       key={item.path}
                       to={item.path}
-                      className={`text-base font-medium py-2 transition-colors hover:text-green-500 ${
+                      className={`text-base font-medium py-2 transition-colors ${
                         location.pathname === item.path
-                          ? "text-green-500"
-                          : isDarkMode
-                          ? "text-gray-300"
-                          : "text-gray-800"
+                          ? colorTheme.primaryText
+                          : "text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
                       }`}
                       onClick={() => setIsOpen(false)}
                     >
@@ -362,7 +370,7 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled }) => {
                         setIsOpen(false);
                         setShowAuthModal(true);
                       }}
-                      className="flex items-center justify-center px-4 py-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors duration-300"
+                      className="flex items-center justify-center px-4 py-2 rounded-full bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors duration-300"
                     >
                       <UserCircle size={18} className="mr-2" />
                       <span>Sign In</span>

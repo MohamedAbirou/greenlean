@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { User, Mail, Camera, Loader } from 'lucide-react';
+import { Camera, Loader, Mail, User } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { usePlatform } from '../contexts/PlatformContext';
 import { supabase } from '../lib/supabase';
+import { useColorTheme } from '../utils/colorUtils';
 
 interface Profile {
   full_name: string;
@@ -21,6 +23,9 @@ const Profile: React.FC = () => {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const platform = usePlatform();
+  const colorTheme = useColorTheme(platform.settings?.theme_color);
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -35,8 +40,8 @@ const Profile: React.FC = () => {
         if (error) throw error;
 
         setProfile(data);
-        setFullName(data.full_name || '');
-        setAvatarUrl(data.avatar_url);
+        setFullName(data?.full_name || '');
+        setAvatarUrl(data?.avatar_url);
       } catch (error) {
         console.error('Error fetching profile:', error);
       } finally {
@@ -295,7 +300,7 @@ const Profile: React.FC = () => {
                   <button
                     type="submit"
                     disabled={updating}
-                    className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                    className={`px-6 py-2 ${colorTheme.primaryBg} text-white rounded-lg ${colorTheme.primaryHover} transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center`}
                   >
                     {updating ? (
                       <>

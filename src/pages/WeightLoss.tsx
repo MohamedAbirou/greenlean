@@ -1,7 +1,9 @@
+import { motion } from 'framer-motion';
+import { ArrowRight, BarChart, Clock, Tag } from 'lucide-react';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowRight, Clock, BarChart, Tag } from 'lucide-react';
+import { usePlatform } from '../contexts/PlatformContext';
+import { useColorTheme } from '../utils/colorUtils';
 
 interface Exercise {
   id: number;
@@ -127,6 +129,8 @@ const exercises: Exercise[] = [
 const WeightLoss: React.FC = () => {
   const [activeTab, setActiveTab] = useState('exercises');
   const [activeCategory, setActiveCategory] = useState('All');
+  const platform = usePlatform();
+  const colorTheme = useColorTheme(platform.settings?.theme_color);
 
   const filteredExercises = activeCategory === 'All' 
     ? exercises 
@@ -161,7 +165,7 @@ const WeightLoss: React.FC = () => {
               </p>
               <Link 
                 to="/quiz" 
-                className="inline-flex items-center px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-full transition-colors duration-300"
+                className={`inline-flex items-center px-6 py-3 ${colorTheme.primaryBg} ${colorTheme.primaryHover} text-white font-medium rounded-full transition-colors duration-300`}
               >
                 Take the Quiz <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
@@ -174,7 +178,7 @@ const WeightLoss: React.FC = () => {
           <button
             className={`py-3 px-6 font-medium border-b-2 ${
               activeTab === 'exercises' 
-                ? 'border-green-500 text-green-600 dark:text-green-400' 
+                ? `${colorTheme.primaryBorder} ${colorTheme.primaryText} dark:${colorTheme.primaryText}` 
                 : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
             }`}
             onClick={() => setActiveTab('exercises')}
@@ -184,7 +188,7 @@ const WeightLoss: React.FC = () => {
           <button
             className={`py-3 px-6 font-medium border-b-2 ${
               activeTab === 'tips' 
-                ? 'border-green-500 text-green-600 dark:text-green-400' 
+                ? `${colorTheme.primaryBorder} ${colorTheme.primaryText} dark:${colorTheme.primaryText}` 
                 : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
             }`}
             onClick={() => setActiveTab('tips')}
@@ -203,7 +207,7 @@ const WeightLoss: React.FC = () => {
                   key={category}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                     activeCategory === category
-                      ? 'bg-green-500 text-white'
+                      ? `${colorTheme.primaryBg} text-white`
                       : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
                   onClick={() => setActiveCategory(category)}
@@ -255,7 +259,7 @@ const WeightLoss: React.FC = () => {
                     <p className="text-gray-600 dark:text-gray-300 mb-4">{exercise.description}</p>
                     <Link 
                       to={`/weight-loss/${exercise.id}`} 
-                      className="inline-flex items-center text-green-500 hover:text-green-600 font-medium"
+                        className={`inline-flex items-center ${colorTheme.primaryText} hover:${colorTheme.primaryText} font-medium`}
                     >
                       View Details <ArrowRight className="ml-1 h-4 w-4" />
                     </Link>
@@ -312,7 +316,7 @@ const WeightLoss: React.FC = () => {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   viewport={{ once: true }}
                 >
-                  <div className="flex-shrink-0 h-12 w-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center text-2xl mr-4">
+                  <div className={`flex-shrink-0 h-12 w-12 ${colorTheme.primaryBg} dark:bg-${colorTheme.primaryDark} rounded-full flex items-center justify-center text-2xl mr-4`}>
                     {tip.icon}
                   </div>
                   <div>
@@ -326,7 +330,7 @@ const WeightLoss: React.FC = () => {
             <div className="text-center mt-10">
               <Link 
                 to="/quiz" 
-                className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-full transition-colors duration-300 inline-flex items-center"
+                className={`px-6 py-3 ${colorTheme.primaryBg} ${colorTheme.primaryHover} text-white font-medium rounded-full transition-colors duration-300 inline-flex items-center`}
               >
                 Get Your Personalized Plan <ArrowRight className="ml-2 h-5 w-5" />
               </Link>

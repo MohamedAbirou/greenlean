@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { ArrowRight, Calendar, Loader } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, ArrowRight, Loader } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { usePlatform } from '../contexts/PlatformContext';
 import { supabase } from '../lib/supabase';
+import { useColorTheme } from '../utils/colorUtils';
 
 interface QuizResult {
   id: string;
@@ -22,6 +24,8 @@ const QuizHistory: React.FC = () => {
   const { user } = useAuth();
   const [quizResults, setQuizResults] = useState<QuizResult[]>([]);
   const [loading, setLoading] = useState(true);
+  const platform = usePlatform();
+  const colorTheme = useColorTheme(platform.settings?.theme_color);
 
   useEffect(() => {
     const fetchQuizResults = async () => {
@@ -63,7 +67,7 @@ const QuizHistory: React.FC = () => {
             <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Quiz History</h1>
             <Link
               to="/quiz"
-              className="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+              className={`inline-flex items-center px-4 py-2 ${colorTheme.primaryBg} text-white rounded-lg hover:${colorTheme.primaryBg} transition-colors`}
             >
               Take New Quiz
               <ArrowRight className="ml-2 h-4 w-4" />
@@ -122,7 +126,7 @@ const QuizHistory: React.FC = () => {
                       <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
                         <div className="text-sm text-gray-500 dark:text-gray-400">BMI</div>
                         <div className="text-xl font-semibold text-gray-800 dark:text-white">
-                          {result.calculations.bmi.toFixed(1)}
+                          {result.calculations.bmi?.toFixed(1)}
                         </div>
                       </div>
                       <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
@@ -142,7 +146,7 @@ const QuizHistory: React.FC = () => {
                     <div className="flex justify-end">
                       <Link
                         to={`/quiz-result/${result.id}`}
-                        className="inline-flex items-center text-green-500 hover:text-green-600"
+                        className={`inline-flex items-center ${colorTheme.primaryText} hover:${colorTheme.primaryText}`}
                       >
                         View Details
                         <ArrowRight className="ml-1 h-4 w-4" />

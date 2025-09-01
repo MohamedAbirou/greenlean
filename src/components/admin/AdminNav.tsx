@@ -1,12 +1,14 @@
+import { Award, BarChart2, Settings, Trophy, Users } from 'lucide-react';
 import React from 'react';
-import { BarChart2, Trophy, Users, Award, Settings } from 'lucide-react';
+import { ColorTheme } from '../../utils/colorUtils';
 
 interface AdminNavProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  colorTheme: ColorTheme;
 }
 
-const AdminNav: React.FC<AdminNavProps> = ({ activeTab, setActiveTab }) => {
+const AdminNav: React.FC<AdminNavProps> = ({ activeTab, setActiveTab, colorTheme }) => {
   const tabs = [
     { id: 'overview', label: 'Overview', icon: BarChart2 },
     { id: 'challenges', label: 'Challenges', icon: Trophy },
@@ -24,7 +26,7 @@ const AdminNav: React.FC<AdminNavProps> = ({ activeTab, setActiveTab }) => {
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center px-6 py-4 border-b-2 transition-colors ${
               activeTab === tab.id
-                ? 'border-green-500 text-green-500'
+                ? `${colorTheme.primaryBorder} ${colorTheme.primaryText}`
                 : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
             }`}
           >

@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Trash2, Eye, EyeOff, Calendar, Plus, Loader, ChevronLeft, ChevronRight, Users } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Calendar, Camera, Eye, EyeOff, Loader, Plus, Trash2, Users } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { usePlatform } from '../contexts/PlatformContext';
 import { supabase } from '../lib/supabase';
+import { useColorTheme } from '../utils/colorUtils';
 
 interface ProgressPhoto {
   id: string;
@@ -25,7 +27,8 @@ const ProgressPhotos: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [compareMode, setCompareMode] = useState(false);
   const [selectedPhotos, setSelectedPhotos] = useState<ProgressPhoto[]>([]);
-  const [signedUrls, setSignedUrls] = useState<{ [key: string]: string }>({});
+  const platform = usePlatform();
+  const colorTheme = useColorTheme(platform.settings?.theme_color);
 
   useEffect(() => {
     fetchPhotos();
@@ -301,7 +304,7 @@ const ProgressPhotos: React.FC = () => {
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploading}
-                    className="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                    className={`w-full px-4 py-2 ${colorTheme.primaryBg} text-white rounded-lg hover:${colorTheme.primaryBg} transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center`}
                   >
                     {uploading ? (
                       <>
@@ -323,7 +326,7 @@ const ProgressPhotos: React.FC = () => {
           {compareMode ? (
             <div className="space-y-8">
               <div className="grid grid-cols-2 gap-4">
-                {selectedPhotos.map((photo, index) => (
+                {selectedPhotos.map((photo) => (
                   <div key={photo.id} className="relative">
                     <img
                       src={photo.photo_url}

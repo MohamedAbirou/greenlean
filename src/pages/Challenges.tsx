@@ -1,21 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import confetti from 'canvas-confetti';
 import { motion } from 'framer-motion';
-import { 
-  Trophy, 
-  Calendar, 
-  Target, 
-  Award, 
-  Flame,
-  Dumbbell,
-  Clock,
-  Users,
+import {
+  Award,
+  Calendar,
   ChevronDown,
   ChevronUp,
-  Loader
+  Clock,
+  Dumbbell,
+  Flame,
+  Loader,
+  Target,
+  Trophy,
+  Users
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { usePlatform } from '../contexts/PlatformContext';
 import { supabase } from '../lib/supabase';
+import { useColorTheme } from '../utils/colorUtils';
 
 interface Challenge {
   id: string;
@@ -61,6 +63,8 @@ const Challenges: React.FC = () => {
   const [difficultyFilter, setDifficultyFilter] = useState<'all' | 'beginner' | 'intermediate' | 'advanced'>('all');
   const [expandedChallenge, setExpandedChallenge] = useState<string | null>(null);
   const [updatingProgress, setUpdatingProgress] = useState<string | null>(null);
+  const platform = usePlatform();
+  const colorTheme = useColorTheme(platform.settings?.theme_color);
 
   useEffect(() => {
     fetchChallenges();
@@ -297,7 +301,7 @@ const Challenges: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
-        <Loader className="h-8 w-8 animate-spin text-green-500" />
+        <Loader className={`h-8 w-8 animate-spin ${colorTheme.primaryText}`} />
       </div>
     );
   }
@@ -347,7 +351,7 @@ const Challenges: React.FC = () => {
                   onClick={() => setActiveFilter(type as any)}
                   className={`px-4 py-2 rounded-full text-sm font-medium capitalize transition-colors ${
                     activeFilter === type
-                      ? 'bg-green-500 text-white'
+                      ? `${colorTheme.primaryBg} text-white`
                       : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                   }`}
                 >
@@ -363,7 +367,7 @@ const Challenges: React.FC = () => {
                   onClick={() => setDifficultyFilter(difficulty as any)}
                   className={`px-4 py-2 rounded-full text-sm font-medium capitalize transition-colors ${
                     difficultyFilter === difficulty
-                      ? 'bg-green-500 text-white'
+                      ? `${colorTheme.primaryBg} text-white`
                       : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                   }`}
                 >
@@ -486,7 +490,7 @@ const Challenges: React.FC = () => {
                 ) : (
                   <button
                     onClick={() => joinChallenge(challenge.id)}
-                    className="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                    className={`w-full px-4 py-2 ${colorTheme.primaryBg} text-white rounded-lg hover:${colorTheme.primaryBg} transition-colors`}
                   >
                     Join Challenge
                   </button>

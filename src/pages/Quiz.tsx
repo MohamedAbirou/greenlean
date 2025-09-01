@@ -1,16 +1,25 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Check, Info, ChevronLeft, ChevronRight, LogIn } from 'lucide-react';
-import OGAdsLocker from '../components/OGAdsLocker';
-import { useOGAdsStore } from '../store/ogAdsStore';
-import { useAuth } from '../contexts/AuthContext';
-import AuthModal from '../components/auth/AuthModal';
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  ArrowRight,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Info,
+  LogIn,
+} from "lucide-react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import AuthModal from "../components/auth/AuthModal";
+import { useAuth } from "../contexts/AuthContext";
+import { usePlatform } from "../contexts/PlatformContext";
+import { supabase } from "../lib/supabase";
+import { useColorTheme } from "../utils/colorUtils";
+import { logFrontendError, logInfo } from "../utils/errorLogger";
 
 interface Question {
   id: number;
   question: string;
-  type: 'select' | 'number' | 'radio';
+  type: "select" | "number" | "radio";
   options?: string[];
   unit?: string;
   min?: number;
@@ -22,184 +31,194 @@ interface Question {
 const questions: Question[] = [
   {
     id: 1,
-    question: 'What is your age?',
-    type: 'number',
+    question: "What is your age?",
+    type: "number",
     min: 12,
     max: 100,
-    required: true
+    required: true,
   },
   {
     id: 2,
-    question: 'What is your gender?',
-    type: 'select',
-    options: ['Male', 'Female'],
-    required: true
+    question: "What is your gender?",
+    type: "select",
+    options: ["Male", "Female"],
+    required: true,
   },
   {
     id: 3,
-    question: 'What is your current weight?',
-    type: 'number',
-    unit: 'kg',
+    question: "What is your current weight?",
+    type: "number",
+    unit: "kg",
     min: 30,
     max: 300,
-    required: true
+    required: true,
   },
   {
     id: 4,
-    question: 'What is your height?',
-    type: 'number',
-    unit: 'cm',
+    question: "What is your height?",
+    type: "number",
+    unit: "cm",
     min: 100,
     max: 250,
-    required: true
+    required: true,
   },
   {
     id: 5,
-    question: 'What is your target weight?',
-    type: 'number',
-    unit: 'kg',
+    question: "What is your target weight?",
+    type: "number",
+    unit: "kg",
     min: 30,
     max: 300,
-    required: true
+    required: true,
   },
   {
     id: 6,
-    question: 'How would you describe your activity level?',
-    type: 'radio',
+    question: "How would you describe your activity level?",
+    type: "radio",
     options: [
-      'Sedentary (little or no exercise)',
-      'Lightly active (light exercise/sports 1-3 days/week)',
-      'Moderately active (moderate exercise/sports 3-5 days/week)',
-      'Very active (hard exercise/sports 6-7 days/week)',
-      'Extra active (very hard exercise/sports & physical job)'
+      "Sedentary (little or no exercise)",
+      "Lightly active (light exercise/sports 1-3 days/week)",
+      "Moderately active (moderate exercise/sports 3-5 days/week)",
+      "Very active (hard exercise/sports 6-7 days/week)",
+      "Extra active (very hard exercise/sports & physical job)",
     ],
     required: true,
-    info: 'Your activity level helps us determine your daily caloric needs'
+    info: "Your activity level helps us determine your daily caloric needs",
   },
   {
     id: 7,
-    question: 'Do you have any dietary restrictions?',
-    type: 'select',
+    question: "Do you have any dietary restrictions?",
+    type: "select",
     options: [
-      'None',
-      'Vegetarian',
-      'Vegan',
-      'Gluten-free',
-      'Lactose intolerant',
-      'Keto',
-      'Other'
+      "None",
+      "Vegetarian",
+      "Vegan",
+      "Gluten-free",
+      "Lactose intolerant",
+      "Keto",
+      "Other",
     ],
-    required: true
+    required: true,
   },
   {
     id: 8,
-    question: 'What is your primary goal?',
-    type: 'radio',
+    question: "What is your primary goal?",
+    type: "radio",
     options: [
-      'Lose weight',
-      'Build muscle',
-      'Maintain weight',
-      'Improve overall health',
-      'Increase energy levels'
+      "Lose weight",
+      "Build muscle",
+      "Maintain weight",
+      "Improve overall health",
+      "Increase energy levels",
     ],
-    required: true
+    required: true,
   },
   {
     id: 9,
-    question: 'How many meals do you prefer per day?',
-    type: 'select',
-    options: ['3 meals', '4 meals', '5 meals', '6 meals'],
-    required: true
+    question: "How many meals do you prefer per day?",
+    type: "select",
+    options: ["2 meals", "3 meals", "4 meals", "5 meals", "6 meals"],
+    required: true,
   },
   {
     id: 10,
-    question: 'Do you have any health conditions?',
-    type: 'select',
+    question: "Do you have any health conditions?",
+    type: "select",
     options: [
-      'None',
-      'Diabetes',
-      'High blood pressure',
-      'Heart disease',
-      'Thyroid issues',
-      'Other'
+      "None",
+      "Diabetes",
+      "High blood pressure",
+      "Heart disease",
+      "Thyroid issues",
+      "Other",
     ],
     required: true,
-    info: 'This helps us customize your plan safely'
+    info: "This helps us customize your plan safely",
   },
   {
     id: 11,
-    question: 'How much time can you dedicate to exercise per day?',
-    type: 'select',
+    question: "How much time can you dedicate to exercise per day?",
+    type: "select",
     options: [
-      'Less than 30 minutes',
-      '30-45 minutes',
-      '45-60 minutes',
-      'More than 60 minutes'
+      "Less than 30 minutes",
+      "30-45 minutes",
+      "45-60 minutes",
+      "More than 60 minutes",
     ],
-    required: true
+    required: true,
   },
   {
     id: 12,
-    question: 'What type of exercises do you prefer?',
-    type: 'radio',
+    question: "What type of exercises do you prefer?",
+    type: "radio",
     options: [
-      'Cardio (running, cycling, swimming)',
-      'Strength training',
-      'High-Intensity Interval Training (HIIT)',
-      'Low-impact exercises (yoga, pilates)',
-      'Mix of different exercises'
+      "Cardio (running, cycling, swimming)",
+      "Strength training",
+      "High-Intensity Interval Training (HIIT)",
+      "Low-impact exercises (yoga, pilates)",
+      "Mix of different exercises",
     ],
-    required: true
-  }
+    required: true,
+  },
 ];
 
 const Quiz: React.FC = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<{ [key: number]: string | number }>({});
+  const [answers, setAnswers] = useState<{ [key: number]: string | number }>(
+    {}
+  );
   const [errors, setErrors] = useState<{ [key: number]: string }>({});
   const [completed, setCompleted] = useState(false);
-  const [showLocker, setShowLocker] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const navigate = useNavigate();
-  const { isLocked, setLocked } = useOGAdsStore();
   const { user } = useAuth();
+  const platform = usePlatform();
+  const colorTheme = useColorTheme(platform.settings?.theme_color);
 
   const currentQuestion = questions[currentQuestionIndex];
-  const progress = ((currentQuestionIndex) / questions.length) * 100;
+  const progress = (currentQuestionIndex / questions.length) * 100;
 
   const handleNumberInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    const numValue = value === '' ? '' : Number(value);
-    
-    setAnswers(prev => ({ ...prev, [currentQuestion.id]: numValue }));
-    setErrors(prev => {
+    const numValue = value === "" ? "" : Number(value);
+
+    setAnswers((prev) => ({ ...prev, [currentQuestion.id]: numValue }));
+    setErrors((prev) => {
       const newErrors = { ...prev };
       delete newErrors[currentQuestion.id];
       return newErrors;
     });
   };
 
-  const validateAnswer = (questionId: number, value: string | number): string | null => {
-    const question = questions.find(q => q.id === questionId);
+  const validateAnswer = (
+    questionId: number,
+    value: string | number
+  ): string | null => {
+    const question = questions.find((q) => q.id === questionId);
     if (!question) return null;
 
-    if (question.required && (value === '' || value === null || value === undefined)) {
-      return 'This field is required';
+    if (
+      question.required &&
+      (value === "" || value === null || value === undefined)
+    ) {
+      return "This field is required";
     }
 
-    if (question.type === 'number' && value !== '') {
+    if (question.type === "number" && value !== "") {
       const numValue = Number(value);
-      if (isNaN(numValue)) return 'Please enter a valid number';
-      if (question.min !== undefined && numValue < question.min) return `Value must be at least ${question.min}`;
-      if (question.max !== undefined && numValue > question.max) return `Value cannot exceed ${question.max}`;
+      if (isNaN(numValue)) return "Please enter a valid number";
+      if (question.min !== undefined && numValue < question.min)
+        return `Value must be at least ${question.min}`;
+      if (question.max !== undefined && numValue > question.max)
+        return `Value cannot exceed ${question.max}`;
     }
 
     return null;
   };
 
   const handleAnswer = (value: string | number) => {
-    setAnswers(prev => ({ ...prev, [currentQuestion.id]: value }));
-    setErrors(prev => {
+    setAnswers((prev) => ({ ...prev, [currentQuestion.id]: value }));
+    setErrors((prev) => {
       const newErrors = { ...prev };
       delete newErrors[currentQuestion.id];
       return newErrors;
@@ -212,21 +231,26 @@ const Quiz: React.FC = () => {
       return;
     }
 
-    const error = validateAnswer(currentQuestion.id, answers[currentQuestion.id] || '');
+    const error = validateAnswer(
+      currentQuestion.id,
+      answers[currentQuestion.id] || ""
+    );
     if (error) {
-      setErrors(prev => ({ ...prev, [currentQuestion.id]: error }));
+      setErrors((prev) => ({ ...prev, [currentQuestion.id]: error }));
       return;
     }
 
+    // If not the last question, go to the next one
     if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setCurrentQuestionIndex((prev) => prev + 1);
     } else {
+      // Last question: show "Creating your plan..." UI
       setCompleted(true);
-      if (isLocked) {
-        setShowLocker(true);
-      } else {
+
+      // Optional: show the animation for 1.5-2 seconds before navigating
+      setTimeout(() => {
         calculateAndNavigate();
-      }
+      }, 3000); // 1.8 seconds
     }
   };
 
@@ -236,50 +260,82 @@ const Quiz: React.FC = () => {
     }
   };
 
-  const calculateAndNavigate = () => {
-    const weight = Number(answers[3]);
-    const height = Number(answers[4]) / 100;
-    const bmi = weight / (height * height);
-    
-    const age = Number(answers[1]);
-    const gender = answers[2] as string;
+  const calculateAndNavigate = async () => {
+    const weight = parseFloat(answers[1] as string);
+    const height = parseFloat(answers[2] as string);
+    const age = parseInt(answers[3] as string);
+    const gender = answers[4] as string;
     const activityLevel = answers[6] as string;
-    
+
+    // Calculate BMI
+    const heightInMeters = height / 100;
+    const bmi = weight / (heightInMeters * heightInMeters);
+
+    // Calculate BMR using Mifflin-St Jeor Equation
     let bmr;
-    if (gender === 'Male') {
-      bmr = 88.362 + (13.397 * weight) + (4.799 * height * 100) - (5.677 * age);
+    if (gender === "Male") {
+      bmr = 10 * weight + 6.25 * height - 5 * age + 5;
     } else {
-      bmr = 447.593 + (9.247 * weight) + (3.098 * height * 100) - (4.330 * age);
+      bmr = 10 * weight + 6.25 * height - 5 * age - 161;
     }
 
-    let activityMultiplier;
+    // Calculate TDEE based on activity level
+    let tdee;
     switch (activityLevel) {
-      case 'Sedentary': activityMultiplier = 1.2; break;
-      case 'Lightly active': activityMultiplier = 1.375; break;
-      case 'Moderately active': activityMultiplier = 1.55; break;
-      case 'Very active': activityMultiplier = 1.725; break;
-      case 'Extra active': activityMultiplier = 1.9; break;
-      default: activityMultiplier = 1.2;
+      case "Sedentary":
+        tdee = bmr * 1.2;
+        break;
+      case "Lightly active":
+        tdee = bmr * 1.375;
+        break;
+      case "Moderately active":
+        tdee = bmr * 1.55;
+        break;
+      case "Very active":
+        tdee = bmr * 1.725;
+        break;
+      case "Extremely active":
+        tdee = bmr * 1.9;
+        break;
+      default:
+        tdee = bmr * 1.2;
     }
 
-    const tdee = bmr * activityMultiplier;
+    const calculations = {
+      bmi: Math.round(bmi * 10) / 10,
+      bmr: Math.round(bmr),
+      tdee: Math.round(tdee),
+    };
 
-    localStorage.setItem('healthProfile', JSON.stringify({
-      answers,
-      calculations: {
-        bmi,
-        bmr,
-        tdee
+    // Save to localStorage
+    const healthProfile = { answers, calculations };
+    localStorage.setItem("healthProfile", JSON.stringify(healthProfile));
+
+    // Save to database
+    if (user) {
+      try {
+        const { error } = await supabase.from("quiz_results").insert([
+          {
+            user_id: user.id,
+            answers,
+            calculations,
+          },
+        ]);
+
+        if (error) {
+          console.error("Error saving quiz result:", error);
+          await logFrontendError("Failed to save quiz result", error.message, { userId: user.id });
+        } else {
+          await logInfo('frontend', 'Quiz result saved successfully', { userId: user.id });
+        }
+      } catch (err) {
+        console.error("Error saving quiz result:", err);
+        await logFrontendError("Exception while saving quiz result", err instanceof Error ? err : String(err), { userId: user.id });
       }
-    }));
+    }
 
-    setLocked(false);
-    navigate('/dashboard');
-  };
-
-  const handleLockerComplete = () => {
-    setShowLocker(false);
-    calculateAndNavigate();
+    // Navigate to dashboard
+    navigate("/dashboard");
   };
 
   const renderQuestion = () => {
@@ -308,15 +364,15 @@ const Quiz: React.FC = () => {
           )}
         </div>
 
-        {currentQuestion.type === 'select' && (
+        {currentQuestion.type === "select" && (
           <div className="space-y-3">
             <select
               className={`w-full p-4 text-lg border rounded-xl bg-white dark:bg-gray-700 dark:text-gray-200 ${
-                error 
-                  ? 'border-red-500 dark:border-red-400' 
-                  : 'border-gray-300 dark:border-gray-600'
+                error
+                  ? "border-red-500 dark:border-red-400"
+                  : "border-gray-300 dark:border-gray-600"
               }`}
-              value={answers[currentQuestion.id] as string || ''}
+              value={(answers[currentQuestion.id] as string) || ""}
               onChange={(e) => handleAnswer(e.target.value)}
             >
               <option value="">Select an option</option>
@@ -329,18 +385,18 @@ const Quiz: React.FC = () => {
           </div>
         )}
 
-        {currentQuestion.type === 'number' && (
+        {currentQuestion.type === "number" && (
           <div className="relative">
             <input
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
               className={`w-full p-4 text-lg text-center font-semibold border rounded-xl bg-white dark:bg-gray-700 dark:text-gray-200 ${
-                error 
-                  ? 'border-red-500 dark:border-red-400' 
-                  : 'border-gray-300 dark:border-gray-600'
+                error
+                  ? "border-red-500 dark:border-red-400"
+                  : "border-gray-300 dark:border-gray-600"
               }`}
-              value={answers[currentQuestion.id] || ''}
+              value={answers[currentQuestion.id] || ""}
               onChange={handleNumberInput}
               placeholder="Enter a number"
             />
@@ -356,24 +412,26 @@ const Quiz: React.FC = () => {
           </div>
         )}
 
-        {currentQuestion.type === 'radio' && (
+        {currentQuestion.type === "radio" && (
           <div className="space-y-3">
             {currentQuestion.options?.map((option) => (
               <button
                 key={option}
                 className={`w-full p-4 text-left rounded-xl border transition-all duration-300 ${
                   answers[currentQuestion.id] === option
-                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 shadow-md'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-700 dark:text-gray-300'
+                    ? `${colorTheme.primaryBorder} ${colorTheme.primaryBg} dark:${colorTheme.primaryDark}/20 text-gray-50 dark:${colorTheme.primaryText} shadow-md`
+                    : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-700 dark:text-gray-300"
                 }`}
                 onClick={() => handleAnswer(option)}
               >
                 <div className="flex items-center">
-                  <div className={`flex-shrink-0 w-6 h-6 rounded-full border-2 ${
-                    answers[currentQuestion.id] === option 
-                      ? 'border-green-500 bg-green-500' 
-                      : 'border-gray-300 dark:border-gray-600'
-                  } flex items-center justify-center mr-3`}>
+                  <div
+                    className={`flex-shrink-0 w-6 h-6 rounded-full border-2 ${
+                      answers[currentQuestion.id] === option
+                        ? `${colorTheme.primaryBorder} bg-green-500`
+                        : "border-gray-300 dark:border-gray-600"
+                    } flex items-center justify-center mr-3`}
+                  >
                     {answers[currentQuestion.id] === option && (
                       <Check className="h-4 w-4 text-white" />
                     )}
@@ -402,16 +460,17 @@ const Quiz: React.FC = () => {
               animate={{ opacity: 1, scale: 1 }}
               className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 text-center"
             >
-              <LogIn className="h-16 w-16 text-green-500 mx-auto mb-6" />
+              <LogIn className={`h-16 w-16 ${colorTheme.primaryText} mx-auto mb-6`} />
               <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
                 Sign In to Take the Quiz
               </h2>
               <p className="text-gray-600 dark:text-gray-300 mb-8">
-                To get your personalized diet and exercise plan, please sign in or create an account. It's completely free!
+                To get your personalized diet and exercise plan, please sign in
+                or create an account. It's completely free!
               </p>
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="px-6 py-3 bg-green-500 text-white font-semibold rounded-full hover:bg-green-600 transition-colors inline-flex items-center"
+                className={`px-6 py-3 ${colorTheme.primaryBg} text-white font-semibold rounded-full ${colorTheme.primaryHover} transition-colors inline-flex items-center`}
               >
                 Sign In to Continue
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -436,14 +495,10 @@ const Quiz: React.FC = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           <AnimatePresence mode="wait">
-            {showLocker && (
-              <OGAdsLocker onComplete={handleLockerComplete} />
-            )}
-            
             {!completed ? (
               <>
                 <div className="mb-8 text-center">
-                  <motion.h1 
+                  <motion.h1
                     className="text-4xl font-bold text-gray-800 dark:text-white mb-4"
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -451,7 +506,7 @@ const Quiz: React.FC = () => {
                   >
                     Create Your Personalized Plan
                   </motion.h1>
-                  <motion.p 
+                  <motion.p
                     className="text-lg text-gray-600 dark:text-gray-300"
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -461,14 +516,14 @@ const Quiz: React.FC = () => {
                   </motion.p>
                 </div>
 
-                <motion.div 
+                <motion.div
                   className="mb-8 bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden"
                   initial={{ opacity: 0, scaleX: 0 }}
                   animate={{ opacity: 1, scaleX: 1 }}
                   transition={{ duration: 0.5 }}
                 >
-                  <motion.div 
-                    className="h-full bg-green-500"
+                  <motion.div
+                    className={`h-full ${colorTheme.primaryBg}`}
                     initial={{ width: `${progress}%` }}
                     animate={{ width: `${progress}%` }}
                     transition={{ duration: 0.3 }}
@@ -482,8 +537,8 @@ const Quiz: React.FC = () => {
                     onClick={handlePrevious}
                     className={`flex items-center px-6 py-3 rounded-xl transition-colors ${
                       currentQuestionIndex === 0
-                        ? 'opacity-0 cursor-default'
-                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                        ? "opacity-0 cursor-default"
+                        : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                     }`}
                     disabled={currentQuestionIndex === 0}
                   >
@@ -494,11 +549,15 @@ const Quiz: React.FC = () => {
                   <button
                     onClick={handleNext}
                     className={`flex items-center px-6 py-3 rounded-xl font-semibold transition-colors ${
-                      answers[currentQuestion.id] === undefined || answers[currentQuestion.id] === ''
-                        ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                        : 'bg-green-500 hover:bg-green-600 text-white'
+                      answers[currentQuestion.id] === undefined ||
+                      answers[currentQuestion.id] === ""
+                        ? "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                        : `${colorTheme.primaryBg} ${colorTheme.primaryHover} text-white`
                     }`}
-                    disabled={answers[currentQuestion.id] === undefined || answers[currentQuestion.id] === ''}
+                    disabled={
+                      answers[currentQuestion.id] === undefined ||
+                      answers[currentQuestion.id] === ""
+                    }
                   >
                     {currentQuestionIndex < questions.length - 1 ? (
                       <>
@@ -514,24 +573,25 @@ const Quiz: React.FC = () => {
                   </button>
                 </div>
               </>
-            ) : !showLocker && (
+            ) : (
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5 }}
                 className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 text-center"
               >
-                <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Check className="h-8 w-8 text-green-500" />
+                <div className={`w-16 h-16 ${colorTheme.primaryBg}/20 dark:bg-${colorTheme.primaryDark}/20 rounded-full flex items-center justify-center mx-auto mb-6`}>
+                  <Check className={`h-8 w-8 ${colorTheme.primaryText}`} />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
                   Creating Your Personalized Plan
                 </h2>
                 <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  We're analyzing your responses to create a customized diet and exercise plan that fits your goals and lifestyle.
+                  We're analyzing your responses to create a customized diet and
+                  exercise plan that fits your goals and lifestyle.
                 </p>
                 <div className="flex justify-center">
-                  <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+                  <div className={`w-8 h-8 border-4 ${colorTheme.primaryBorder} border-t-transparent rounded-full animate-spin`}></div>
                 </div>
               </motion.div>
             )}

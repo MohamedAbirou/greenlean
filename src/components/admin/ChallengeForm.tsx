@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { ColorTheme } from "../../utils/colorUtils";
 
 interface ChallengeRequirements {
   activity?: string;
@@ -24,12 +25,14 @@ interface ChallengeFormProps {
   challenge?: Challenge | null;
   onSubmit: (data: Partial<Challenge>) => void;
   onClose: () => void;
+  colorTheme: ColorTheme;
 }
 
 const ChallengeForm: React.FC<ChallengeFormProps> = ({
   challenge,
   onSubmit,
   onClose,
+  colorTheme
 }) => {
   const [requirementsJson, setRequirementsJson] = useState("");
   const [jsonError, setJsonError] = useState<string | null>(null);
@@ -297,7 +300,7 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+              className={`px-4 py-2 ${colorTheme.primaryBg} text-white rounded-lg hover:${colorTheme.primaryBg}`}
             >
               {challenge ? "Update Challenge" : "Create Challenge"}
             </button>

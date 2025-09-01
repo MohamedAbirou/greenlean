@@ -1,58 +1,53 @@
+import { Leaf } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
-import { Facebook, Twitter, Instagram, Mail, Leaf } from "lucide-react";
+import { usePlatform } from "../../contexts/PlatformContext";
+import { useColorTheme } from "../../utils/colorUtils";
 
 const Footer: React.FC = () => {
+  const platform = usePlatform();
+  const colorTheme = useColorTheme(platform.settings?.theme_color);
+
   return (
-    <footer className="bg-gray-800 text-white">
-      <div className="container mx-auto px-4 py-12">
+    <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
-          <div className="col-span-1">
+          <div className="col-span-1 md:col-span-2">
             <Link to="/" className="flex items-center space-x-2 mb-4">
-              <Leaf size={32} className="text-green-400" />
-              <span className="text-xl font-bold">GreenLean</span>
+              {platform.settings?.logo_url ? (
+                <img
+                  src={platform.settings.logo_url}
+                  alt="Logo"
+                  className="w-8 h-8 object-contain"
+                />
+              ) : (
+                <Leaf size={32} className={colorTheme.primaryText} />
+              )}
+              <span
+                className="text-xl font-bold"
+                style={{ color: platform.settings?.theme_color || undefined }}
+              >
+                {platform.settings?.platform_name || "GreenLean"}
+              </span>
             </Link>
-            <p className="text-gray-300 mb-4">
-              Your companion on the journey to a healthier, happier you. Free
-              personalized diet and weight loss plans.
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              Your personalized health and fitness journey starts here. Get
+              customized diet plans, exercise routines, and track your progress
+              with our comprehensive platform.
             </p>
-            <div className="flex space-x-4">
-              <a
-                href="#"
-                className="text-gray-300 hover:text-green-400 transition-colors"
-              >
-                <Facebook size={20} />
-              </a>
-              <a
-                href="#"
-                className="text-gray-300 hover:text-green-400 transition-colors"
-              >
-                <Twitter size={20} />
-              </a>
-              <a
-                href="#"
-                className="text-gray-300 hover:text-green-400 transition-colors"
-              >
-                <Instagram size={20} />
-              </a>
-              <a
-                href="#"
-                className="text-gray-300 hover:text-green-400 transition-colors"
-              >
-                <Mail size={20} />
-              </a>
-            </div>
           </div>
 
           {/* Quick Links */}
-          <div className="col-span-1">
-            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+              Quick Links
+            </h3>
             <ul className="space-y-2">
               <li>
                 <Link
                   to="/"
-                  className="text-gray-300 hover:text-green-400 transition-colors"
+                  className={`text-gray-600 dark:text-gray-300 hover:${colorTheme.primaryText} dark:hover:${colorTheme.primaryText} transition-colors`}
                 >
                   Home
                 </Link>
@@ -60,7 +55,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link
                   to="/quiz"
-                  className="text-gray-300 hover:text-green-400 transition-colors"
+                  className={`text-gray-600 dark:text-gray-300 hover:${colorTheme.primaryText} dark:hover:${colorTheme.primaryText} transition-colors`}
                 >
                   Take Quiz
                 </Link>
@@ -68,79 +63,68 @@ const Footer: React.FC = () => {
               <li>
                 <Link
                   to="/diet-plans"
-                  className="text-gray-300 hover:text-green-400 transition-colors"
+                  className={`text-gray-600 dark:text-gray-300 hover:${colorTheme.primaryText} dark:hover:${colorTheme.primaryText} transition-colors`}
                 >
                   Diet Plans
                 </Link>
               </li>
               <li>
                 <Link
-                  to="/weight-loss"
-                  className="text-gray-300 hover:text-green-400 transition-colors"
+                  to="/about"
+                  className={`text-gray-600 dark:text-gray-300 hover:${colorTheme.primaryText} dark:hover:${colorTheme.primaryText} transition-colors`}
                 >
-                  Weight Loss
+                  About
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Resources */}
-          <div className="col-span-1">
-            <h3 className="text-lg font-semibold mb-4">Resources</h3>
+          {/* Support */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+              Support
+            </h3>
             <ul className="space-y-2">
               <li>
                 <Link
-                  to="/about"
-                  className="text-gray-300 hover:text-green-400 transition-colors"
-                >
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link
                   to="/contact"
-                  className="text-gray-300 hover:text-green-400 transition-colors"
+                  className={`text-gray-600 dark:text-gray-300 hover:${colorTheme.primaryText} dark:hover:${colorTheme.primaryText} transition-colors`}
                 >
                   Contact Us
                 </Link>
               </li>
               <li>
-                <a
-                  href="/faq"
-                  className="text-gray-300 hover:text-green-400 transition-colors"
+                <Link
+                  to="/faq"
+                  className={`text-gray-600 dark:text-gray-300 hover:${colorTheme.primaryText} dark:hover:${colorTheme.primaryText} transition-colors`}
                 >
                   FAQ
-                </a>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/privacy"
+                  className={`text-gray-600 dark:text-gray-300 hover:${colorTheme.primaryText} dark:hover:${colorTheme.primaryText} transition-colors`}
+                >
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/terms"
+                  className={`text-gray-600 dark:text-gray-300 hover:${colorTheme.primaryText} dark:hover:${colorTheme.primaryText} transition-colors`}
+                >
+                  Terms of Service
+                </Link>
               </li>
             </ul>
           </div>
-
-          {/* Newsletter */}
-          <div className="col-span-1">
-            <h3 className="text-lg font-semibold mb-4">Stay Updated</h3>
-            <p className="text-gray-300 mb-4">
-              Subscribe to our newsletter for tips and updates.
-            </p>
-            <form className="flex flex-col space-y-2">
-              <input
-                type="email"
-                placeholder="Your email address"
-                className="px-4 py-2 rounded-md bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
-                required
-              />
-              <button
-                type="submit"
-                className="px-4 py-2 rounded-md bg-green-500 text-white font-medium hover:bg-green-600 transition-colors"
-              >
-                Subscribe
-              </button>
-            </form>
-          </div>
         </div>
 
-        <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-          <p>
-            &copy; {new Date().getFullYear()} GreenLean. All rights reserved.
+        <div className="border-t border-gray-200 dark:border-gray-700 mt-8 pt-8 text-center">
+          <p className="text-gray-600 dark:text-gray-300">
+            © 2024 {platform.settings?.platform_name || "GreenLean"}. All rights
+            reserved.
           </p>
         </div>
       </div>

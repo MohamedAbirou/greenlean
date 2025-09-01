@@ -1,21 +1,19 @@
-import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { formatDistanceToNow } from "date-fns";
+import { motion } from "framer-motion";
 import {
   Camera,
   Heart,
+  Loader,
   MessageCircle,
   Send,
-  ChevronDown,
-  ChevronUp,
-  MoreVertical,
-  Loader,
-  Calendar,
-  Users,
+  Users
 } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext";
-import { supabase } from "../lib/supabase";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { formatDistanceToNow } from "date-fns";
+import { useAuth } from "../contexts/AuthContext";
+import { usePlatform } from "../contexts/PlatformContext";
+import { supabase } from "../lib/supabase";
+import { useColorTheme } from "../utils/colorUtils";
 
 interface Profile {
   id: string;
@@ -66,6 +64,8 @@ const CommunityPhotos: React.FC = () => {
   const commentInputRefs = useRef<{ [key: string]: HTMLTextAreaElement }>({});
   const [activeInputId, setActiveInputId] = useState<string | null>(null);
   const photoRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const platform = usePlatform();
+  const colorTheme = useColorTheme(platform.settings?.theme_color);
 
   useEffect(() => {
     fetchPhotos();
@@ -526,7 +526,7 @@ const CommunityPhotos: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
-        <Loader className="h-8 w-8 animate-spin text-green-500" />
+        <Loader className={`h-8 w-8 animate-spin ${colorTheme.primaryText}`} />
       </div>
     );
   }
@@ -541,7 +541,7 @@ const CommunityPhotos: React.FC = () => {
             </h1>
             <Link
               to="/progress-photos"
-              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center"
+              className={`px-4 py-2 ${colorTheme.primaryBg} text-white rounded-lg hover:${colorTheme.primaryBg} transition-colors flex items-center`}
             >
               <Camera className="h-5 w-5 mr-2" />
               My Photos

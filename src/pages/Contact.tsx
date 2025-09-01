@@ -2,6 +2,8 @@ import { motion } from "framer-motion";
 import { Mail, MapPin, MessageSquare, Send } from "lucide-react";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { usePlatform } from "../contexts/PlatformContext";
+import { useColorTheme } from "../utils/colorUtils";
 
 const Contact: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -15,6 +17,9 @@ const Contact: React.FC = () => {
   const [submitStatus, setSubmitStatus] = useState<
     "idle" | "loading" | "success" | "error"
   >("idle");
+
+  const platform = usePlatform();
+  const colorTheme = useColorTheme(platform.settings?.theme_color);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -143,8 +148,8 @@ const Contact: React.FC = () => {
               <div className="space-y-4">
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
-                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                      <Mail className="h-5 w-5 text-green-600" />
+                    <div className={`w-10 h-10 rounded-full ${colorTheme.primaryBg}/20 flex items-center justify-center`}>
+                      <Mail className={`h-5 w-5 ${colorTheme.primaryText}`} />
                     </div>
                   </div>
                   <div className="ml-4">
@@ -162,8 +167,8 @@ const Contact: React.FC = () => {
 
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
-                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                      <MapPin className="h-5 w-5 text-green-600" />
+                    <div className={`w-10 h-10 rounded-full ${colorTheme.primaryBg}/20 flex items-center justify-center`}>
+                      <MapPin className={`h-5 w-5 ${colorTheme.primaryText}`} />
                     </div>
                   </div>
                   <div className="ml-4">
@@ -187,8 +192,8 @@ const Contact: React.FC = () => {
 
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
-                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                      <MessageSquare className="h-5 w-5 text-green-600" />
+                    <div className={`w-10 h-10 rounded-full ${colorTheme.primaryBg}/20 flex items-center justify-center`}>
+                      <MessageSquare className={`h-5 w-5 ${colorTheme.primaryText}`} />
                     </div>
                   </div>
                   <div className="ml-4">
@@ -206,12 +211,12 @@ const Contact: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mt-8 p-4 bg-green-100 rounded-lg border border-green-200">
-                <p className="text-sm text-green-800">
+              <div className={`mt-8 p-4 ${colorTheme.primaryBg}/20 rounded-lg border ${colorTheme.primaryBorder}`}>
+                <p className={`text-sm ${colorTheme.primaryText}`}>
                   For immediate assistance, please check our{" "}
                   <Link
                     to="/faq"
-                    className="text-green-600 font-medium hover:text-green-700"
+                    className={`${colorTheme.primaryText} font-medium hover:${colorTheme.primaryText}`}
                   >
                     FAQ page
                   </Link>{" "}
@@ -377,7 +382,7 @@ const Contact: React.FC = () => {
                       className={`w-full py-3 px-6 flex justify-center items-center rounded-lg text-white font-medium ${
                         submitStatus === "loading"
                           ? "bg-gray-400 cursor-not-allowed"
-                          : "bg-green-500 hover:bg-green-600"
+                          : `${colorTheme.primaryBg} ${colorTheme.primaryHover}`
                       } transition-colors`}
                       disabled={submitStatus === "loading"}
                     >

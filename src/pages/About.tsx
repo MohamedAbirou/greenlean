@@ -2,15 +2,20 @@ import { motion } from "framer-motion";
 import { ArrowRight, Award, Clock, Heart, Users } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
+import { usePlatform } from "../contexts/PlatformContext";
+import { useColorTheme } from "../utils/colorUtils";
 
 const About: React.FC = () => {
+  const platform = usePlatform();
+  const colorTheme = useColorTheme(platform.settings?.theme_color);
+
   return (
     <div className="min-h-screen pt-24 pb-16 bg-gray-50 dark:bg-gray-800">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Hero Section */}
         <div className="text-center mb-16">
           <motion.h1
-            className="text-4xl font-bold text-gray-800 dark:text-gray-300 dark:text-gray-300 mb-4"
+            className="text-4xl font-bold text-gray-800 dark:text-gray-300 mb-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -181,7 +186,7 @@ const About: React.FC = () => {
                   <h3 className="text-xl font-bold text-gray-800 dark:text-gray-300 mb-1">
                     {member.name}
                   </h3>
-                  <p className="text-green-500 font-medium mb-3">
+                  <p className={`${colorTheme.primaryText} font-medium mb-3`}>
                     {member.role}
                   </p>
                   <p className="text-gray-600 dark:text-gray-200">{member.bio}</p>
@@ -192,7 +197,7 @@ const About: React.FC = () => {
         </div>
 
         {/* CTA Section */}
-        <div className="bg-green-500 rounded-xl p-8 text-center text-white">
+        <div className={`${colorTheme.primaryBg} rounded-xl p-8 text-center text-white`}>
           <h2 className="text-2xl font-bold mb-4">
             Ready to Start Your Health Journey?
           </h2>
@@ -202,7 +207,7 @@ const About: React.FC = () => {
           </p>
           <Link
             to="/quiz"
-            className="inline-flex items-center px-6 py-3 bg-white text-green-500 font-semibold rounded-full hover:bg-gray-100 transition-colors duration-300"
+            className={`inline-flex items-center px-6 py-3 bg-white ${colorTheme.primaryText} font-semibold rounded-full hover:bg-gray-100 transition-colors duration-300`}
           >
             Take the Quiz <ArrowRight className="ml-2 h-5 w-5" />
           </Link>

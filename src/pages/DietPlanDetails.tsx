@@ -1,6 +1,8 @@
+import { Award, BarChart3, Clock, Leaf } from 'lucide-react';
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Leaf, Clock, BarChart3, Award, Heart, Apple } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { usePlatform } from '../contexts/PlatformContext';
+import { useColorTheme } from '../utils/colorUtils';
 
 interface DietPlan {
   id: number;
@@ -1312,6 +1314,9 @@ const DietPlanDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const plan = id ? dietPlans[parseInt(id)] : null;
 
+  const platform = usePlatform();
+    const colorTheme = useColorTheme(platform.settings?.theme_color);
+
   if (!plan) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
@@ -1448,7 +1453,7 @@ const DietPlanDetails: React.FC = () => {
                 <ul className="space-y-4">
                   {plan.guidelines.map((guideline, index) => (
                     <li key={index} className="flex items-center space-x-3">
-                      <Leaf className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <Leaf className={`w-5 h-5 ${colorTheme.primaryText} flex-shrink-0`} />
                       <span className="text-gray-600 dark:text-gray-300">{guideline}</span>
                     </li>
                   ))}
