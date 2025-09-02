@@ -65,6 +65,7 @@ const ProgressPhotos: React.FC = () => {
         const urlParts = photo.photo_url.split('/');
         const filePath = `${user.id}/${photo.week_number}/${urlParts[urlParts.length - 1]}`;
         const signedUrl = await getSignedUrl(filePath);
+        if (!signedUrl) return null;
         return { ...photo, photo_url: signedUrl || photo.photo_url };
       }) || [];
 

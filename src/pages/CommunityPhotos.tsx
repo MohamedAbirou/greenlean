@@ -127,6 +127,7 @@ const CommunityPhotos: React.FC = () => {
             urlParts[urlParts.length - 1]
           }`;
           const signedUrl = await getSignedUrl(filePath);
+          if (!signedUrl) return null;
           return { ...photo, photo_url: signedUrl || photo.photo_url };
         }) || [];
 
