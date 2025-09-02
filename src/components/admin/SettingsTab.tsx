@@ -213,8 +213,6 @@ const SettingsTab: React.FC<SettingsTabProps> = ({colorTheme}) => {
         .order("created_at", { ascending: false })
         .limit(100);
 
-      console.log(data);
-
       if (error) {
         await logFrontendError("Failed to fetch admin logs", error.message);
       } else {

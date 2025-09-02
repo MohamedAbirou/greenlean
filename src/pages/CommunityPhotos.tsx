@@ -91,8 +91,6 @@ const CommunityPhotos: React.FC = () => {
 
         if (photosError) throw photosError;
 
-        console.log(photosData);
-
         // Get likes for each photo
         const photosWithLikes = await Promise.all(
           photosData.map(async (photo) => {
