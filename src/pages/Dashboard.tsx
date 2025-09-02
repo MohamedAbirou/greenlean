@@ -1,29 +1,29 @@
 import {
-  CategoryScale,
-  Chart as ChartJS,
-  Legend,
-  LinearScale,
-  LineElement,
-  PointElement,
-  Tooltip,
+    CategoryScale,
+    Chart as ChartJS,
+    Legend,
+    LinearScale,
+    LineElement,
+    PointElement,
+    Tooltip,
 } from "chart.js";
 import { motion } from "framer-motion";
 import {
-  Activity,
-  ArrowRight,
-  Check,
-  Edit,
-  Flame,
-  Scale,
-  Target,
-  Trash2,
-  X,
+    Activity,
+    ArrowRight,
+    Check,
+    Edit,
+    Flame,
+    Scale,
+    Target,
+    Trash2,
+    X,
 } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { Line } from "react-chartjs-2";
 import DailyTip from "../components/DailyTip";
-import { useAuth } from "../contexts/AuthContext";
 import { usePlatform } from "../contexts/PlatformContext";
+import { useAuth } from "../contexts/useAuth";
 import { supabase } from "../lib/supabase";
 import { useColorTheme } from "../utils/colorUtils";
 import { logError } from "../utils/errorLogger";

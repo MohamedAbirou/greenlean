@@ -23,25 +23,28 @@ interface Challenge {
   completion_rate: number;
 }
 
-interface ChallengeParticipant {
-  id: string;
-  user: {
-    username: string;
-    full_name: string;
-    email: string;
-  };
-  progress: {
-    current: number;
-  };
-  completed: boolean;
-  completion_date: string | null;
-  streak_count: number;
+// interface ChallengeParticipant {
+//   id: string;
+//   user: {
+//     username: string;
+//     full_name: string;
+//     email: string;
+//   };
+//   progress: {
+//     current: number;
+//   };
+//   completed: boolean;
+//   completion_date: string | null;
+//   streak_count: number;
+// }
+
+interface ChallengesTabProps {
+  colorTheme: ColorTheme;
 }
 
-const ChallengesTab = ({colorTheme}: ColorTheme) => {
+const ChallengesTab: React.FC<ChallengesTabProps> = ({colorTheme}) => {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
-  const [selectedChallenge, setSelectedChallenge] = useState<string | null>(null);
-  const [participants, setParticipants] = useState<ChallengeParticipant[]>([]);
+  // const [participants, setParticipants] = useState<ChallengeParticipant[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [difficultyFilter, setDifficultyFilter] = useState<string>('all');
@@ -53,11 +56,11 @@ const ChallengesTab = ({colorTheme}: ColorTheme) => {
     fetchChallenges();
   }, []);
 
-  useEffect(() => {
-    if (selectedChallenge) {
-      fetchParticipants(selectedChallenge);
-    }
-  }, [selectedChallenge]);
+  // useEffect(() => {
+  //   if (selectedChallenge) {
+  //     fetchParticipants(selectedChallenge);
+  //   }
+  // }, [selectedChallenge]);
 
   const fetchChallenges = async () => {
     try {
@@ -92,22 +95,22 @@ const ChallengesTab = ({colorTheme}: ColorTheme) => {
     }
   };
 
-  const fetchParticipants = async (challengeId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('challenge_participants')
-        .select(`
-          *,
-          user:profiles(username, full_name, email)
-        `)
-        .eq('challenge_id', challengeId);
+  // const fetchParticipants = async (challengeId: string) => {
+  //   try {
+  //     const { data, error } = await supabase
+  //       .from('challenge_participants')
+  //       .select(`
+  //         *,
+  //         user:profiles(username, full_name, email)
+  //       `)
+  //       .eq('challenge_id', challengeId);
 
-      if (error) throw error;
-      setParticipants(data);
-    } catch (error) {
-      console.error('Error fetching participants:', error);
-    }
-  };
+  //     if (error) throw error;
+  //     setParticipants(data);
+  //   } catch (error) {
+  //     console.error('Error fetching participants:', error);
+  //   }
+  // };
 
   const handleCreateChallenge = async (data: Partial<Challenge>) => {
     try {

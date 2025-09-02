@@ -10,8 +10,8 @@ import {
 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
 import { usePlatform } from "../contexts/PlatformContext";
+import { useAuth } from "../contexts/useAuth";
 import { supabase } from "../lib/supabase";
 import { useColorTheme } from "../utils/colorUtils";
 
@@ -43,6 +43,7 @@ interface Photo {
   created_at: string;
   user_id: string;
   user: Profile;
+  profile: Profile;
   likes: number;
   liked_by_user: boolean;
   comments: Comment[];
@@ -50,14 +51,13 @@ interface Photo {
 }
 
 const CommunityPhotos: React.FC = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedComments, setExpandedComments] = useState<string[]>([]);
   const [expandedReplies, setExpandedReplies] = useState<string[]>([]);
   const [commentText, setCommentText] = useState<{ [key: string]: string }>({});
   const [replyText, setReplyText] = useState<{ [key: string]: string }>({});
-  const [mentionSearch, setMentionSearch] = useState("");
   const [mentionResults, setMentionResults] = useState<Profile[]>([]);
   const [showMentions, setShowMentions] = useState(false);
   const [cursorPosition, setCursorPosition] = useState(0);
@@ -68,6 +68,156 @@ const CommunityPhotos: React.FC = () => {
   const colorTheme = useColorTheme(platform.settings?.theme_color);
 
   useEffect(() => {
+    const fetchPhotos = async () => {
+      try {
+        if (!user) return;
+
+        const { data: photosData, error: photosError } = await supabase
+          .from("progress_photos")
+          .select(
+            `
+            *,
+            user:profiles!progress_photos_user_id_fkey(
+              id,
+              username,
+              full_name,
+              avatar_url
+            )
+          `
+          )
+          .eq("community_visible", true)
+          .eq("is_private", false)
+          .order("created_at", { ascending: false });
+
+        if (photosError) throw photosError;
+
+        console.log(photosData);
+
+        // Get likes for each photo
+        const photosWithLikes = await Promise.all(
+          photosData.map(async (photo) => {
+            const { count: likesCount } = await supabase
+              .from("photo_likes")
+              .select("id", { count: "exact" })
+              .eq("photo_id", photo.id);
+
+            const { data: userLike } = await supabase
+              .from("photo_likes")
+              .select("id")
+              .eq("photo_id", photo.id)
+              .eq("user_id", user.id)
+              .limit(1)
+              .maybeSingle();
+
+            // Get comments for the photo
+            const { data: comments } = await supabase
+              .from("photo_comments")
+              .select(
+                `
+            *,
+            user:profiles!photo_comments_user_id_fkey(
+              id,
+              username,
+              full_name,
+              avatar_url
+            )
+          `
+              )
+              .eq("photo_id", photo.id)
+              .is("parent_id", null)
+              .order("created_at", { ascending: true });
+
+            if (!comments) return null;
+
+            // Get comment likes and replies
+            const commentsWithDetails = await Promise.all(
+              comments.map(async (comment) => {
+                const { count: commentLikes } = await supabase
+                  .from("comment_likes")
+                  .select("id", { count: "exact" })
+                  .eq("comment_id", comment.id);
+
+                const { data: userCommentLike } = await supabase
+                  .from("comment_likes")
+                  .select("id")
+                  .eq("comment_id", comment.id)
+                  .eq("user_id", user.id)
+                  .limit(1)
+                  .maybeSingle();
+
+                // Get replies for this comment
+                const { data: replies } = await supabase
+                  .from("photo_comments")
+                  .select(
+                    `
+              *,
+              user:profiles!photo_comments_user_id_fkey(
+                id,
+                username,
+                full_name,
+                avatar_url
+              )
+            `
+                  )
+                  .eq("parent_id", comment.id)
+                  .order("created_at", { ascending: true });
+
+                if (!replies) return null;
+
+                // Get likes for each reply
+                const repliesWithLikes = await Promise.all(
+                  replies.map(async (reply) => {
+                    const { count: replyLikes } = await supabase
+                      .from("comment_likes")
+                      .select("id", { count: "exact" })
+                      .eq("comment_id", reply.id);
+
+                    const { data: userReplyLike } = await supabase
+                      .from("comment_likes")
+                      .select("id")
+                      .eq("comment_id", reply.id)
+                      .eq("user_id", user.id)
+                      .limit(1)
+                      .maybeSingle();
+
+                    return {
+                      ...reply,
+                      likes: replyLikes,
+                      liked_by_user: !!userReplyLike,
+                    };
+                  })
+                );
+
+                return {
+                  ...comment,
+                  likes: commentLikes,
+                  liked_by_user: !!userCommentLike,
+                  replies: repliesWithLikes,
+                };
+              })
+            );
+
+            return {
+              ...photo,
+              likes: likesCount,
+              liked_by_user: !!userLike,
+              comments: commentsWithDetails,
+              comments_count: commentsWithDetails.reduce(
+                (acc, comment) => acc + 1 + (comment.replies?.length || 0),
+                0
+              ),
+            };
+          })
+        );
+
+        setPhotos(photosWithLikes);
+      } catch (error) {
+        console.error("Error fetching photos:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchPhotos();
   }, [user]);
 
@@ -81,182 +231,6 @@ const CommunityPhotos: React.FC = () => {
       });
     }
   }, [photos]);
-
-  const getSignedUrl = async (filePath: string) => {
-    try {
-      const { data, error } = await supabase.storage
-        .from("progress-photos")
-        .createSignedUrl(filePath, 3600); // 1 hour expiry
-
-      if (error) throw error;
-      return data.signedUrl;
-    } catch (error) {
-      console.error("Error getting signed URL:", error);
-      return null;
-    }
-  };
-
-  const fetchPhotos = async () => {
-    try {
-      if (!user) return;
-
-      const { data: photosData, error: photosError } = await supabase
-        .from("progress_photos")
-        .select(
-          `
-          *,
-          user:profiles!progress_photos_user_id_fkey(
-            id,
-            username,
-            full_name,
-            avatar_url
-          )
-        `
-        )
-        .eq("community_visible", true)
-        .eq("is_private", false)
-        .order("created_at", { ascending: false });
-
-      if (photosError) throw photosError;
-
-      // Get signed URLs for all photos
-      const urlPromises =
-        photosData?.map(async (photo) => {
-          const urlParts = photo.photo_url.split("/");
-          const filePath = `${user.id}/${photo.week_number}/${
-            urlParts[urlParts.length - 1]
-          }`;
-          const signedUrl = await getSignedUrl(filePath);
-          if (!signedUrl) return null;
-          return { ...photo, photo_url: signedUrl || photo.photo_url };
-        }) || [];
-
-      const photosWithSignedUrls = await Promise.all(urlPromises);
-
-      // Get likes for each photo
-      const photosWithLikes = await Promise.all(
-        photosWithSignedUrls.map(async (photo) => {
-          const { count: likesCount } = await supabase
-            .from("photo_likes")
-            .select("id", { count: "exact" })
-            .eq("photo_id", photo.id);
-
-          const { data: userLike } = await supabase
-            .from("photo_likes")
-            .select("id")
-            .eq("photo_id", photo.id)
-            .eq("user_id", user.id)
-            .limit(1)
-            .maybeSingle();
-
-          // Get comments for the photo
-          const { data: comments } = await supabase
-            .from("photo_comments")
-            .select(
-              `
-            *,
-            user:profiles!photo_comments_user_id_fkey(
-              id,
-              username,
-              full_name,
-              avatar_url
-            )
-          `
-            )
-            .eq("photo_id", photo.id)
-            .is("parent_id", null)
-            .order("created_at", { ascending: true });
-
-          if (!comments) return null;
-
-          // Get comment likes and replies
-          const commentsWithDetails = await Promise.all(
-            comments.map(async (comment) => {
-              const { count: commentLikes } = await supabase
-                .from("comment_likes")
-                .select("id", { count: "exact" })
-                .eq("comment_id", comment.id);
-
-              const { data: userCommentLike } = await supabase
-                .from("comment_likes")
-                .select("id")
-                .eq("comment_id", comment.id)
-                .eq("user_id", user.id)
-                .limit(1)
-                .maybeSingle();
-
-              // Get replies for this comment
-              const { data: replies } = await supabase
-                .from("photo_comments")
-                .select(
-                  `
-              *,
-              user:profiles!photo_comments_user_id_fkey(
-                id,
-                username,
-                full_name,
-                avatar_url
-              )
-            `
-                )
-                .eq("parent_id", comment.id)
-                .order("created_at", { ascending: true });
-
-              if (!replies) return null;
-
-              // Get likes for each reply
-              const repliesWithLikes = await Promise.all(
-                replies.map(async (reply) => {
-                  const { count: replyLikes } = await supabase
-                    .from("comment_likes")
-                    .select("id", { count: "exact" })
-                    .eq("comment_id", reply.id);
-
-                  const { data: userReplyLike } = await supabase
-                    .from("comment_likes")
-                    .select("id")
-                    .eq("comment_id", reply.id)
-                    .eq("user_id", user.id)
-                    .limit(1)
-                    .maybeSingle();
-
-                  return {
-                    ...reply,
-                    likes: replyLikes,
-                    liked_by_user: !!userReplyLike,
-                  };
-                })
-              );
-
-              return {
-                ...comment,
-                likes: commentLikes,
-                liked_by_user: !!userCommentLike,
-                replies: repliesWithLikes,
-              };
-            })
-          );
-
-          return {
-            ...photo,
-            likes: likesCount,
-            liked_by_user: !!userLike,
-            comments: commentsWithDetails,
-            comments_count: commentsWithDetails.reduce(
-              (acc, comment) => acc + 1 + (comment.replies?.length || 0),
-              0
-            ),
-          };
-        })
-      );
-
-      setPhotos(photosWithLikes);
-    } catch (error) {
-      console.error("Error fetching photos:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const toggleLike = async (photoId: string) => {
     try {
@@ -472,7 +446,6 @@ const CommunityPhotos: React.FC = () => {
     const lastMention = text.match(/@(\w*)$/);
     if (lastMention) {
       const searchTerm = lastMention[1].toLowerCase();
-      setMentionSearch(searchTerm);
       setShowMentions(true);
 
       try {
@@ -618,7 +591,7 @@ const CommunityPhotos: React.FC = () => {
                         )}
                       </div>
                       <p className="flex flex-col font-medium text-gray-800 dark:text-white">
-                        {photo.user.username}
+                        {photo.user?.username}
                         <span className="text-xs text-zinc-400 dark:text-gray-400">
                           {formatDistanceToNow(photo.created_at)}
                         </span>
@@ -685,7 +658,7 @@ const CommunityPhotos: React.FC = () => {
                       <>
                         <p className="text-sm text-gray-800 dark:text-white mb-2">
                           <span className="font-medium mr-2">
-                            {photo.user.username}
+                            {photo.user?.username}
                           </span>
                           {photo.caption}
                         </p>
@@ -824,9 +797,9 @@ const CommunityPhotos: React.FC = () => {
                                 {/* Reply Input */}
                                 <div className="flex items-start space-x-3">
                                   <div className="w-7 h-7 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden flex-shrink-0">
-                                    {user?.avatar_url ? (
+                                    {profile?.avatar_url ? (
                                       <img
-                                        src={user.avatar_url}
+                                        src={profile?.avatar_url}
                                         alt="Your avatar"
                                         className="w-full h-full object-cover"
                                       />
@@ -867,7 +840,7 @@ const CommunityPhotos: React.FC = () => {
                                         }
                                       }}
                                       placeholder="Reply to comment..."
-                                      className="w-full px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-green-500"
+                                      className="w-full px-2 py-1 bg-gray-100 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-green-500"
                                       rows={1}
                                     />
 
@@ -921,9 +894,9 @@ const CommunityPhotos: React.FC = () => {
                         {/* Comment Input */}
                         <div className="flex items-start space-x-3">
                           <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden flex-shrink-0">
-                            {user?.avatar_url ? (
+                            {profile?.avatar_url ? (
                               <img
-                                src={user.avatar_url}
+                                src={profile?.avatar_url}
                                 alt="Your avatar"
                                 className="w-full h-full object-cover"
                               />
@@ -954,7 +927,7 @@ const CommunityPhotos: React.FC = () => {
                                 }
                               }}
                               placeholder="Add a comment..."
-                              className="w-full px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg resize-none focus:outline-none focus:ring-2 text-sm focus:ring-green-500"
+                              className="w-full px-2 py-1 bg-gray-100 dark:bg-gray-700 dark:text-gray-100 rounded-lg resize-none focus:outline-none focus:ring-2 text-sm focus:ring-green-500"
                               rows={1}
                             />
 
@@ -987,10 +960,10 @@ const CommunityPhotos: React.FC = () => {
                                           </div>
                                         )}
                                       </div>
-                                      <span className="text-xs font-medium">
+                                      <span className="text-xs dark:text-gray-200 font-medium">
                                         {profile.username}
                                       </span>
-                                      <span className="text-gray-500 dark:text-gray-400 text-sm">
+                                      <span className="text-gray-500 dark:text-gray-200 text-sm">
                                         {profile.full_name}
                                       </span>
                                     </button>

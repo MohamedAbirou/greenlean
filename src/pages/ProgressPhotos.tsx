@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion';
 import { Calendar, Camera, Eye, EyeOff, Loader, Plus, Trash2, Users } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
 import { usePlatform } from '../contexts/PlatformContext';
+import { useAuth } from "../contexts/useAuth";
 import { supabase } from '../lib/supabase';
 import { useColorTheme } from '../utils/colorUtils';
 
@@ -34,16 +34,15 @@ const ProgressPhotos: React.FC = () => {
     fetchPhotos();
   }, [user]);
 
-  const getSignedUrl = async (filePath: string) => {
+  const getPublicUrl = (filePath: string) => {
     try {
-      const { data, error } = await supabase.storage
+      const { data } = supabase.storage
         .from('progress-photos')
-        .createSignedUrl(filePath, 3600); // 1 hour expiry
+        .getPublicUrl(filePath);
 
-      if (error) throw error;
-      return data.signedUrl;
+      return data.publicUrl;
     } catch (error) {
-      console.error('Error getting signed URL:', error);
+      console.error('Error getting public URL:', error);
       return null;
     }
   };
@@ -64,9 +63,9 @@ const ProgressPhotos: React.FC = () => {
       const urlPromises = data?.map(async (photo) => {
         const urlParts = photo.photo_url.split('/');
         const filePath = `${user.id}/${photo.week_number}/${urlParts[urlParts.length - 1]}`;
-        const signedUrl = await getSignedUrl(filePath);
-        if (!signedUrl) return null;
-        return { ...photo, photo_url: signedUrl || photo.photo_url };
+        const publicUrl = getPublicUrl(filePath);
+        if (!publicUrl) return null;
+        return { ...photo, photo_url: publicUrl || photo.photo_url };
       }) || [];
 
       const photosWithSignedUrls = await Promise.all(urlPromises);
@@ -114,15 +113,15 @@ const ProgressPhotos: React.FC = () => {
       if (uploadError) throw uploadError;
 
       // Get signed URL
-      const signedUrl = await getSignedUrl(fileName);
-      if (!signedUrl) throw new Error('Failed to get signed URL');
+      const publicUrl = getPublicUrl(fileName);
+      if (!publicUrl) throw new Error('Failed to get signed URL');
 
       // Save photo record in database
       const { error: dbError } = await supabase
         .from('progress_photos')
         .insert({
           user_id: user.id,
-          photo_url: signedUrl,
+          photo_url: publicUrl,
           caption,
           week_number: selectedWeek,
           is_private: isPrivate

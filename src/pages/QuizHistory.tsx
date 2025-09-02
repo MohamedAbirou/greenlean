@@ -2,8 +2,8 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Calendar, Loader } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { usePlatform } from '../contexts/PlatformContext';
+import { useAuth } from "../contexts/useAuth";
 import { supabase } from '../lib/supabase';
 import { useColorTheme } from '../utils/colorUtils';
 

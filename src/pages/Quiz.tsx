@@ -1,17 +1,17 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  ArrowRight,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Info,
-  LogIn,
+    ArrowRight,
+    Check,
+    ChevronLeft,
+    ChevronRight,
+    Info,
+    LogIn,
 } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthModal from "../components/auth/AuthModal";
-import { useAuth } from "../contexts/AuthContext";
 import { usePlatform } from "../contexts/PlatformContext";
+import { useAuth } from "../contexts/useAuth";
 import { supabase } from "../lib/supabase";
 import { useColorTheme } from "../utils/colorUtils";
 import { logFrontendError, logInfo } from "../utils/errorLogger";

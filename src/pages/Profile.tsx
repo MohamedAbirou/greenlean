@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion';
 import { Camera, Loader, Mail, User } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
 import { usePlatform } from '../contexts/PlatformContext';
+import { useAuth } from "../contexts/useAuth";
 import { supabase } from '../lib/supabase';
 import { useColorTheme } from '../utils/colorUtils';
 

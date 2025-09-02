@@ -9,12 +9,12 @@ import {
   Shield,
   PenTool as Tool,
   Trash2,
-  Upload,
+  Upload
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { usePlatform } from "../../contexts/PlatformContext";
 import { supabase } from "../../lib/supabase";
-import { useColorTheme } from "../../utils/colorUtils";
+import { ColorTheme } from "../../utils/colorUtils";
 import { logFrontendError, logInfo } from "../../utils/errorLogger";
 
 interface PlatformSettings {
@@ -43,7 +43,11 @@ interface Log {
   created_at: string;
 }
 
-const SettingsTab: React.FC = () => {
+interface SettingsTabProps {
+  colorTheme: ColorTheme;
+}
+
+const SettingsTab: React.FC<SettingsTabProps> = ({colorTheme}) => {
   const [settings, setSettings] = useState<PlatformSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +57,6 @@ const SettingsTab: React.FC = () => {
   const [logsLoading, setLogsLoading] = useState(false);
 
   const platform = usePlatform();
-  const colorTheme = useColorTheme(platform.settings?.theme_color);
 
   useEffect(() => {
     fetchSettings();

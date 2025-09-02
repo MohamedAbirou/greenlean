@@ -1,21 +1,21 @@
 import confetti from 'canvas-confetti';
 import { motion } from 'framer-motion';
 import {
-  Award,
-  Calendar,
-  ChevronDown,
-  ChevronUp,
-  Clock,
-  Dumbbell,
-  Flame,
-  Loader,
-  Target,
-  Trophy,
-  Users
+    Award,
+    Calendar,
+    ChevronDown,
+    ChevronUp,
+    Clock,
+    Dumbbell,
+    Flame,
+    Loader,
+    Target,
+    Trophy,
+    Users
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
 import { usePlatform } from '../contexts/PlatformContext';
+import { useAuth } from "../contexts/useAuth";
 import { supabase } from '../lib/supabase';
 import { useColorTheme } from '../utils/colorUtils';
 

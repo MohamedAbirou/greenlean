@@ -6,8 +6,8 @@ import OverviewTab from '../components/admin/OverviewTab';
 import RewardsTab from '../components/admin/RewardsTab';
 import SettingsTab from '../components/admin/SettingsTab';
 import UsersTab from '../components/admin/UsersTab';
-import { useAuth } from '../contexts/AuthContext';
 import { usePlatform } from '../contexts/PlatformContext';
+import { useAuth } from "../contexts/useAuth";
 import { supabase } from '../lib/supabase';
 import { useColorTheme } from '../utils/colorUtils';
 
@@ -73,9 +73,9 @@ const AdminDashboard: React.FC = () => {
       case 'challenges':
         return <ChallengesTab colorTheme={colorTheme} />;
       case 'users':
-        return <UsersTab colorTheme={colorTheme} />;
+        return <UsersTab />;
       case 'rewards':
-        return <RewardsTab colorTheme={colorTheme} />;
+        return <RewardsTab />;
       case 'settings':
         return <SettingsTab colorTheme={colorTheme} />;
       default:

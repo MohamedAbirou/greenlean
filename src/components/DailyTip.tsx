@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { BookmarkCheck, BookmarkPlus, Lightbulb, Share2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/useAuth";
 import { supabase } from "../lib/supabase";
 import { ColorTheme } from "../utils/colorUtils";
 

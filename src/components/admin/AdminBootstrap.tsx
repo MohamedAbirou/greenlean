@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Shield, User, Check, AlertCircle, Loader } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import { createFirstAdmin, checkAdminStatus } from '../../utils/adminBootstrap';
+import { AlertCircle, Check, Loader, Shield, User } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useAuth } from "../../contexts/useAuth";
+import { checkAdminStatus, createFirstAdmin } from '../../utils/adminBootstrap';
 
 const AdminBootstrap: React.FC = () => {
   const { user } = useAuth();

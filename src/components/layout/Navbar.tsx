@@ -1,24 +1,24 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Camera,
-  History,
-  LayoutDashboard,
-  Leaf,
-  LogOut,
-  Menu,
-  Moon,
-  Settings,
-  Shield,
-  Sun,
-  Trophy,
-  UserCircle,
-  Users,
-  X,
+    Camera,
+    History,
+    LayoutDashboard,
+    Leaf,
+    LogOut,
+    Menu,
+    Moon,
+    Settings,
+    Shield,
+    Sun,
+    Trophy,
+    UserCircle,
+    Users,
+    X,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
 import { usePlatform } from "../../contexts/PlatformContext";
+import { useAuth } from "../../contexts/useAuth";
 import { supabase } from "../../lib/supabase";
 import { useThemeStore } from "../../store/themeStore";
 import { useColorTheme } from "../../utils/colorUtils";
