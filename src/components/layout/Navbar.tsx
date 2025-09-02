@@ -1,19 +1,19 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
-    Camera,
-    History,
-    LayoutDashboard,
-    Leaf,
-    LogOut,
-    Menu,
-    Moon,
-    Settings,
-    Shield,
-    Sun,
-    Trophy,
-    UserCircle,
-    Users,
-    X,
+  Camera,
+  History,
+  LayoutDashboard,
+  Leaf,
+  LogOut,
+  Menu,
+  Moon,
+  Settings,
+  Shield,
+  Sun,
+  Trophy,
+  UserCircle,
+  Users,
+  X,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
@@ -370,7 +370,7 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled }) => {
                         setIsOpen(false);
                         setShowAuthModal(true);
                       }}
-                      className="flex items-center justify-center px-4 py-2 rounded-full bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors duration-300"
+                      className="flex items-center justify-center px-4 py-2 rounded-full bg-green-500 text-white hover:bg-green-600 transition-colors duration-300"
                     >
                       <UserCircle size={18} className="mr-2" />
                       <span>Sign In</span>
