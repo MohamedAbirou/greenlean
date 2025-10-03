@@ -1,34 +1,32 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Analytics } from "@vercel/analytics/react";
 import { AnimatePresence } from "framer-motion";
-import { AuthProvider } from "./contexts/AuthContext";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
-
+import { AuthProvider } from "./contexts/AuthContext";
 // Layout
 import Layout from "./components/layout/Layout";
-
 // Pages
-import Home from "./pages/Home";
-import Quiz from "./pages/Quiz";
-import DietPlans from "./pages/DietPlans";
-import DietPlanDetails from "./pages/DietPlanDetails";
-import WeightLoss from "./pages/WeightLoss";
-import ExerciseDetails from "./pages/ExerciseDetails";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
-import FAQ from "./pages/FAQ";
-import Profile from "./pages/Profile";
-import QuizHistory from "./pages/QuizHistory";
-import QuizResult from "./pages/QuizResult";
-import Dashboard from "./pages/Dashboard";
-import AuthCallback from "./pages/AuthCallback";
-import NotFound from "./pages/NotFound";
-import ProgressPhotos from "./pages/ProgressPhotos";
-import CommunityPhotos from "./pages/CommunityPhotos";
-import Challenges from "./pages/Challenges";
-import AdminDashboard from "./pages/AdminDashboard";
 import AdminBootstrap from "./components/admin/AdminBootstrap";
 import { PlatformProvider } from "./contexts/PlatformContext";
+import About from "./pages/About";
+import AdminDashboard from "./pages/AdminDashboard";
+import AuthCallback from "./pages/AuthCallback";
+import Challenges from "./pages/Challenges";
+import CommunityPhotos from "./pages/CommunityPhotos";
+import Contact from "./pages/Contact";
+import Dashboard from "./pages/Dashboard";
+import DietPlanDetails from "./pages/DietPlanDetails";
+import DietPlans from "./pages/DietPlans";
+import ExerciseDetails from "./pages/ExerciseDetails";
+import FAQ from "./pages/FAQ";
+import Home from "./pages/Home";
+import NotFound from "./pages/NotFound";
+import Profile from "./pages/Profile";
+import ProgressPhotos from "./pages/ProgressPhotos";
+import Quiz from "./pages/Quiz";
+import QuizHistory from "./pages/QuizHistory";
+import QuizResult from "./pages/QuizResult";
+import WeightLoss from "./pages/WeightLoss";
 
 function App() {
   return (
@@ -127,6 +125,9 @@ function App() {
             </Routes>
           </AnimatePresence>
         </Router>
+
+        {/* ✅ Analytics goes here, outside Router but inside Providers */}
+        <Analytics />
       </PlatformProvider>
     </AuthProvider>
   );
