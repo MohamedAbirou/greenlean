@@ -3,6 +3,8 @@ import { AnimatePresence } from "framer-motion";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
+import CookieConsent from "./components/CookieConsent";
+import Cookies from "js-cookie";
 // Layout
 import Layout from "./components/layout/Layout";
 // Pages
@@ -29,6 +31,8 @@ import QuizResult from "./pages/QuizResult";
 import WeightLoss from "./pages/WeightLoss";
 
 function App() {
+  const hasConsent = Cookies.get('cookie-consent') === 'accepted';
+
   return (
     <AuthProvider>
       <PlatformProvider>
@@ -126,8 +130,8 @@ function App() {
           </AnimatePresence>
         </Router>
 
-        {/* ✅ Analytics goes here, outside Router but inside Providers */}
-        <Analytics />
+        {hasConsent && <Analytics />}
+        <CookieConsent />
       </PlatformProvider>
     </AuthProvider>
   );
