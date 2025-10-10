@@ -497,9 +497,12 @@ const Challenges: React.FC = () => {
                 )}
 
                 <button
-                  onClick={() => setExpandedChallenge(
-                    expandedChallenge === challenge.id ? null : challenge.id
-                  )}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setExpandedChallenge(
+                      expandedChallenge === challenge.id ? null : challenge.id
+                    );
+                  }}
                   className="w-full mt-4 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                 >
                   {expandedChallenge === challenge.id ? (
@@ -510,35 +513,37 @@ const Challenges: React.FC = () => {
                 </button>
 
                 {expandedChallenge === challenge.id && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700"
-                  >
-                    <h4 className="font-medium text-gray-800 dark:text-white mb-2">
-                      Challenge Details
-                    </h4>
-                    <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                      <li>
-                        <strong>Type:</strong> {challenge.type}
-                      </li>
-                      <li>
-                        <strong>Target:</strong> {challenge.requirements.target} {challenge.requirements.metric}
-                      </li>
-                      {challenge.requirements.timeframe && (
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <h4 className="font-medium text-gray-800 dark:text-white mb-2">
+                        Challenge Details
+                      </h4>
+                      <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
                         <li>
-                          <strong>Timeframe:</strong> {challenge.requirements.timeframe}
+                          <strong>Type:</strong> {challenge.type}
                         </li>
-                      )}
-                      <li>
-                        <strong>Start Date:</strong> {new Date(challenge.start_date).toLocaleDateString()}
-                      </li>
-                      <li>
-                        <strong>End Date:</strong> {new Date(challenge.end_date).toLocaleDateString()}
-                      </li>
-                    </ul>
-                  </motion.div>
+                        <li>
+                          <strong>Target:</strong> {challenge.requirements.target} {challenge.requirements.metric}
+                        </li>
+                        {challenge.requirements.timeframe && (
+                          <li>
+                            <strong>Timeframe:</strong> {challenge.requirements.timeframe}
+                          </li>
+                        )}
+                        <li>
+                          <strong>Start Date:</strong> {new Date(challenge.start_date).toLocaleDateString()}
+                        </li>
+                        <li>
+                          <strong>End Date:</strong> {new Date(challenge.end_date).toLocaleDateString()}
+                        </li>
+                      </ul>
+                    </motion.div>
+                  </div>
                 )}
               </div>
             </motion.div>
