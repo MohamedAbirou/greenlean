@@ -2,7 +2,7 @@ import Chart from 'chart.js/auto';
 import { Award, Star, TrendingUp, Users } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { StatCard, ChartCard } from "../helpers"
+import { StatCard, ChartCard } from "../../helpers"
 
 interface DashboardStats {
   totalParticipants: number;
