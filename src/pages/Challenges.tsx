@@ -383,7 +383,7 @@ const Challenges: React.FC = () => {
           {filteredChallenges.map((challenge) => (
             <div
               key={challenge.id}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden"
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden self-start"
             >
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
