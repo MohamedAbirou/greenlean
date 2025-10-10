@@ -28,6 +28,7 @@ import ProgressPhotos from "./pages/ProgressPhotos";
 import Quiz from "./pages/Quiz";
 import QuizHistory from "./pages/QuizHistory";
 import QuizResult from "./pages/QuizResult";
+import ResetPassword from "./pages/ResetPassword";
 import WeightLoss from "./pages/WeightLoss";
 
 function App() {
@@ -41,6 +42,9 @@ function App() {
             <Routes>
               {/* Auth callback route outside of layout */}
               <Route path="/auth/callback" element={<AuthCallback />} />
+
+              {/* Password reset route outside of layout */}
+              <Route path="/reset-password" element={<ResetPassword />} />
 
               <Route path="/" element={<Layout />}>
                 <Route index element={<Home />} />
