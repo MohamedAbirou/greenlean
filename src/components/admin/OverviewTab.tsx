@@ -2,6 +2,7 @@ import Chart from 'chart.js/auto';
 import { Award, Star, TrendingUp, Users } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { StatCard, ChartCard } from "../helpers"
 
 interface DashboardStats {
   totalParticipants: number;
@@ -10,6 +11,7 @@ interface DashboardStats {
   averageStreak: number;
   pointsAwarded: number;
   badgesEarned: number;
+  dailyActiveUsers: number[];
 }
 
 const OverviewTab: React.FC = () => {
@@ -24,50 +26,59 @@ const OverviewTab: React.FC = () => {
 
   const fetchDashboardStats = async () => {
     try {
-      const { count: totalParticipants } = await supabase
-        .from('challenge_participants')
-        .select('*', { count: 'exact' });
-
       const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      const { count: activeUsers } = await supabase
-        .from('challenge_participants')
-        .select('*', { count: 'exact' })
-        .gte('created_at', sevenDaysAgo.toISOString());
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6); // last 7 days
 
-      const { count: completedChallenges } = await supabase
-        .from('challenge_participants')
-        .select('*', { count: 'exact' })
-        .eq('completed', true);
+      // Fetch all data in parallel
+      const [
+        totalParticipantsResp,
+        activeUsersResp,
+        completedChallengesResp,
+        streaksResp,
+        rewardsResp,
+        participantsData
+      ] = await Promise.all([
+        supabase.from('challenge_participants').select('*', { count: 'exact' }),
+        supabase.from('challenge_participants').select('*', { count: 'exact' }).gte('created_at', sevenDaysAgo.toISOString()),
+        supabase.from('challenge_participants').select('*', { count: 'exact' }).eq('completed', true),
+        supabase.from('challenge_participants').select('streak_count'),
+        supabase.from('user_rewards').select('points, badges'),
+        supabase.from('challenge_participants').select('created_at')
+      ]);
 
-      const completionRate = totalParticipants 
-        ? ((completedChallenges! / totalParticipants) * 100)
-        : 0;
+      const totalParticipants = totalParticipantsResp.count || 0;
+      const activeUsers = activeUsersResp.count || 0;
+      const completedChallenges = completedChallengesResp.count || 0;
+      const streaks = streaksResp.data || [];
+      const rewards = rewardsResp.data || [];
+      const participants = participantsData.data || [];
 
-      const { data: streaks } = await supabase
-        .from('challenge_participants')
-        .select('streak_count');
-
-      const averageStreak = streaks?.reduce((acc, curr) => acc + curr.streak_count, 0) || 0;
-
-      const { data: rewards } = await supabase
-        .from('user_rewards')
-        .select('points, badges');
-
-      const pointsAwarded = rewards?.reduce((acc, curr) => acc + curr.points, 0) || 0;
-
-      const badgesEarned = rewards?.reduce((acc, curr) => {
+      // Calculate other stats
+      const completionRate = totalParticipants ? (completedChallenges / totalParticipants) * 100 : 0;
+      const averageStreak = streaks.reduce((acc, curr) => acc + curr.streak_count, 0) / (streaks.length || 1);
+      const pointsAwarded = rewards.reduce((acc, curr) => acc + curr.points, 0);
+      const badgesEarned = rewards.reduce((acc, curr) => {
         const badges = Array.isArray(curr.badges) ? curr.badges : [];
         return acc + badges.length;
-      }, 0) || 0;
+      }, 0);
+
+      // Calculate daily active users for the chart
+      const counts: Record<string, number> = {};
+      participants.forEach((row) => {
+        const day = new Date(row.created_at).toLocaleDateString('en-US', { weekday: 'short' });
+        counts[day] = (counts[day] || 0) + 1;
+      });
+      const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+      const dailyActiveUsers = days.map((day) => counts[day] || 0);
 
       setStats({
-        totalParticipants: totalParticipants || 0,
-        activeUsers: activeUsers || 0,
+        totalParticipants,
+        activeUsers,
         completionRate,
-        averageStreak: averageStreak / (streaks?.length || 1),
+        averageStreak,
         pointsAwarded,
-        badgesEarned
+        badgesEarned,
+        dailyActiveUsers
       });
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
@@ -84,28 +95,25 @@ const OverviewTab: React.FC = () => {
         Chart.getChart(participationChartRef.current)?.destroy();
         Chart.getChart(completionChartRef.current)?.destroy();
 
-        // Create new charts
+        // User Activity Line Chart
         new Chart(participationCtx, {
           type: 'line',
           data: {
-            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
             datasets: [{
               label: 'Daily Active Users',
-              data: [65, 59, 80, 81, 56, 55, 40],
+              data: stats.dailyActiveUsers,
               borderColor: '#10B981',
               tension: 0.4
             }]
           },
           options: {
             responsive: true,
-            plugins: {
-              legend: {
-                position: 'bottom'
-              }
-            }
+            plugins: { legend: { position: 'bottom' } }
           }
         });
 
+        // Challenge Completion Doughnut Chart
         new Chart(completionCtx, {
           type: 'doughnut',
           data: {
@@ -117,76 +125,29 @@ const OverviewTab: React.FC = () => {
           },
           options: {
             responsive: true,
-            plugins: {
-              legend: {
-                position: 'bottom'
-              }
-            }
+            plugins: { legend: { position: 'bottom' } }
           }
         });
       }
     }
   }, [stats]);
 
-  if (!stats) {
-    return null;
-  }
+  if (!stats) return null;
 
   return (
     <div className="space-y-6">
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
-          <div className="flex items-center gap-4">
-            <Users className="h-8 w-8 text-green-500" />
-            <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Total Participants</p>
-              <p className="text-2xl font-bold dark:text-white">{stats.totalParticipants}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
-          <div className="flex items-center gap-4">
-            <TrendingUp className="h-8 w-8 text-blue-500" />
-            <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Active Users</p>
-              <p className="text-2xl font-bold dark:text-white">{stats.activeUsers}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
-          <div className="flex items-center gap-4">
-            <Award className="h-8 w-8 text-purple-500" />
-            <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Points Awarded</p>
-              <p className="text-2xl font-bold dark:text-white">{stats.pointsAwarded}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
-          <div className="flex items-center gap-4">
-            <Star className="h-8 w-8 text-yellow-500" />
-            <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Badges Earned</p>
-              <p className="text-2xl font-bold dark:text-white">{stats.badgesEarned}</p>
-            </div>
-          </div>
-        </div>
+        <StatCard icon={<Users className="h-8 w-8 text-green-500" />} label="Total Participants" value={stats.totalParticipants} />
+        <StatCard icon={<TrendingUp className="h-8 w-8 text-blue-500" />} label="Active Users" value={stats.activeUsers} />
+        <StatCard icon={<Award className="h-8 w-8 text-purple-500" />} label="Points Awarded" value={stats.pointsAwarded} />
+        <StatCard icon={<Star className="h-8 w-8 text-yellow-500" />} label="Badges Earned" value={stats.badgesEarned} />
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-          <h3 className="text-lg font-semibold mb-4 dark:text-white">User Activity</h3>
-          <canvas ref={participationChartRef}></canvas>
-        </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-          <h3 className="text-lg font-semibold mb-4 dark:text-white">Challenge Completion</h3>
-          <canvas ref={completionChartRef}></canvas>
-        </div>
+        <ChartCard title="User Activity" canvasRef={participationChartRef} />
+        <ChartCard title="Challenge Completion" canvasRef={completionChartRef} />
       </div>
     </div>
   );
