@@ -381,9 +381,8 @@ const Challenges: React.FC = () => {
         {/* Challenges Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredChallenges.map((challenge) => (
-            <motion.div
+            <div
               key={challenge.id}
-              layout="position"
               className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden"
             >
               <div className="p-6">
@@ -513,40 +512,39 @@ const Challenges: React.FC = () => {
                 </button>
 
                 {expandedChallenge === challenge.id && (
-                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 overflow-hidden">
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <h4 className="font-medium text-gray-800 dark:text-white mb-2">
-                        Challenge Details
-                      </h4>
-                      <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 overflow-hidden"
+                  >
+                    <h4 className="font-medium text-gray-800 dark:text-white mb-2">
+                      Challenge Details
+                    </h4>
+                    <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                      <li>
+                        <strong>Type:</strong> {challenge.type}
+                      </li>
+                      <li>
+                        <strong>Target:</strong> {challenge.requirements.target} {challenge.requirements.metric}
+                      </li>
+                      {challenge.requirements.timeframe && (
                         <li>
-                          <strong>Type:</strong> {challenge.type}
+                          <strong>Timeframe:</strong> {challenge.requirements.timeframe}
                         </li>
-                        <li>
-                          <strong>Target:</strong> {challenge.requirements.target} {challenge.requirements.metric}
-                        </li>
-                        {challenge.requirements.timeframe && (
-                          <li>
-                            <strong>Timeframe:</strong> {challenge.requirements.timeframe}
-                          </li>
-                        )}
-                        <li>
-                          <strong>Start Date:</strong> {new Date(challenge.start_date).toLocaleDateString()}
-                        </li>
-                        <li>
-                          <strong>End Date:</strong> {new Date(challenge.end_date).toLocaleDateString()}
-                        </li>
-                      </ul>
-                    </motion.div>
-                  </div>
+                      )}
+                      <li>
+                        <strong>Start Date:</strong> {new Date(challenge.start_date).toLocaleDateString()}
+                      </li>
+                      <li>
+                        <strong>End Date:</strong> {new Date(challenge.end_date).toLocaleDateString()}
+                      </li>
+                    </ul>
+                  </motion.div>
                 )}
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
 
