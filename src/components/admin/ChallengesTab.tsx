@@ -1,15 +1,15 @@
-import { Edit, Plus, Search, Trash2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
-import { ColorTheme } from '../../utils/colorUtils';
-import ChallengeForm from './ChallengeForm';
+import { Edit, Plus, Search, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "../../lib/supabase";
+import { ColorTheme } from "../../utils/colorUtils";
+import ChallengeForm from "./ChallengeForm";
 
 interface Challenge {
   id: string;
   title: string;
   description: string;
-  type: 'daily' | 'weekly' | 'streak' | 'goal';
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  type: "daily" | "weekly" | "streak" | "goal";
+  difficulty: "beginner" | "intermediate" | "advanced";
   points: number;
   requirements: {
     target: number;
@@ -42,15 +42,17 @@ interface ChallengesTabProps {
   colorTheme: ColorTheme;
 }
 
-const ChallengesTab: React.FC<ChallengesTabProps> = ({colorTheme}) => {
+const ChallengesTab: React.FC<ChallengesTabProps> = ({ colorTheme }) => {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   // const [participants, setParticipants] = useState<ChallengeParticipant[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [difficultyFilter, setDifficultyFilter] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [difficultyFilter, setDifficultyFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showForm, setShowForm] = useState(false);
-  const [editingChallenge, setEditingChallenge] = useState<Challenge | null>(null);
+  const [editingChallenge, setEditingChallenge] = useState<Challenge | null>(
+    null
+  );
 
   useEffect(() => {
     fetchChallenges();
@@ -64,34 +66,33 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({colorTheme}) => {
 
   const fetchChallenges = async () => {
     try {
-      const { data, error } = await supabase
-        .from('challenges')
-        .select('*');
+      const [challengesResp, participantsResp] = await Promise.all([
+        supabase.from("challenges").select("*"),
+        supabase
+          .from("challenge_participants")
+          .select("challenge_id, completed"),
+      ]);
 
-      if (error) throw error;
+      if (challengesResp.error) throw challengesResp.error;
+      if (participantsResp.error) throw participantsResp.error;
 
-      const challengesWithStats = await Promise.all(data.map(async (challenge) => {
-        const { count: totalParticipants } = await supabase
-          .from('challenge_participants')
-          .select('*', { count: 'exact' })
-          .eq('challenge_id', challenge.id);
-
-        const { count: completedParticipants } = await supabase
-          .from('challenge_participants')
-          .select('*', { count: 'exact' })
-          .eq('challenge_id', challenge.id)
-          .eq('completed', true);
+      const challengesWithStats = challengesResp.data.map((challenge) => {
+        const participants = participantsResp.data.filter(
+          (p) => p.challenge_id === challenge.id
+        );
+        const total = participants.length;
+        const completed = participants.filter((p) => p.completed).length;
 
         return {
           ...challenge,
-          participants_count: totalParticipants || 0,
-          completion_rate: totalParticipants ? (completedParticipants! / totalParticipants) * 100 : 0
+          participants_count: total,
+          completion_rate: total ? (completed / total) * 100 : 0,
         };
-      }));
+      });
 
       setChallenges(challengesWithStats);
     } catch (error) {
-      console.error('Error fetching challenges:', error);
+      console.error("Error fetching challenges:", error);
     }
   };
 
@@ -114,16 +115,14 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({colorTheme}) => {
 
   const handleCreateChallenge = async (data: Partial<Challenge>) => {
     try {
-      const { error } = await supabase
-        .from('challenges')
-        .insert([data]);
+      const { error } = await supabase.from("challenges").insert([data]);
 
       if (error) throw error;
 
       setShowForm(false);
       fetchChallenges();
     } catch (error) {
-      console.error('Error creating challenge:', error);
+      console.error("Error creating challenge:", error);
     }
   };
 
@@ -132,9 +131,9 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({colorTheme}) => {
       if (!editingChallenge?.id) return;
 
       const { error } = await supabase
-        .from('challenges')
+        .from("challenges")
         .update(data)
-        .eq('id', editingChallenge.id);
+        .eq("id", editingChallenge.id);
 
       if (error) throw error;
 
@@ -142,42 +141,48 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({colorTheme}) => {
       setEditingChallenge(null);
       fetchChallenges();
     } catch (error) {
-      console.error('Error updating challenge:', error);
+      console.error("Error updating challenge:", error);
     }
   };
 
   const handleDeleteChallenge = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('challenges')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from("challenges").delete().eq("id", id);
 
       if (error) throw error;
 
       fetchChallenges();
     } catch (error) {
-      console.error('Error deleting challenge:', error);
+      console.error("Error deleting challenge:", error);
     }
   };
 
-  const filteredChallenges = challenges.filter(challenge => {
-    const matchesSearch = challenge.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         challenge.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = typeFilter === 'all' || challenge.type === typeFilter;
-    const matchesDifficulty = difficultyFilter === 'all' || challenge.difficulty === difficultyFilter;
-    const matchesStatus = statusFilter === 'all' || 
-                         (statusFilter === 'active' && challenge.is_active) ||
-                         (statusFilter === 'inactive' && !challenge.is_active);
-    
-    return matchesSearch && matchesType && matchesDifficulty && matchesStatus;
-  });
+  const filteredChallenges = useMemo(() => {
+    const search = searchTerm.toLowerCase();
+
+    return challenges.filter((challenge) => {
+      const matchesSearch =
+        challenge.title.toLowerCase().includes(search) ||
+        challenge.description.toLowerCase().includes(search);
+      const matchesType = typeFilter === "all" || challenge.type === typeFilter;
+      const matchesDifficulty =
+        difficultyFilter === "all" || challenge.difficulty === difficultyFilter;
+      const matchesStatus =
+        statusFilter === "all" ||
+        (statusFilter === "active" && challenge.is_active) ||
+        (statusFilter === "inactive" && !challenge.is_active);
+
+      return matchesSearch && matchesType && matchesDifficulty && matchesStatus;
+    });
+  }, [challenges, searchTerm, typeFilter, difficultyFilter, statusFilter]);
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold dark:text-white">Challenge Management</h2>
+        <h2 className="text-2xl font-bold dark:text-white">
+          Challenge Management
+        </h2>
         <button
           onClick={() => setShowForm(true)}
           className={`px-4 py-2 ${colorTheme.primaryBg} text-white rounded-lg hover:${colorTheme.primaryBg} flex items-center`}
@@ -235,39 +240,61 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({colorTheme}) => {
       </div>
 
       {/* Challenges Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
-        <table className="w-full">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
+        <table className="min-w-[800px] w-full">
           <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
-              <th className="px-6 py-3 text-left text-sm font-medium dark:text-white">Challenge</th>
-              <th className="px-6 py-3 text-left text-sm font-medium dark:text-white">Type</th>
-              <th className="px-6 py-3 text-left text-sm font-medium dark:text-white">Difficulty</th>
-              <th className="px-6 py-3 text-left text-sm font-medium dark:text-white">Participants</th>
-              <th className="px-6 py-3 text-left text-sm font-medium dark:text-white">Completion</th>
-              <th className="px-6 py-3 text-left text-sm font-medium dark:text-white">Status</th>
-              <th className="px-6 py-3 text-left text-sm font-medium dark:text-white">Actions</th>
+              <th className="px-6 py-3 text-left text-sm font-medium dark:text-white">
+                Challenge
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-medium dark:text-white">
+                Type
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-medium dark:text-white">
+                Difficulty
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-medium dark:text-white">
+                Participants
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-medium dark:text-white">
+                Completion
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-medium dark:text-white">
+                Status
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-medium dark:text-white">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {filteredChallenges.map((challenge) => (
               <tr key={challenge.id}>
                 <td className="px-6 py-4">
-                  <div>
-                    <p className="font-medium dark:text-white">{challenge.title}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-300">{challenge.description}</p>
+                  <div className="max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">
+                    <p className="font-medium dark:text-white">
+                      {challenge.title}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-300">
+                      {challenge.description}
+                    </p>
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <span className="capitalize text-gray-900 dark:text-white">{challenge.type}</span>
+                  <span className="capitalize text-gray-900 dark:text-white">
+                    {challenge.type}
+                  </span>
                 </td>
                 <td className="px-6 py-4">
-                  <span className={`px-2 py-1 rounded-full text-sm font-medium ${
-                    challenge.difficulty === 'beginner'
-                      ? 'bg-green-100 text-green-800'
-                      : challenge.difficulty === 'intermediate'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}>
+                  <span
+                    className={`px-2 py-1 rounded-full text-sm font-medium ${
+                      challenge.difficulty === "beginner"
+                        ? "bg-green-100 text-green-800"
+                        : challenge.difficulty === "intermediate"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : "bg-red-100 text-red-800"
+                    }`}
+                  >
                     {challenge.difficulty}
                   </span>
                 </td>
@@ -288,12 +315,14 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({colorTheme}) => {
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <span className={`px-2 py-1 rounded-full text-sm font-medium ${
-                    challenge.is_active
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}>
-                    {challenge.is_active ? 'Active' : 'Inactive'}
+                  <span
+                    className={`px-2 py-1 rounded-full text-sm font-medium ${
+                      challenge.is_active
+                        ? "bg-green-100 text-green-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    {challenge.is_active ? "Active" : "Inactive"}
                   </span>
                 </td>
                 <td className="px-6 py-4">
@@ -309,7 +338,11 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({colorTheme}) => {
                     </button>
                     <button
                       onClick={() => {
-                        if (confirm('Are you sure you want to delete this challenge?')) {
+                        if (
+                          confirm(
+                            "Are you sure you want to delete this challenge?"
+                          )
+                        ) {
                           handleDeleteChallenge(challenge.id);
                         }
                       }}
@@ -329,7 +362,9 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({colorTheme}) => {
       {showForm && (
         <ChallengeForm
           challenge={editingChallenge}
-          onSubmit={editingChallenge ? handleUpdateChallenge : handleCreateChallenge}
+          onSubmit={
+            editingChallenge ? handleUpdateChallenge : handleCreateChallenge
+          }
           onClose={() => {
             setShowForm(false);
             setEditingChallenge(null);

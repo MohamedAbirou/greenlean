@@ -1,5 +1,5 @@
 import { Edit, Search } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import UserForm from "./UserForm";
 
@@ -24,55 +24,45 @@ const UsersTab: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
-      // Check admin status for current user
       const {
-        data: { user }
+        data: { user },
       } = await supabase.auth.getUser();
+      if (!user) return console.error("User not logged in");
 
-      if (!user) {
-        console.error("User not logged in");
-        return;
-      }
-      
+      // Check admin status of current user
       const { data: adminCheck } = await supabase
         .from("admin_users")
         .select("*")
-        .eq("id", user?.id)
+        .eq("id", user.id)
         .maybeSingle();
-
       const isAdmin = !!adminCheck;
 
       if (!isAdmin) {
-        // Regular users only get their own profile
         const { data, error } = await supabase
           .from("profiles")
           .select("*")
-          .eq("id", user?.id);
-
+          .eq("id", user.id);
         if (error) throw error;
         return setUsers(data ? [{ ...data[0], is_admin: false }] : []);
       }
 
-      // Admins get all profiles with admin status
-      const { data: profiles, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .order("updated_at", { ascending: false });
+      // Admin: fetch profiles + admin_users in parallel
+      const [profilesRes, adminUsersRes] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("*")
+          .order("updated_at", { ascending: false }),
+        supabase.from("admin_users").select("id"),
+      ]);
 
-      if (error) throw error;
+      const profiles = profilesRes.data || [];
+      const adminUsers = adminUsersRes.data || [];
+      const adminIds = new Set(adminUsers.map((u) => u.id));
 
-      // Get admin status for all users
-      const { data: adminUsers } = await supabase
-        .from("admin_users")
-        .select("id");
-
-      const adminIds = new Set(adminUsers?.map((u) => u.id) || []);
-
-      const usersWithAdminStatus =
-        profiles?.map((profile) => ({
-          ...profile,
-          is_admin: adminIds.has(profile.id),
-        })) || [];
+      const usersWithAdminStatus = profiles.map((profile) => ({
+        ...profile,
+        is_admin: adminIds.has(profile.id),
+      }));
 
       setUsers(usersWithAdminStatus);
     } catch (error) {
@@ -85,34 +75,35 @@ const UsersTab: React.FC = () => {
     setShowForm(true);
   };
 
-  const filteredUsers = users.filter((user) => {
+  const filteredUsers = useMemo(() => {
     const searchString = searchTerm.toLowerCase();
-    return (
-      user.username?.toLowerCase().includes(searchString) ||
-      user.full_name?.toLowerCase().includes(searchString) ||
-      user.email.toLowerCase().includes(searchString)
+    return users.filter(
+      (user) =>
+        user.username?.toLowerCase().includes(searchString) ||
+        user.full_name?.toLowerCase().includes(searchString) ||
+        user.email.toLowerCase().includes(searchString)
     );
-  });
+  }, [users, searchTerm]);
 
-  // Run this once to make yourself admin
-  const makeAdmin = async () => {
-    const {
-      data: { user },
-      error
-    } = await supabase.auth.getUser();
+  //! Run this once to make yourself admin
+  // const makeAdmin = async () => {
+  //   const {
+  //     data: { user },
+  //     error
+  //   } = await supabase.auth.getUser();
 
-    if (error || !user) {
-        console.error("User not logged in", error);
-        return;
-      }
-    
-    await supabase.from("admin_users").upsert([
-      {
-        id: user?.id,
-        role: "admin", // or whatever your role column expects
-      },
-    ]);
-  };
+  //   if (error || !user) {
+  //       console.error("User not logged in", error);
+  //       return;
+  //     }
+
+  //   await supabase.from("admin_users").upsert([
+  //     {
+  //       id: user?.id,
+  //       role: "admin", // or whatever your role column expects
+  //     },
+  //   ]);
+  // };
 
   return (
     <div className="space-y-6">
@@ -130,8 +121,8 @@ const UsersTab: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
-        <table className="w-full">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
+        <table className="min-w-[600px] w-full">
           <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
               <th className="px-6 py-3 text-left text-sm font-medium dark:text-white">

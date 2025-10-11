@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Star, Edit, Search } from "lucide-react";
+import { Edit, Search, Star } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import RewardForm from "./RewardForm";
 
@@ -49,14 +49,16 @@ const RewardsTab: React.FC = () => {
     setShowForm(true);
   };
 
-  const filteredRewards = rewards.filter((reward) => {
-    const searchString = searchTerm.toLowerCase();
-    return (
-      reward.user?.username?.toLowerCase().includes(searchString) ||
-      reward.user?.full_name?.toLowerCase().includes(searchString) ||
-      reward.user?.email.toLowerCase().includes(searchString)
-    );
-  });
+  const filteredRewards = useMemo(() => {
+    return rewards.filter((reward) => {
+      const searchString = searchTerm.toLowerCase();
+      return (
+        reward.user?.username?.toLowerCase().includes(searchString) ||
+        reward.user?.full_name?.toLowerCase().includes(searchString) ||
+        reward.user?.email.toLowerCase().includes(searchString)
+      );
+    });
+  }, [rewards, searchTerm]);
 
   return (
     <div className="space-y-6">

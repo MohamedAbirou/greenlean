@@ -1,23 +1,23 @@
 import {
-    CategoryScale,
-    Chart as ChartJS,
-    Legend,
-    LinearScale,
-    LineElement,
-    PointElement,
-    Tooltip,
+  CategoryScale,
+  Chart as ChartJS,
+  Legend,
+  LinearScale,
+  LineElement,
+  PointElement,
+  Tooltip,
 } from "chart.js";
 import { motion } from "framer-motion";
 import {
-    Activity,
-    ArrowRight,
-    Check,
-    Edit,
-    Flame,
-    Scale,
-    Target,
-    Trash2,
-    X,
+  Activity,
+  ArrowRight,
+  Check,
+  Edit,
+  Flame,
+  Scale,
+  Target,
+  Trash2,
+  X,
 } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { Line } from "react-chartjs-2";
