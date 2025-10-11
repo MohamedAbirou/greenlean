@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { supabase } from "../../lib/supabase";
+import { checkAdminStatus } from "../../utils/adminBootstrap";
 
 interface User {
   id: string;
@@ -56,9 +57,9 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose, onSubmit }) => {
       if (formData.is_admin !== user.is_admin) {
         if (formData.is_admin) {
           // Add admin role
-          const { error: adminError } = await supabase.rpc("set_admin", {
+          const { error: adminError } = await supabase.rpc("add_admin", {
             user_id: user.id,
-            is_admin: formData.is_admin,
+            role: "super_admin,
           });
 
           if (adminError) throw adminError;
@@ -78,6 +79,8 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose, onSubmit }) => {
     } catch (error) {
       console.error("Error updating user:", error);
       setError(error instanceof Error ? error.message : "An error occurred");
+    } finally {
+      checkAdminStatus()
     }
   };
 
