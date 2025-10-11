@@ -17,6 +17,16 @@ const UsersTab: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+useEffect(() => {
+  (async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    setCurrentUserId(user?.id || null);
+  })();
+}, []);
 
   useEffect(() => {
     fetchUsers();
@@ -73,6 +83,23 @@ const UsersTab: React.FC = () => {
   const handleEditUser = (user: User) => {
     setSelectedUser(user);
     setShowForm(true);
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm("Are you sure you want to delete this user?")) return;
+  
+    try {
+      const { error } = await supabase.rpc("delete_user", { target_user: userId });
+  
+      if (error) throw error;
+  
+      setUsers((prev) => prev.filter((u) => u.id !== userId));
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      alert(
+        error instanceof Error ? error.message : "Failed to delete user."
+      );
+    }
   };
 
   const filteredUsers = useMemo(() => {
@@ -172,13 +199,22 @@ const UsersTab: React.FC = () => {
                 <td className="px-6 py-4 text-sm dark:text-white">
                   {new Date(user.created_at).toLocaleDateString()}
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-6 py-4 flex gap-2">
                   <button
                     onClick={() => handleEditUser(user)}
                     className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
                   >
                     <Edit className="h-5 w-5 text-gray-600 dark:text-gray-300" />
                   </button>
+                
+                  {user.id !== currentUserId && (
+                    <button
+                      onClick={() => handleDeleteUser(user.id)}
+                      className="p-2 hover:bg-red-100 dark:hover:bg-red-700/30 rounded-lg"
+                    >
+                      <Trash className="h-5 w-5 text-red-600 dark:text-red-400" />
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
