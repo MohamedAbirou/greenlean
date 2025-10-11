@@ -2,6 +2,7 @@ import { Edit, Search } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import UserForm from "./UserForm";
+import { Edit, Trash } from "lucide-react";
 
 interface User {
   id: string;
@@ -19,14 +20,14 @@ const UsersTab: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-useEffect(() => {
-  (async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    setCurrentUserId(user?.id || null);
-  })();
-}, []);
+  useEffect(() => {
+    (async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id || null);
+    })();
+  }, []);
 
   useEffect(() => {
     fetchUsers();
