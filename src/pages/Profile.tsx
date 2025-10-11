@@ -8,7 +8,7 @@ import { useColorTheme } from '../utils/colorUtils';
 
 interface Profile {
   full_name: string;
-  email: string;
+  email?: string;
   avatar_url: string | null;
 }
 

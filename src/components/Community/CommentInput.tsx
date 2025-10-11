@@ -1,0 +1,64 @@
+import React, { useRef } from "react";
+import Profile from "../../pages/Profile";
+import { UserAvatar } from "../ui/UserAvatar";
+import { MentionDropdown } from "./MentionDropdown";
+
+interface CommentInputProps {
+  value: string;
+  onChange: (value: string, cursorPos: number) => void;
+  onSubmit: () => void;
+  placeholder: string;
+  userAvatar: string | null;
+  showMentions: boolean;
+  mentionResults: Profile[];
+  onMentionSelect: (username: string) => void;
+  inputId: string;
+}
+
+export const CommentInput: React.FC<CommentInputProps> = ({
+  value,
+  onChange,
+  onSubmit,
+  placeholder,
+  userAvatar,
+  showMentions,
+  mentionResults,
+  onMentionSelect,
+  inputId,
+}) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      onSubmit();
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    onChange(e.target.value, e.target.selectionStart);
+  };
+
+  return (
+    <div className="flex items-start space-x-3">
+      <UserAvatar avatarUrl={userAvatar} username="You" size="lg" />
+      <div className="flex-grow relative">
+        <textarea
+          ref={textareaRef}
+          value={value}
+          onChange={handleChange}
+          onKeyPress={handleKeyPress}
+          placeholder={placeholder}
+          className="w-full px-2 py-1 bg-gray-100 dark:bg-gray-700 dark:text-gray-100 rounded-lg resize-none focus:outline-none focus:ring-2 text-sm focus:ring-green-500"
+          rows={1}
+        />
+        {showMentions && (
+          <MentionDropdown
+            profiles={mentionResults}
+            onSelect={onMentionSelect}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
