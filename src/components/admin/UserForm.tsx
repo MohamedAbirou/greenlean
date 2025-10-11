@@ -58,8 +58,8 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose, onSubmit }) => {
         if (formData.is_admin) {
           // Add admin role
           const { error: adminError } = await supabase.rpc("add_admin", {
-            user_id: user.id,
             role: "super_admin",
+            user_uuid: user.id
           });
 
           if (adminError) throw adminError;
