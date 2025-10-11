@@ -310,7 +310,6 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
       <div className="space-y-2">
         <CommentSkeleton />
         <CommentSkeleton />
-        <CommentSkeleton />
       </div>
     );
   }
@@ -329,7 +328,6 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
             <div className="ml-11 space-y-2">
               {repliesLoading[comment.id] ? (
                 <>
-                  <ReplySkeleton />
                   <ReplySkeleton />
                 </>
               ) : (

@@ -151,7 +151,7 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
       <img
         src={photo.photo_url}
         alt={`Week ${photo.week_number}`}
-        className="w-full aspect-square object-cover"
+        className="w-full aspect-square object-contain"
       />
 
       <div className="p-2 border-t border-gray-100 dark:border-gray-700">

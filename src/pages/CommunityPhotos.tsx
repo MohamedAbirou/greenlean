@@ -1,11 +1,11 @@
 import { Camera, Loader, Users } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { PhotoCard } from "../components/Community/PhotoCard";
 import { usePlatform } from "../contexts/PlatformContext";
 import { useAuth } from "../contexts/useAuth";
-import { useColorTheme } from "../utils/colorUtils";
-import { PhotoCard } from "../components/Community/PhotoCard";
 import { useCommunityPhotos } from "../hooks/useCommunityPhotos";
+import { useColorTheme } from "../utils/colorUtils";
 
 const CommunityPhotos: React.FC = () => {
   const { user, profile } = useAuth();
