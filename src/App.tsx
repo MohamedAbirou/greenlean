@@ -1,13 +1,14 @@
 import { Analytics } from "@vercel/analytics/react";
 import { AnimatePresence } from "framer-motion";
+import Cookies from "js-cookie";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
-import { AuthProvider } from "./contexts/AuthContext";
 import CookieConsent from "./components/CookieConsent";
-import Cookies from "js-cookie";
+import { AuthProvider } from "./contexts/AuthContext";
 // Layout
 import Layout from "./components/layout/Layout";
 // Pages
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import AdminBootstrap from "./components/admin/AdminBootstrap";
 import { PlatformProvider } from "./contexts/PlatformContext";
 import About from "./pages/About";
@@ -135,6 +136,7 @@ function App() {
         </Router>
 
         {hasConsent && <Analytics />}
+        <SpeedInsights />
         <CookieConsent />
       </PlatformProvider>
     </AuthProvider>
