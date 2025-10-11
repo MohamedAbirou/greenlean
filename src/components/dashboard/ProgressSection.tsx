@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
-import { Activity, Check, Edit, Flame, Trash2, X } from "lucide-react";
+import { Activity, Check, Edit, Flame, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import { Line } from "react-chartjs-2";
-import { ActivityLog, ActivityFormData, DashboardStats } from "../../types/dashboard";
+import { ActivityFormData, ActivityLog, DashboardStats } from "../../types/dashboard";
+import ActivityModal from "../ui/modals/ActivityModal";
+import DeleteModal from "../ui/modals/DeleteModal";
 
 interface ProgressSectionProps {
   activityLogs: ActivityLog[];
@@ -322,7 +324,7 @@ export const ProgressSection: React.FC<ProgressSectionProps> = ({
       )}
 
       {deleteLogId && (
-        <DeleteConfirmationModal
+        <DeleteModal
           onConfirm={handleDelete}
           onClose={() => setDeleteLogId(null)}
           loading={saving}
@@ -330,191 +332,5 @@ export const ProgressSection: React.FC<ProgressSectionProps> = ({
         />
       )}
     </motion.div>
-  );
-};
-
-interface ActivityModalProps {
-  title: string;
-  formData: ActivityFormData;
-  setFormData: React.Dispatch<React.SetStateAction<ActivityFormData>>;
-  onSubmit: (e: React.FormEvent) => void;
-  onClose: () => void;
-  loading: boolean;
-  error: string | null;
-  colorTheme: {
-    primaryBg: string;
-    primaryHover: string;
-  };
-}
-
-const ActivityModal: React.FC<ActivityModalProps> = ({
-  title,
-  formData,
-  setFormData,
-  onSubmit,
-  onClose,
-  loading,
-  error,
-  colorTheme,
-}) => {
-  const activityTypes = [
-    "Workout",
-    "Steps",
-    "Cardio",
-    "Yoga",
-    "Swimming",
-    "Cycling",
-    "Running",
-    "Walking",
-    "Meditation",
-    "Other",
-  ];
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 w-full max-w-md relative">
-        <button
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-          onClick={onClose}
-        >
-          <X className="h-6 w-6" />
-        </button>
-        <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6">
-          {title}
-        </h2>
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div>
-            <label className="block text-gray-700 dark:text-gray-200 mb-1">
-              Activity Type
-            </label>
-            <select
-              className="w-full p-2 border rounded-lg bg-white dark:bg-gray-800 dark:text-white"
-              value={formData.activity_type}
-              onChange={(e) =>
-                setFormData((f) => ({ ...f, activity_type: e.target.value }))
-              }
-              required
-            >
-              {activityTypes.map((type) => (
-                <option key={type}>{type}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-gray-700 dark:text-gray-200 mb-1">
-              Duration (minutes)
-            </label>
-            <input
-              type="number"
-              className="w-full p-2 border rounded-lg bg-white dark:bg-gray-800 dark:text-white"
-              value={formData.duration_minutes}
-              onChange={(e) =>
-                setFormData((f) => ({ ...f, duration_minutes: e.target.value }))
-              }
-              min={0}
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 dark:text-gray-200 mb-1">
-              Calories Burned
-            </label>
-            <input
-              type="number"
-              className="w-full p-2 border rounded-lg bg-white dark:bg-gray-800 dark:text-white"
-              value={formData.calories_burned}
-              onChange={(e) =>
-                setFormData((f) => ({ ...f, calories_burned: e.target.value }))
-              }
-              min={0}
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 dark:text-gray-200 mb-1">
-              Steps
-            </label>
-            <input
-              type="number"
-              className="w-full p-2 border rounded-lg bg-white dark:bg-gray-800 dark:text-white"
-              value={formData.steps}
-              onChange={(e) =>
-                setFormData((f) => ({ ...f, steps: e.target.value }))
-              }
-              min={0}
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 dark:text-gray-200 mb-1">
-              Notes
-            </label>
-            <textarea
-              className="w-full p-2 border rounded-lg bg-white dark:bg-gray-800 dark:text-white"
-              value={formData.notes}
-              onChange={(e) =>
-                setFormData((f) => ({ ...f, notes: e.target.value }))
-              }
-              rows={2}
-            />
-          </div>
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-          <button
-            type="submit"
-            className={`w-full py-2 ${colorTheme.primaryBg} hover:${colorTheme.primaryHover} text-white font-semibold rounded-lg transition-colors`}
-            disabled={loading}
-          >
-            {loading ? "Saving..." : "Save Activity"}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-};
-
-interface DeleteConfirmationModalProps {
-  onConfirm: () => void;
-  onClose: () => void;
-  loading: boolean;
-  error: string | null;
-}
-
-const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
-  onConfirm,
-  onClose,
-  loading,
-  error,
-}) => {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 w-full max-w-sm relative">
-        <button
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-          onClick={onClose}
-        >
-          <X className="h-6 w-6" />
-        </button>
-        <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6">
-          Delete Activity
-        </h2>
-        <p className="mb-6 text-gray-700 dark:text-gray-300">
-          Are you sure you want to delete this activity log?
-        </p>
-        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
-        <div className="flex gap-4">
-          <button
-            className="flex-1 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg"
-            onClick={onClose}
-            disabled={loading}
-          >
-            Cancel
-          </button>
-          <button
-            className="flex-1 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg"
-            onClick={onConfirm}
-            disabled={loading}
-          >
-            {loading ? "Deleting..." : "Delete"}
-          </button>
-        </div>
-      </div>
-    </div>
   );
 };

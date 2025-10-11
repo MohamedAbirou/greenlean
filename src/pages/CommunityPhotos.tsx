@@ -32,6 +32,7 @@ interface Comment {
   user: Profile;
   likes: number;
   liked_by_user: boolean;
+  replies_count: number;
   replies?: Comment[];
 }
 
@@ -66,149 +67,99 @@ const CommunityPhotos: React.FC = () => {
   const photoRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const platform = usePlatform();
   const colorTheme = useColorTheme(platform.settings?.theme_color);
+  const [repliesLoading, setRepliesLoading] = useState<{
+    [key: string]: boolean;
+  }>({});
 
   useEffect(() => {
     const fetchPhotos = async () => {
       try {
         if (!user) return;
 
-        const { data: photosData, error: photosError } = await supabase
+        //* Single SQL query - fetch photos + user + likes + top-level comments (optional)
+        const { data, error } = await supabase
           .from("progress_photos")
           .select(
             `
-            *,
-            user:profiles!progress_photos_user_id_fkey(
               id,
-              username,
-              full_name,
-              avatar_url
-            )
-          `
+              caption,
+              photo_url,
+              created_at,
+              week_number,
+              user:profiles!progress_photos_user_id_fkey (
+                id,
+                username,
+                full_name,
+                avatar_url
+              ),
+              photo_likes (
+                user_id
+              ),
+              photo_comments (
+                id,
+                content,
+                created_at,
+                parent_id,
+                user:profiles!photo_comments_user_id_fkey (
+                  id,
+                  username,
+                  full_name,
+                  avatar_url
+                ),
+                comment_likes ( user_id ),
+                replies:photo_comments ( id )
+              )
+            `
           )
           .eq("community_visible", true)
           .eq("is_private", false)
           .order("created_at", { ascending: false });
 
-        if (photosError) throw photosError;
+        if (error) throw error;
 
-        // Get likes for each photo
-        const photosWithLikes = await Promise.all(
-          photosData.map(async (photo) => {
-            const { count: likesCount } = await supabase
-              .from("photo_likes")
-              .select("id", { count: "exact" })
-              .eq("photo_id", photo.id);
-
-            const { data: userLike } = await supabase
-              .from("photo_likes")
-              .select("id")
-              .eq("photo_id", photo.id)
-              .eq("user_id", user.id)
-              .limit(1)
-              .maybeSingle();
-
-            // Get comments for the photo
-            const { data: comments } = await supabase
-              .from("photo_comments")
-              .select(
-                `
-            *,
-            user:profiles!photo_comments_user_id_fkey(
-              id,
-              username,
-              full_name,
-              avatar_url
-            )
-          `
-              )
-              .eq("photo_id", photo.id)
-              .is("parent_id", null)
-              .order("created_at", { ascending: true });
-
-            if (!comments) return null;
-
-            // Get comment likes and replies
-            const commentsWithDetails = await Promise.all(
-              comments.map(async (comment) => {
-                const { count: commentLikes } = await supabase
-                  .from("comment_likes")
-                  .select("id", { count: "exact" })
-                  .eq("comment_id", comment.id);
-
-                const { data: userCommentLike } = await supabase
-                  .from("comment_likes")
-                  .select("id")
-                  .eq("comment_id", comment.id)
-                  .eq("user_id", user.id)
-                  .limit(1)
-                  .maybeSingle();
-
-                // Get replies for this comment
-                const { data: replies } = await supabase
-                  .from("photo_comments")
-                  .select(
-                    `
-              *,
-              user:profiles!photo_comments_user_id_fkey(
-                id,
-                username,
-                full_name,
-                avatar_url
-              )
-            `
-                  )
-                  .eq("parent_id", comment.id)
-                  .order("created_at", { ascending: true });
-
-                if (!replies) return null;
-
-                // Get likes for each reply
-                const repliesWithLikes = await Promise.all(
-                  replies.map(async (reply) => {
-                    const { count: replyLikes } = await supabase
-                      .from("comment_likes")
-                      .select("id", { count: "exact" })
-                      .eq("comment_id", reply.id);
-
-                    const { data: userReplyLike } = await supabase
-                      .from("comment_likes")
-                      .select("id")
-                      .eq("comment_id", reply.id)
-                      .eq("user_id", user.id)
-                      .limit(1)
-                      .maybeSingle();
-
-                    return {
-                      ...reply,
-                      likes: replyLikes,
-                      liked_by_user: !!userReplyLike,
-                    };
-                  })
-                );
-
+        //* Map/shape data cleanly on client
+        const photosWithData: Photo[] = data.map((photo: any) => {
+          const userObj = Array.isArray(photo.user)
+            ? photo.user[0]
+            : photo.user;
+          return {
+            id: photo.id,
+            photo_url: photo.photo_url,
+            caption: photo.caption,
+            week_number: photo.week_number,
+            created_at: photo.created_at,
+            user_id: userObj.id,
+            user: userObj,
+            profile: userObj, // if profile is same as user
+            likes: photo.photo_likes?.length || 0,
+            liked_by_user: photo.photo_likes?.some(
+              (l: any) => l.user_id === user.id
+            ),
+            comments: (photo.photo_comments || [])
+              .filter((c: any) => c.parent_id === null)
+              .map((c: any) => {
+                const commentUser = Array.isArray(c.user) ? c.user[0] : c.user;
                 return {
-                  ...comment,
-                  likes: commentLikes,
-                  liked_by_user: !!userCommentLike,
-                  replies: repliesWithLikes,
-                };
-              })
-            );
+                  id: c.id,
+                  content: c.content,
+                  created_at: c.created_at,
+                  parent_id: c.parent_id,
+                  user_id: commentUser.id,
+                  user: commentUser,
+                  mentions: c.mentions || [],
+                  likes: c.comment_likes?.length || 0,
+                  liked_by_user: c.comment_likes?.some(
+                    (l: any) => l.user_id === user.id
+                  ),
+                  replies_count: c.replies?.length || 0,
+                  replies: [], // lazy load later
+                } as Comment;
+              }),
+            comments_count: photo.photo_comments?.length || 0,
+          } as Photo;
+        });
 
-            return {
-              ...photo,
-              likes: likesCount,
-              liked_by_user: !!userLike,
-              comments: commentsWithDetails,
-              comments_count: commentsWithDetails.reduce(
-                (acc, comment) => acc + 1 + (comment.replies?.length || 0),
-                0
-              ),
-            };
-          })
-        );
-
-        setPhotos(photosWithLikes);
+        setPhotos(photosWithData);
       } catch (error) {
         console.error("Error fetching photos:", error);
       } finally {
@@ -229,6 +180,95 @@ const CommunityPhotos: React.FC = () => {
       });
     }
   }, [photos]);
+
+  const fetchReplies = async (commentId: string) => {
+    const { data, error } = await supabase
+      .from("photo_comments")
+      .select(
+        `
+      id,
+      content,
+      created_at,
+      parent_id,
+      mentions,
+      user:profiles!photo_comments_user_id_fkey (
+        id,
+        username,
+        full_name,
+        avatar_url
+      ),
+      comment_likes ( user_id )
+    `
+      )
+      .eq("parent_id", commentId)
+      .order("created_at", { ascending: true });
+
+    if (error) throw error;
+
+    return (data || []).map((r: any) => {
+      const userObj = Array.isArray(r.user) ? r.user[0] : r.user;
+      return {
+        id: r.id,
+        content: r.content,
+        created_at: r.created_at,
+        parent_id: r.parent_id,
+        mentions: r.mentions || [],
+        user_id: userObj.id,
+        user: userObj,
+        likes: r.comment_likes?.length || 0,
+        liked_by_user: r.comment_likes?.some(
+          (l: any) => l.user_id === user?.id
+        ),
+        replies: [],
+      } as Comment;
+    });
+  };
+
+  const handleExpandReplies = async (photoId: string, commentId: string) => {
+    const isExpanded = expandedReplies.includes(commentId);
+
+    if (isExpanded) {
+      // Collapse only
+      setExpandedComments(expandedComments.filter((id) => id !== commentId));
+      setExpandedReplies(expandedReplies.filter((id) => id !== commentId));
+      return;
+    }
+
+    // Expand
+    setExpandedReplies([...expandedReplies, commentId]);
+
+    // Get comment from state
+    const photo = photos.find((p) => p.id === photoId);
+    const comment = photo?.comments.find((c) => c.id === commentId);
+    if (!comment) return;
+
+    // Already fetched replies? just show
+    if (comment.replies && comment.replies.length > 0) return;
+
+    // Set loading
+    setRepliesLoading((prev) => ({ ...prev, [commentId]: true }));
+
+    try {
+      const replies = await fetchReplies(commentId);
+
+      setPhotos((prev) =>
+        prev.map((p) =>
+          p.id === photoId
+            ? {
+                ...p,
+                comments: p.comments.map((c) =>
+                  c.id === commentId ? { ...c, replies } : c
+                ),
+              }
+            : p
+        )
+      );
+    } catch (err) {
+      console.error("Failed to load replies:", err);
+    } finally {
+      setRepliesLoading((prev) => ({ ...prev, [commentId]: false }));
+    }
+  };
 
   const toggleLike = async (photoId: string) => {
     try {
@@ -720,17 +760,20 @@ const CommunityPhotos: React.FC = () => {
                                 </div>
                                 <button
                                   onClick={() =>
-                                    setExpandedReplies(
-                                      expandedReplies.includes(comment.id)
-                                        ? expandedReplies.filter(
-                                            (id) => id !== comment.id
-                                          )
-                                        : [...expandedReplies, comment.id]
-                                    )
+                                    handleExpandReplies(photo.id, comment.id)
                                   }
                                   className="text-xs ml-2 text-gray-500 dark:text-gray-400"
                                 >
-                                  Reply • {comment.replies?.length || 0}
+                                  {repliesLoading[comment.id] ? (
+                                    <span>Loading...</span>
+                                  ) : (
+                                    <>
+                                      Reply •{" "}
+                                      {comment.replies?.length ||
+                                        comment.replies_count ||
+                                        0}
+                                    </>
+                                  )}
                                 </button>
                               </div>
                             </div>

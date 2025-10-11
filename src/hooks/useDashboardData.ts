@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../contexts/useAuth";
 import { supabase } from "../lib/supabase";
-import { HealthProfile, HealthCalculations, Meal } from "../types/dashboard";
+import { HealthCalculations, HealthProfile, Meal } from "../types/dashboard";
 import { logError } from "../utils/errorLogger";
 import { generateMealPlan } from "../utils/mealPlan";
 
 export const useDashboardData = () => {
-  const [healthProfile, setHealthProfile] = useState<HealthProfile | null>(null);
+  const [healthProfile, setHealthProfile] = useState<HealthProfile | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
@@ -88,30 +90,40 @@ export const useDashboardData = () => {
 
       let baseAdjustment = 0;
 
-      if (goal === "Lose fat") {
-        baseAdjustment = -500;
-      } else if (goal === "Build muscle") {
-        baseAdjustment = 300;
-      } else if (goal === "Maintain weight") {
-        baseAdjustment = 0;
-      } else if (goal === "Improve health & wellbeing") {
-        baseAdjustment = -200;
+      switch (goal) {
+        case "Lose fat":
+          baseAdjustment = -500;
+          break;
+
+        case "Build muscle":
+          baseAdjustment = 300;
+          break;
+
+        case "Maintain weight":
+          baseAdjustment = 0;
+          break;
+
+        case "Improve health & wellbeing":
+          baseAdjustment = -200;
+          break;
+
+        default:
+          break;
       }
+
+      const activity = activityLevel.toLowerCase();
 
       if (
-        activityLevel.includes("Very active") ||
-        activityLevel.includes("Extremely active")
+        activity.includes("very active") ||
+        activity.includes("extremely active")
       ) {
         baseAdjustment += 200;
-      } else if (activityLevel.includes("Sedentary")) {
+      } else if (activity.includes("sedentary")) {
         baseAdjustment -= 200;
       }
 
-      if (age > 40) {
-        baseAdjustment -= 100;
-      } else if (age > 50) {
-        baseAdjustment -= 200;
-      }
+      if (age > 50) baseAdjustment -= 200;
+      else if (age > 40) baseAdjustment -= 100;
 
       if (gender === "Male") {
         baseAdjustment += 100;
