@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { X } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { queryKeys } from "../../lib/queryKeys";
 import { supabase } from "../../lib/supabase";
-import { checkAdminStatus } from "../../utils/adminBootstrap";
+import { } from "../../utils/adminBootstrap";
 
 interface User {
   id: string;
@@ -14,16 +17,16 @@ interface User {
 interface UserFormProps {
   user?: User;
   onClose: () => void;
-  onSubmit: () => void;
 }
 
-const UserForm: React.FC<UserFormProps> = ({ user, onClose, onSubmit }) => {
+const UserForm: React.FC<UserFormProps> = ({ user, onClose }) => {
   const [formData, setFormData] = useState({
     username: "",
     full_name: "",
     is_admin: false,
   });
   const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (user) {
@@ -35,54 +38,91 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose, onSubmit }) => {
     }
   }, [user]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+  const updateUserMutation = useMutation({
+    mutationFn: async (data: typeof formData) => {
+      // everything that was in your handleSubmit is moved here
+      if (!user) throw new Error("Target user not found");
 
-    try {
-      if (!user) return;
+      const {
+        data: { user: currentUser },
+        error: authErr,
+      } = await supabase.auth.getUser();
+      if (authErr || !currentUser) throw new Error("Unauthorized");
 
-      // Update profile
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({
-          username: formData.username,
-          full_name: formData.full_name,
-        })
-        .eq("id", user.id);
+      const { data: currentAdmin, error: roleErr } = await supabase
+        .from("admin_users")
+        .select("role")
+        .eq("id", currentUser.id)
+        .maybeSingle();
+      if (roleErr) throw roleErr;
 
-      if (profileError) throw profileError;
+      const currentRole = currentAdmin?.role ?? "user";
+      const updates: Partial<User> = {};
 
-      // Handle admin status
-      if (formData.is_admin !== user.is_admin) {
-        if (formData.is_admin) {
-          // Add admin role
-          const { error: adminError } = await supabase.rpc("add_admin", {
-            role: "super_admin",
-            user_uuid: user.id
+      if (data.username !== user.username) updates.username = data.username;
+      if (data.full_name !== user.full_name) updates.full_name = data.full_name;
+
+      // ✅ Update profile data if needed
+      if (Object.keys(updates).length > 0) {
+        const { error } = await supabase
+          .from("profiles")
+          .update(updates)
+          .eq("id", user.id);
+        if (error) throw error;
+      }
+
+      // ✅ Handle role change securely
+      if (data.is_admin !== user.is_admin) {
+        if (currentRole !== "super_admin")
+          throw new Error("Only the Super Admin can modify admin roles.");
+
+        const { data: targetAdmin } = await supabase
+          .from("admin_users")
+          .select("role")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (data.is_admin) {
+          const { error } = await supabase.rpc("add_admin", {
+            user_uuid: user.id,
+            role: "admin",
           });
-
-          if (adminError) throw adminError;
+          if (error) throw error;
         } else {
-          // Remove admin role
-          const { error: adminError } = await supabase
+          if (targetAdmin?.role === "super_admin")
+            throw new Error("Cannot remove Super Admin privileges.");
+
+          const { error } = await supabase
             .from("admin_users")
             .delete()
             .eq("id", user.id);
-
-          if (adminError) throw adminError;
+          if (error) throw error;
         }
       }
 
-      onSubmit();
+      return {
+        ...user,
+        ...updates,
+        is_admin: data.is_admin,
+      };
+    },
+
+    onSuccess: (updatedUser) => {
+      // ✅ Update cache instead of refetching
+      queryClient.setQueryData<User[]>(queryKeys.users, (old = []) =>
+        old.map((u) => (u.id === updatedUser.id ? updatedUser : u))
+      );
+
+      toast.success("User updated successfully");
       onClose();
-    } catch (error) {
-      console.error("Error updating user:", error);
-      setError(error instanceof Error ? error.message : "An error occurred");
-    } finally {
-      checkAdminStatus()
-    }
-  };
+    },
+
+    onError: (err: Error) => {
+      console.error("Error updating user:", err);
+      toast.error(err?.message || "Update failed");
+      setError(err?.message || "Update failed");
+    },
+  });
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -103,7 +143,10 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose, onSubmit }) => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={(e) => {
+          e.preventDefault()
+          updateUserMutation.mutate(formData)
+        }} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Username
@@ -158,9 +201,10 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose, onSubmit }) => {
             </button>
             <button
               type="submit"
+              disabled={updateUserMutation.isPending}
               className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
             >
-              Save Changes
+              {updateUserMutation.isPending ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>

@@ -44,6 +44,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMode = 's
         .eq('username', username.toLowerCase())
         .maybeSingle();
 
+      if (error) throw error
+
       setUsernameAvailable(!data);
     } catch (error) {
       console.error('Error checking username:', error);
@@ -53,7 +55,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMode = 's
   };
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase();
+    const value = e.target.value;
     setUsername(value);
     checkUsername(value);
   };

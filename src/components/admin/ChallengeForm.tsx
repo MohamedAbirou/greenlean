@@ -1,25 +1,7 @@
 import { X } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import { Challenge } from "../../types/challenge";
 import { ColorTheme } from "../../utils/colorUtils";
-
-interface ChallengeRequirements {
-  activity?: string;
-  target: number;
-  weekly_sessions?: number;
-}
-
-interface Challenge {
-  id: string;
-  title: string;
-  description: string;
-  type: "daily" | "weekly" | "streak" | "goal";
-  difficulty: "beginner" | "intermediate" | "advanced";
-  points: number;
-  requirements: ChallengeRequirements;
-  start_date: string;
-  end_date: string;
-  is_active: boolean;
-}
 
 interface ChallengeFormProps {
   challenge?: Challenge | null;
@@ -90,7 +72,8 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({
         requirements: parsed,
       }));
       setJsonError(null);
-    } catch (error) {
+    } catch (err) {
+      console.error(err);
       setJsonError("Invalid JSON format");
     }
   };

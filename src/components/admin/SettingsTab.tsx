@@ -5,7 +5,7 @@ import {
   Save,
   Settings,
   Shield,
-  PenTool as Tool
+  PenTool as Tool,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { usePlatform } from "../../contexts/PlatformContext";
@@ -13,47 +13,32 @@ import { supabase } from "../../lib/supabase";
 import { ColorTheme } from "../../utils/colorUtils";
 import { logFrontendError, logInfo } from "../../utils/errorLogger";
 // Sections import
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  PlatformSettings,
+  useSettingsQuery,
+} from "../../hooks/Queries/useSettings";
+import { queryKeys } from "../../lib/queryKeys";
 import CustomizationTab from "./SettingsTabs/CustomizationTab";
 import LogsTab from "./SettingsTabs/LogsTab";
 import MaintenanceTab from "./SettingsTabs/MaintenanceTab";
 import NotificationsTab from "./SettingsTabs/NotificationsTab";
 import SecurityTab from "./SettingsTabs/SecurityTab";
 
-export interface PlatformSettings {
-  id: string;
-  theme_color: string;
-  theme_mode: "light" | "dark" | "system";
-  platform_name: string;
-  logo_url: string | null;
-  favicon_url: string | null;
-  admin_2fa_required: boolean;
-  account_lockout_attempts: number;
-  session_timeout_minutes: number;
-  maintenance_mode: boolean;
-  maintenance_message: string | null;
-  maintenance_start_time: string | null;
-  maintenance_end_time: string | null;
-  email_notifications_enabled: boolean;
-  notification_frequency: "daily" | "weekly" | "monthly";
-}
-
 interface SettingsTabProps {
   colorTheme: ColorTheme;
 }
 
 const SettingsTab: React.FC<SettingsTabProps> = ({ colorTheme }) => {
-  const [settings, setSettings] = useState<PlatformSettings | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<string>("customization");
-  const [fetching, setFetching] = useState(true); // initial fetch
   const [saving, setSaving] = useState(false); // when saving settings
+  const queryClient = useQueryClient();
 
   const platform = usePlatform();
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
+  const { data: settings, isLoading } = useSettingsQuery();
 
   useEffect(() => {
     if (settings) {
@@ -75,28 +60,12 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ colorTheme }) => {
     }
   }, [settings]);
 
-  const fetchSettings = async () => {
-    setFetching(true);
-    try {
-      const { data, error } = await supabase
-        .from("platform_settings")
-        .select("*")
-        .limit(1)
-        .maybeSingle();
-
-      if (error) throw error;
-      setSettings(data);
-    } catch (error) {
-      console.error("Error fetching settings:", error);
-      setError("Failed to load settings");
-    } finally {
-      setFetching(false);
-    }
-  };
-
   const handleSettingChange = (key: keyof PlatformSettings, value: unknown) => {
     if (!settings) return;
-    setSettings({ ...settings, [key]: value });
+    queryClient.setQueryData<PlatformSettings | null>(queryKeys.settings, {
+      ...settings,
+      [key]: value,
+    });
   };
 
   const handleSaveSettings = async (section: string) => {
@@ -199,7 +168,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ colorTheme }) => {
     }
   };
 
-  if (fetching) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center p-6">
         <Loader className="h-8 w-8 animate-spin text-green-500" />
@@ -276,22 +245,35 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ colorTheme }) => {
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
         {/* Customization Section */}
         {activeSection === "customization" && (
-          <CustomizationTab settings={settings} handleSettingChange={handleSettingChange} handleFileUpload={handleFileUpload} />
+          <CustomizationTab
+            settings={settings}
+            handleSettingChange={handleSettingChange}
+            handleFileUpload={handleFileUpload}
+          />
         )}
 
         {/* Security Section */}
         {activeSection === "security" && (
-          <SecurityTab settings={settings} handleSettingChange={handleSettingChange} />
+          <SecurityTab
+            settings={settings}
+            handleSettingChange={handleSettingChange}
+          />
         )}
 
         {/* Notifications Section */}
         {activeSection === "notifications" && (
-          <NotificationsTab settings={settings} handleSettingChange={handleSettingChange} />
+          <NotificationsTab
+            settings={settings}
+            handleSettingChange={handleSettingChange}
+          />
         )}
 
         {/* Maintenance Section */}
         {activeSection === "maintenance" && (
-          <MaintenanceTab settings={settings} handleSettingChange={handleSettingChange} />
+          <MaintenanceTab
+            settings={settings}
+            handleSettingChange={handleSettingChange}
+          />
         )}
 
         {/* Logs Section */}

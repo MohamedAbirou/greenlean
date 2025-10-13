@@ -1,29 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
-
-interface Reward {
-  id: string;
-  user_id: string;
-  points: number;
-  badges: {
-    id: string;
-    name: string;
-    icon: string;
-    earned_at: string;
-  }[];
-}
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { X } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { Reward } from "../../hooks/Queries/useRewards";
+import { queryKeys } from "../../lib/queryKeys";
+import { supabase } from "../../lib/supabase";
 
 interface RewardFormProps {
   userId: string;
   reward?: Reward;
   onClose: () => void;
-  onSubmit: () => void;
 }
 
-const RewardForm: React.FC<RewardFormProps> = ({ userId, reward, onClose, onSubmit }) => {
+const RewardForm: React.FC<RewardFormProps> = ({ userId, reward, onClose }) => {
   const [points, setPoints] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (reward) {
@@ -31,25 +23,36 @@ const RewardForm: React.FC<RewardFormProps> = ({ userId, reward, onClose, onSubm
     }
   }, [reward]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+  const updateRewardMutation = useMutation({
+    mutationFn: async (newPoints: number): Promise<Reward> => {
+      const { data, error } = await supabase
+        .from("user_rewards")
+        .update({ points: newPoints })
+        .eq("user_id", userId)
+        .select("*, user:profiles(username, full_name, email)")
+        .single();
 
-    try {
-      const { error: updateError } = await supabase
-        .from('user_rewards')
-        .update({ points })
-        .eq('user_id', userId);
+      if (error) throw error;
+      return data;
+    },
 
-      if (updateError) throw updateError;
+    onSuccess: (updatedReward) => {
+      queryClient.setQueryData<Reward[]>(queryKeys.rewards, (old = []) =>
+        old.map((r) =>
+          r.user_id === updatedReward.user_id ? updatedReward : r
+        )
+      );
 
-      onSubmit();
+      toast.success("Reward updated successfully");
       onClose();
-    } catch (error) {
-      console.error('Error updating rewards:', error);
-      setError(error instanceof Error ? error.message : 'An error occurred');
-    }
-  };
+    },
+
+    onError: (err: Error) => {
+      console.error("Error updating reward:", err);
+      toast.error(err?.message || "Update failed");
+      setError(err?.message || "Update failed");
+    },
+  });
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -70,7 +73,13 @@ const RewardForm: React.FC<RewardFormProps> = ({ userId, reward, onClose, onSubm
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            updateRewardMutation.mutate(points);
+          }}
+          className="space-y-4"
+        >
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Points
@@ -95,9 +104,10 @@ const RewardForm: React.FC<RewardFormProps> = ({ userId, reward, onClose, onSubm
             </button>
             <button
               type="submit"
+              disabled={updateRewardMutation.isPending}
               className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
             >
-              Save Changes
+              {updateRewardMutation.isPending ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>

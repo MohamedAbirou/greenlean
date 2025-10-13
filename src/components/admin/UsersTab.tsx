@@ -1,140 +1,84 @@
-import { Edit, Search } from "lucide-react";
+// UsersTab.tsx
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Edit, Loader, Search, Trash } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
-import { supabase } from "../../lib/supabase";
+import toast from "react-hot-toast";
+import { useCurrentUserQuery } from "../../hooks/Queries/useCurrentUserQuery";
+import { User, useUsersQuery } from "../../hooks/Queries/useUsers";
+import { queryKeys } from "../../lib/queryKeys";
+import { ColorTheme } from "../../utils/colorUtils";
 import UserForm from "./UserForm";
-import { Edit, Trash } from "lucide-react";
 
-interface User {
-  id: string;
-  username: string;
-  full_name: string;
-  email: string;
-  created_at: string;
-  is_admin: boolean;
+interface UserTabProps {
+  colorTheme: ColorTheme;
 }
 
-const UsersTab: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([]);
+const UsersTab: React.FC<UserTabProps> = ({ colorTheme }) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
   const [showForm, setShowForm] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    (async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setCurrentUserId(user?.id || null);
-    })();
-  }, []);
+  const { data: users = [], isLoading } = useUsersQuery();
+  const { data: currentUser } = useCurrentUserQuery();
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return console.error("User not logged in");
-
-      // Check admin status of current user
-      const { data: adminCheck } = await supabase
-        .from("admin_users")
-        .select("*")
-        .eq("id", user.id)
-        .maybeSingle();
-      const isAdmin = !!adminCheck;
-
-      if (!isAdmin) {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", user.id);
-        if (error) throw error;
-        return setUsers(data ? [{ ...data[0], is_admin: false }] : []);
-      }
-
-      // Admin: fetch profiles + admin_users in parallel
-      const [profilesRes, adminUsersRes] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("*")
-          .order("updated_at", { ascending: false }),
-        supabase.from("admin_users").select("id"),
-      ]);
-
-      const profiles = profilesRes.data || [];
-      const adminUsers = adminUsersRes.data || [];
-      const adminIds = new Set(adminUsers.map((u) => u.id));
-
-      const usersWithAdminStatus = profiles.map((profile) => ({
-        ...profile,
-        is_admin: adminIds.has(profile.id),
-      }));
-
-      setUsers(usersWithAdminStatus);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
-  };
-
-  const handleEditUser = (user: User) => {
-    setSelectedUser(user);
-    setShowForm(true);
-  };
-
-  const handleDeleteUser = async (userId: string) => {
-    if (!confirm("Are you sure you want to delete this user?")) return;
-  
-    try {
-      const { error } = await supabase.rpc("delete_user", { target_user: userId });
-  
-      if (error) throw error;
-  
-      setUsers((prev) => prev.filter((u) => u.id !== userId));
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      alert(
-        error instanceof Error ? error.message : "Failed to delete user."
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            target_user: userId,
+            caller_id: currentUser?.id,
+          }),
+        }
       );
-    }
-  };
+      if (!res.ok) throw new Error("Failed to delete user");
+      return userId;
+    },
+    onSuccess: (userId) => {
+      // ✅ Update cache locally (no need to refetch)
+      queryClient.setQueryData<User[]>(queryKeys.users, (old = []) =>
+        old.filter((u) => u.id !== userId)
+      );
+      toast.success("User deleted successfully");
+    },
+    onError: (err: Error) =>
+      toast.error(err.message || "Failed to delete user."),
+  });
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 250);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const filteredUsers = useMemo(() => {
-    const searchString = searchTerm.toLowerCase();
+    const s = debouncedSearch.toLowerCase();
     return users.filter(
-      (user) =>
-        user.username?.toLowerCase().includes(searchString) ||
-        user.full_name?.toLowerCase().includes(searchString) ||
-        user.email.toLowerCase().includes(searchString)
+      (u) =>
+        u.username?.toLowerCase().includes(s) ||
+        u.full_name?.toLowerCase().includes(s) ||
+        u.email?.toLowerCase().includes(s)
     );
-  }, [users, searchTerm]);
+  }, [users, debouncedSearch]);
 
-  //! Run this once to make yourself admin
-  // const makeAdmin = async () => {
-  //   const {
-  //     data: { user },
-  //     error
-  //   } = await supabase.auth.getUser();
-
-  //   if (error || !user) {
-  //       console.error("User not logged in", error);
-  //       return;
-  //     }
-
-  //   await supabase.from("admin_users").upsert([
-  //     {
-  //       id: user?.id,
-  //       role: "admin", // or whatever your role column expects
-  //     },
-  //   ]);
-  // };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+        <Loader className={`h-8 w-8 animate-spin ${colorTheme.primaryText}`} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
+      {/* Search Header */}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold dark:text-white">User Management</h2>
         <div className="relative">
@@ -149,7 +93,8 @@ const UsersTab: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
+      {/* Table */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-x-auto">
         <table className="min-w-[600px] w-full">
           <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
@@ -194,7 +139,11 @@ const UsersTab: React.FC = () => {
                         : "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300"
                     }`}
                   >
-                    {user.is_admin ? "Admin" : "User"}
+                    {user.role === "super_admin"
+                      ? "Super Admin"
+                      : user.is_admin
+                      ? "Admin"
+                      : "User"}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm dark:text-white">
@@ -202,15 +151,23 @@ const UsersTab: React.FC = () => {
                 </td>
                 <td className="px-6 py-4 flex gap-2">
                   <button
-                    onClick={() => handleEditUser(user)}
+                    onClick={() => {
+                      setSelectedUser(user);
+                      setShowForm(true);
+                    }}
                     className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
                   >
                     <Edit className="h-5 w-5 text-gray-600 dark:text-gray-300" />
                   </button>
-                
-                  {user.id !== currentUserId && (
+                  {user.id !== currentUser?.id && (
                     <button
-                      onClick={() => handleDeleteUser(user.id)}
+                      onClick={() => {
+                        if (
+                          !confirm("Are you sure you want to delete this user?")
+                        )
+                          return;
+                        deleteUserMutation.mutate(user.id);
+                      }}
                       className="p-2 hover:bg-red-100 dark:hover:bg-red-700/30 rounded-lg"
                     >
                       <Trash className="h-5 w-5 text-red-600 dark:text-red-400" />
@@ -230,7 +187,6 @@ const UsersTab: React.FC = () => {
             setShowForm(false);
             setSelectedUser(null);
           }}
-          onSubmit={fetchUsers}
         />
       )}
     </div>

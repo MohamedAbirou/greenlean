@@ -8,7 +8,9 @@ import { AuthProvider } from "./contexts/AuthContext";
 // Layout
 import Layout from "./components/layout/Layout";
 // Pages
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Toaster } from "react-hot-toast";
 import AdminBootstrap from "./components/admin/AdminBootstrap";
 import { PlatformProvider } from "./contexts/PlatformContext";
 import About from "./pages/About";
@@ -33,113 +35,117 @@ import ResetPassword from "./pages/ResetPassword";
 import WeightLoss from "./pages/WeightLoss";
 
 function App() {
-  const hasConsent = Cookies.get('cookie-consent') === 'accepted';
+  const queryClient = new QueryClient();
+  const hasConsent = Cookies.get("cookie-consent") === "accepted";
 
   return (
-    <AuthProvider>
-      <PlatformProvider>
-        <Router>
-          <AnimatePresence mode="wait">
-            <Routes>
-              {/* Auth callback route outside of layout */}
-              <Route path="/auth/callback" element={<AuthCallback />} />
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <PlatformProvider>
+          <Router>
+            <AnimatePresence mode="wait">
+              <Routes>
+                {/* Auth callback route outside of layout */}
+                <Route path="/auth/callback" element={<AuthCallback />} />
 
-              {/* Password reset route outside of layout */}
-              <Route path="/reset-password" element={<ResetPassword />} />
+                {/* Password reset route outside of layout */}
+                <Route path="/reset-password" element={<ResetPassword />} />
 
-              <Route path="/" element={<Layout />}>
-                <Route index element={<Home />} />
-                <Route path="quiz" element={<Quiz />} />
-                <Route path="diet-plans" element={<DietPlans />} />
-                <Route path="diet-plans/:id" element={<DietPlanDetails />} />
-                <Route path="weight-loss" element={<WeightLoss />} />
-                <Route path="weight-loss/:id" element={<ExerciseDetails />} />
-                <Route path="about" element={<About />} />
-                <Route path="contact" element={<Contact />} />
-                <Route path="faq" element={<FAQ />} />
-                <Route
-                  path="profile"
-                  element={
-                    <ProtectedRoute>
-                      <Profile />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="quiz-history"
-                  element={
-                    <ProtectedRoute>
-                      <QuizHistory />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="quiz-result/:id"
-                  element={
-                    <ProtectedRoute>
-                      <QuizResult />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="progress-photos"
-                  element={
-                    <ProtectedRoute>
-                      <ProgressPhotos />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="community"
-                  element={
-                    <ProtectedRoute>
-                      <CommunityPhotos />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="challenges"
-                  element={
-                    <ProtectedRoute>
-                      <Challenges />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="admin"
-                  element={
-                    <ProtectedRoute>
-                      <AdminDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="admin-bootstrap"
-                  element={
-                    <ProtectedRoute>
-                      <AdminBootstrap />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="*" element={<NotFound />} />
-              </Route>
-            </Routes>
-          </AnimatePresence>
-        </Router>
+                <Route path="/" element={<Layout />}>
+                  <Route index element={<Home />} />
+                  <Route path="quiz" element={<Quiz />} />
+                  <Route path="diet-plans" element={<DietPlans />} />
+                  <Route path="diet-plans/:id" element={<DietPlanDetails />} />
+                  <Route path="weight-loss" element={<WeightLoss />} />
+                  <Route path="weight-loss/:id" element={<ExerciseDetails />} />
+                  <Route path="about" element={<About />} />
+                  <Route path="contact" element={<Contact />} />
+                  <Route path="faq" element={<FAQ />} />
+                  <Route
+                    path="profile"
+                    element={
+                      <ProtectedRoute>
+                        <Profile />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="quiz-history"
+                    element={
+                      <ProtectedRoute>
+                        <QuizHistory />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="quiz-result/:id"
+                    element={
+                      <ProtectedRoute>
+                        <QuizResult />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="progress-photos"
+                    element={
+                      <ProtectedRoute>
+                        <ProgressPhotos />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="community"
+                    element={
+                      <ProtectedRoute>
+                        <CommunityPhotos />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="challenges"
+                    element={
+                      <ProtectedRoute>
+                        <Challenges />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="admin"
+                    element={
+                      <ProtectedRoute>
+                        <AdminDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="admin-bootstrap"
+                    element={
+                      <ProtectedRoute>
+                        <AdminBootstrap />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="*" element={<NotFound />} />
+                </Route>
+              </Routes>
+            </AnimatePresence>
+          </Router>
 
-        {hasConsent && <Analytics />}
-        <SpeedInsights />
-        <CookieConsent />
-      </PlatformProvider>
-    </AuthProvider>
+          {hasConsent && <Analytics />}
+          <Toaster position="top-right" />
+          <SpeedInsights />
+          <CookieConsent />
+        </PlatformProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 

@@ -69,13 +69,13 @@ const AdminDashboard: React.FC = () => {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'overview':
-        return <OverviewTab />;
+        return <OverviewTab colorTheme={colorTheme} />;
       case 'challenges':
         return <ChallengesTab colorTheme={colorTheme} />;
       case 'users':
-        return <UsersTab />;
+        return <UsersTab colorTheme={colorTheme} />;
       case 'rewards':
-        return <RewardsTab />;
+        return <RewardsTab colorTheme={colorTheme} />;
       case 'settings':
         return <SettingsTab colorTheme={colorTheme} />;
       default:

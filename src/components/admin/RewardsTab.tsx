@@ -1,64 +1,48 @@
-import { Edit, Search, Star } from "lucide-react";
+import { Edit, Loader, Search, Star } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
-import { supabase } from "../../lib/supabase";
+import { Reward, useRewardsQuery } from "../../hooks/Queries/useRewards";
+import { ColorTheme } from "../../utils/colorUtils";
 import RewardForm from "./RewardForm";
 
-interface Reward {
-  id: string;
-  user_id: string;
-  points: number;
-  badges: {
-    id: string;
-    name: string;
-    icon: string;
-    earned_at: string;
-  }[];
-  user: {
-    username?: string;
-    full_name: string;
-    email: string;
-  };
+interface RewardsTabProps {
+  colorTheme: ColorTheme;
 }
 
-const RewardsTab: React.FC = () => {
-  const [rewards, setRewards] = useState<Reward[]>([]);
+const RewardsTab: React.FC<RewardsTabProps> = ({ colorTheme }) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
   const [showForm, setShowForm] = useState(false);
   const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
 
-  useEffect(() => {
-    fetchRewards();
-  }, []);
-
-  const fetchRewards = async () => {
-    try {
-      const { data, error } = await supabase.from("user_rewards").select(`
-          *,
-          user:profiles(username, full_name, email)
-        `);
-
-      if (error) throw error;
-      setRewards(data);
-    } catch (error) {
-      console.error("Error fetching rewards:", error);
-    }
-  };
+  const { data: rewards = [], isLoading } = useRewardsQuery();
 
   const handleEditReward = (reward: Reward) => {
     setSelectedReward(reward);
     setShowForm(true);
   };
 
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 250);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   const filteredRewards = useMemo(() => {
-    return rewards.filter((reward) => {
-      const searchString = searchTerm.toLowerCase();
-      return (
-        reward.user?.username?.toLowerCase().includes(searchString) ||
-        reward.user?.full_name?.toLowerCase().includes(searchString) ||
-        reward.user?.email.toLowerCase().includes(searchString)
-      );
-    });
-  }, [rewards, searchTerm]);
+    const s = debouncedSearch.toLowerCase();
+    return rewards.filter(
+      (reward) =>
+        reward.user?.username?.toLowerCase().includes(s) ||
+        reward.user?.full_name?.toLowerCase().includes(s) ||
+        reward.user?.email.toLowerCase().includes(s)
+    );
+  }, [rewards, debouncedSearch]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+        <Loader className={`h-8 w-8 animate-spin ${colorTheme.primaryText}`} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -147,7 +131,6 @@ const RewardsTab: React.FC = () => {
             setShowForm(false);
             setSelectedReward(null);
           }}
-          onSubmit={fetchRewards}
         />
       )}
     </div>

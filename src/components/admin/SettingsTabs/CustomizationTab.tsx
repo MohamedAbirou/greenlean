@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { PenTool as Tool, Upload } from "lucide-react";
 import React from "react";
-import { PlatformSettings } from "../SettingsTab";
+import { PlatformSettings } from "../../../hooks/Queries/useSettings";
 
 type HandleSettingChange = <K extends keyof PlatformSettings>(
   key: K,

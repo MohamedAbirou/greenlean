@@ -71,7 +71,7 @@ const Contact: React.FC = () => {
 
       if (validateForm()) {
         const res = await fetch(
-          "https://rsufjeprivwzzygrbvdb.supabase.co/functions/v1/resend-email",
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/resend-email`,
           {
             method: "POST",
             headers: {

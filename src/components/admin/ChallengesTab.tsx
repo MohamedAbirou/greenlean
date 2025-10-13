@@ -1,50 +1,16 @@
-import { Edit, Plus, Search, Trash2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Edit, Loader, Plus, Search, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useChallengesQuery } from "../../hooks/Queries/useChallenges";
 import { supabase } from "../../lib/supabase";
+import { Challenge } from "../../types/challenge";
 import { ColorTheme } from "../../utils/colorUtils";
 import ChallengeForm from "./ChallengeForm";
-
-interface Challenge {
-  id: string;
-  title: string;
-  description: string;
-  type: "daily" | "weekly" | "streak" | "goal";
-  difficulty: "beginner" | "intermediate" | "advanced";
-  points: number;
-  requirements: {
-    target: number;
-    metric: string;
-    timeframe?: string;
-  };
-  start_date: string;
-  end_date: string;
-  is_active: boolean;
-  participants_count: number;
-  completion_rate: number;
-}
-
-// interface ChallengeParticipant {
-//   id: string;
-//   user: {
-//     username: string;
-//     full_name: string;
-//     email: string;
-//   };
-//   progress: {
-//     current: number;
-//   };
-//   completed: boolean;
-//   completion_date: string | null;
-//   streak_count: number;
-// }
 
 interface ChallengesTabProps {
   colorTheme: ColorTheme;
 }
 
 const ChallengesTab: React.FC<ChallengesTabProps> = ({ colorTheme }) => {
-  const [challenges, setChallenges] = useState<Challenge[]>([]);
-  // const [participants, setParticipants] = useState<ChallengeParticipant[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [difficultyFilter, setDifficultyFilter] = useState<string>("all");
@@ -54,64 +20,7 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({ colorTheme }) => {
     null
   );
 
-  useEffect(() => {
-    fetchChallenges();
-  }, []);
-
-  // useEffect(() => {
-  //   if (selectedChallenge) {
-  //     fetchParticipants(selectedChallenge);
-  //   }
-  // }, [selectedChallenge]);
-
-  const fetchChallenges = async () => {
-    try {
-      const [challengesResp, participantsResp] = await Promise.all([
-        supabase.from("challenges").select("*"),
-        supabase
-          .from("challenge_participants")
-          .select("challenge_id, completed"),
-      ]);
-
-      if (challengesResp.error) throw challengesResp.error;
-      if (participantsResp.error) throw participantsResp.error;
-
-      const challengesWithStats = challengesResp.data.map((challenge) => {
-        const participants = participantsResp.data.filter(
-          (p) => p.challenge_id === challenge.id
-        );
-        const total = participants.length;
-        const completed = participants.filter((p) => p.completed).length;
-
-        return {
-          ...challenge,
-          participants_count: total,
-          completion_rate: total ? (completed / total) * 100 : 0,
-        };
-      });
-
-      setChallenges(challengesWithStats);
-    } catch (error) {
-      console.error("Error fetching challenges:", error);
-    }
-  };
-
-  // const fetchParticipants = async (challengeId: string) => {
-  //   try {
-  //     const { data, error } = await supabase
-  //       .from('challenge_participants')
-  //       .select(`
-  //         *,
-  //         user:profiles(username, full_name, email)
-  //       `)
-  //       .eq('challenge_id', challengeId);
-
-  //     if (error) throw error;
-  //     setParticipants(data);
-  //   } catch (error) {
-  //     console.error('Error fetching participants:', error);
-  //   }
-  // };
+  const { data: challenges = [], isLoading, refetch } = useChallengesQuery();
 
   const handleCreateChallenge = async (data: Partial<Challenge>) => {
     try {
@@ -120,7 +29,7 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({ colorTheme }) => {
       if (error) throw error;
 
       setShowForm(false);
-      fetchChallenges();
+      refetch();
     } catch (error) {
       console.error("Error creating challenge:", error);
     }
@@ -139,7 +48,7 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({ colorTheme }) => {
 
       setShowForm(false);
       setEditingChallenge(null);
-      fetchChallenges();
+      refetch();
     } catch (error) {
       console.error("Error updating challenge:", error);
     }
@@ -151,7 +60,7 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({ colorTheme }) => {
 
       if (error) throw error;
 
-      fetchChallenges();
+      refetch();
     } catch (error) {
       console.error("Error deleting challenge:", error);
     }
@@ -175,6 +84,14 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({ colorTheme }) => {
       return matchesSearch && matchesType && matchesDifficulty && matchesStatus;
     });
   }, [challenges, searchTerm, typeFilter, difficultyFilter, statusFilter]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+        <Loader className={`h-8 w-8 animate-spin ${colorTheme.primaryText}`} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
