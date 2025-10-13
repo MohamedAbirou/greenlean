@@ -39,7 +39,11 @@ const UsersTab: React.FC<UserTabProps> = ({ colorTheme }) => {
           }),
         }
       );
-      if (!res.ok) throw new Error("Failed to delete user");
+
+      const data = await res.json(); // parse JSON body
+
+      if (!res.ok) throw new Error(data?.error || "Failed to delete user!");
+
       return userId;
     },
     onSuccess: (userId) => {
@@ -49,8 +53,9 @@ const UsersTab: React.FC<UserTabProps> = ({ colorTheme }) => {
       );
       toast.success("User deleted successfully");
     },
-    onError: (err: Error) =>
-      toast.error(err.message || "Failed to delete user."),
+    onError: (err) => {
+      toast.error(err?.message || "Failed to delete user!");
+    },
   });
 
   useEffect(() => {

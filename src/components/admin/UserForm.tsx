@@ -57,10 +57,31 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose }) => {
       if (roleErr) throw roleErr;
 
       const currentRole = currentAdmin?.role ?? "user";
+      // Fetch target role first
+      const { data: targetAdmin } = await supabase
+        .from("admin_users")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (
+        targetAdmin?.role === "super_admin" &&
+        currentRole !== "super_admin"
+      ) {
+        throw new Error("Only the Super Admin can edit a Super Admin.");
+      }
+
       const updates: Partial<User> = {};
 
-      if (data.username !== user.username) updates.username = data.username;
-      if (data.full_name !== user.full_name) updates.full_name = data.full_name;
+      // Only update fields if allowed
+      if (
+        currentRole === "super_admin" ||
+        targetAdmin?.role !== "super_admin"
+      ) {
+        if (data.username !== user.username) updates.username = data.username;
+        if (data.full_name !== user.full_name)
+          updates.full_name = data.full_name;
+      }
 
       // ✅ Update profile data if needed
       if (Object.keys(updates).length > 0) {
@@ -143,10 +164,13 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose }) => {
           </div>
         )}
 
-        <form onSubmit={(e) => {
-          e.preventDefault()
-          updateUserMutation.mutate(formData)
-        }} className="space-y-4">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            updateUserMutation.mutate(formData);
+          }}
+          className="space-y-4"
+        >
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Username
