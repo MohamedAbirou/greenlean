@@ -1,81 +1,111 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Comment, Photo } from "../types/community";
+
+const PAGE_SIZE = 10;
 
 export const useCommunityPhotos = (userId: string | undefined) => {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
 
-  useEffect(() => {
-    const fetchPhotos = async () => {
-      try {
-        if (!userId) return;
+  const fetchPhotos = useCallback(async (pageNumber: number, append: boolean = false) => {
+    try {
+      if (!userId) return;
 
-        const { data, error } = await supabase
-          .from("progress_photos")
-          .select(
-            `
-              id,
-              caption,
-              photo_url,
-              created_at,
-              week_number,
-              user:profiles!progress_photos_user_id_fkey (
-                id,
-                username,
-                full_name,
-                avatar_url
-              ),
-              photo_likes (
-                user_id
-              ),
-              photo_comments!photo_comments_photo_id_fkey (
-                id,
-                parent_id
-              )
-            `
-          )
-          .eq("community_visible", true)
-          .eq("is_private", false)
-          .order("created_at", { ascending: false });
-
-        if (error) throw error;
-
-        const photosWithData: Photo[] = data.map((photo: any) => {
-          const userObj = Array.isArray(photo.user)
-            ? photo.user[0]
-            : photo.user;
-          return {
-            id: photo.id,
-            photo_url: photo.photo_url,
-            caption: photo.caption,
-            week_number: photo.week_number,
-            created_at: photo.created_at,
-            user_id: userObj.id,
-            user: userObj,
-            profile: userObj,
-            likes: photo.photo_likes?.length || 0,
-            liked_by_user: photo.photo_likes?.some(
-              (l: any) => l.user_id === userId
-            ),
-            comments: [],
-            comments_count: photo.photo_comments?.filter((c: Comment) => c.parent_id === null).length,
-            comments_fetched: false,
-          } as Photo;
-        });
-
-        setPhotos(photosWithData);
-      } catch (error) {
-        console.error("Error fetching photos:", error);
-      } finally {
-        setLoading(false);
+      if (!append) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
       }
-    };
 
-    fetchPhotos();
+      const from = pageNumber * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
+      const { data, error } = await supabase
+        .from("progress_photos")
+        .select(
+          `
+            id,
+            caption,
+            photo_url,
+            created_at,
+            week_number,
+            user:profiles!progress_photos_user_id_fkey (
+              id,
+              username,
+              full_name,
+              avatar_url
+            ),
+            photo_likes (
+              user_id
+            ),
+            photo_comments!photo_comments_photo_id_fkey (
+              id,
+              parent_id
+            )
+          `
+        )
+        .eq("community_visible", true)
+        .eq("is_private", false)
+        .order("created_at", { ascending: false })
+        .range(from, to);
+
+      if (error) throw error;
+
+      const photosWithData: Photo[] = (data || []).map((photo: any) => {
+        const userObj = Array.isArray(photo.user)
+          ? photo.user[0]
+          : photo.user;
+        return {
+          id: photo.id,
+          photo_url: photo.photo_url,
+          caption: photo.caption,
+          week_number: photo.week_number,
+          created_at: photo.created_at,
+          user_id: userObj.id,
+          user: userObj,
+          profile: userObj,
+          likes: photo.photo_likes?.length || 0,
+          liked_by_user: photo.photo_likes?.some(
+            (l: any) => l.user_id === userId
+          ),
+          comments: [],
+          comments_count: photo.photo_comments?.filter((c: Comment) => c.parent_id === null).length,
+          comments_fetched: false,
+        } as Photo;
+      });
+
+      if (append) {
+        setPhotos((prev) => [...prev, ...photosWithData]);
+      } else {
+        setPhotos(photosWithData);
+      }
+
+      setHasMore(photosWithData.length === PAGE_SIZE);
+    } catch (error) {
+      console.error("Error fetching photos:", error);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
   }, [userId]);
 
-  return { photos, setPhotos, loading };
+  useEffect(() => {
+    fetchPhotos(0, false);
+  }, [fetchPhotos]);
+
+  const loadMore = useCallback(() => {
+    if (!loadingMore && hasMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchPhotos(nextPage, true);
+    }
+  }, [loadingMore, hasMore, page, fetchPhotos]);
+
+  return { photos, setPhotos, loading, loadingMore, hasMore, loadMore };
 };
 
 export const fetchComments = async (

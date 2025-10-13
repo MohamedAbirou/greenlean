@@ -26,6 +26,7 @@ import AuthModal from "../auth/AuthModal";
 
 interface NavbarProps {
   scrolled: boolean;
+  isSticky?: boolean;
 }
 
 interface Profile {
@@ -33,7 +34,7 @@ interface Profile {
   full_name: string | null;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ scrolled }) => {
+const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -141,8 +142,8 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled }) => {
   return (
     <>
       <header
-        className={`fixed w-full z-50 transition-all duration-300 ${
-          scrolled
+        className={`${isSticky ? "sticky" : "fixed"} w-full z-50 transition-all duration-300 ${
+          scrolled || isSticky
             ? isDarkMode
               ? "bg-gray-800 shadow-md"
               : "bg-white shadow-md"

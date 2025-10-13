@@ -18,3 +18,29 @@ export const ReplySkeleton: React.FC = () => (
     </div>
   </div>
 );
+
+export const PhotoCardSkeleton: React.FC = () => (
+  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden animate-pulse">
+    <div className="p-4 flex items-center space-x-3">
+      <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600 flex-shrink-0" />
+      <div className="flex-grow space-y-2">
+        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-32" />
+        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24" />
+      </div>
+    </div>
+
+    <div className="w-full aspect-square bg-gray-300 dark:bg-gray-600" />
+
+    <div className="p-4 space-y-3">
+      <div className="flex items-center space-x-4">
+        <div className="h-6 w-16 bg-gray-300 dark:bg-gray-600 rounded" />
+        <div className="h-6 w-16 bg-gray-300 dark:bg-gray-600 rounded" />
+      </div>
+
+      <div className="space-y-2">
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24" />
+      </div>
+    </div>
+  </div>
+);
