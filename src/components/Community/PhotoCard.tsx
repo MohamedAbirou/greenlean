@@ -130,7 +130,7 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
     <motion.div
       layout
       ref={photoRef}
-      className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden w-full max-w-sm mx-auto"
+      className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden w-full max-w-sm md:max-w-lg mx-auto"
     >
       <div className="p-2 flex items-center justify-between border-b border-gray-100 dark:border-gray-700">
         <div className="flex items-center space-x-3">
