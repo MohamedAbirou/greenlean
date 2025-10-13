@@ -12,10 +12,10 @@ export interface Food {
 }
 
 export const foods: Record<string, Food> = {
-  // Lean Proteins
+  // Lean Proteins (meat - not suitable for vegetarian/vegan)
   chickenBreast: { name: "Chicken Breast", protein: 31, carbs: 0, fats: 3, calories: 165, category: 'protein' },
   turkeyBreast: { name: "Turkey Breast", protein: 30, carbs: 0, fats: 1, calories: 135, category: 'protein' },
-  leanBeef: { name: "Lean Beef (95% lean)", protein: 26, carbs: 0, fats: 5, calories: 150, category: 'protein' },
+  leanBeef: { name: "Lean Beef (95% lean)", protein: 26, carbs: 0, fats: 5, calories: 150, category: 'protein', restrictions: ['heart disease'] },
   porkTenderloin: { name: "Pork Tenderloin", protein: 26, carbs: 0, fats: 3, calories: 130, category: 'protein' },
   
   // Fish & Seafood
@@ -28,9 +28,9 @@ export const foods: Record<string, Food> = {
   // Eggs & Dairy Proteins
   egg: { name: "Egg (large)", protein: 13, carbs: 1, fats: 11, calories: 155, category: 'protein' },
   eggWhites: { name: "Egg Whites", protein: 11, carbs: 1, fats: 0, calories: 52, category: 'protein' },
-  cottageCheese: { name: "Cottage Cheese (low fat)", protein: 11, carbs: 4, fats: 1, calories: 72, category: 'dairy' },
-  greekYogurt: { name: "Greek Yogurt (low fat)", protein: 10, carbs: 4, fats: 0.4, calories: 59, category: 'dairy' },
-  cheese: { name: "Cheddar Cheese", protein: 25, carbs: 2, fats: 33, calories: 402, category: 'dairy' },
+  cottageCheese: { name: "Cottage Cheese (low fat)", protein: 11, carbs: 4, fats: 1, calories: 72, category: 'dairy', healthBenefits: ['high blood pressure'] },
+  greekYogurt: { name: "Greek Yogurt (low fat)", protein: 10, carbs: 4, fats: 0.4, calories: 59, category: 'dairy', healthBenefits: ['diabetes'] },
+  cheese: { name: "Cheddar Cheese", protein: 25, carbs: 2, fats: 33, calories: 402, category: 'dairy', restrictions: ['heart disease', 'high blood pressure'] },
   
   // Plant Proteins
   tofu: { name: "Tofu (firm)", protein: 8, carbs: 2, fats: 5, calories: 76, category: 'protein', restrictions: ['soy allergy'] },
@@ -45,16 +45,16 @@ export const foods: Record<string, Food> = {
   edamame: { name: "Edamame (cooked)", protein: 11, carbs: 10, fats: 5, calories: 122, category: 'legume', restrictions: ['soy allergy'] },
 
   // Grains & Starches
-  brownRice: { name: "Brown Rice (cooked)", protein: 2.5, carbs: 23, fats: 0.9, calories: 112, category: 'grain' },
-  whiteRice: { name: "White Rice (cooked)", protein: 2.7, carbs: 28, fats: 0.3, calories: 130, category: 'grain' },
-  quinoa: { name: "Quinoa (cooked)", protein: 4.1, carbs: 21, fats: 1.9, calories: 120, category: 'grain' },
-  oats: { name: "Rolled Oats", protein: 13, carbs: 67, fats: 7, calories: 389, category: 'grain', healthBenefits: ['high blood pressure', 'diabetes'] },
-  barley: { name: "Barley (cooked)", protein: 3.5, carbs: 28, fats: 0.8, calories: 123, category: 'grain' },
-  buckwheat: { name: "Buckwheat (cooked)", protein: 3.4, carbs: 20, fats: 0.6, calories: 92, category: 'grain' },
+  brownRice: { name: "Brown Rice (cooked)", protein: 2.5, carbs: 23, fats: 0.9, calories: 112, category: 'grain', healthBenefits: ['diabetes'] },
+  whiteRice: { name: "White Rice (cooked)", protein: 2.7, carbs: 28, fats: 0.3, calories: 130, category: 'grain', restrictions: ['diabetes'] },
+  quinoa: { name: "Quinoa (cooked)", protein: 4.1, carbs: 21, fats: 1.9, calories: 120, category: 'grain', healthBenefits: ['diabetes'] },
+  oats: { name: "Rolled Oats", protein: 13, carbs: 67, fats: 7, calories: 389, category: 'grain', healthBenefits: ['high blood pressure', 'diabetes', 'heart disease'] },
+  barley: { name: "Barley (cooked)", protein: 3.5, carbs: 28, fats: 0.8, calories: 123, category: 'grain', healthBenefits: ['diabetes'] },
+  buckwheat: { name: "Buckwheat (cooked)", protein: 3.4, carbs: 20, fats: 0.6, calories: 92, category: 'grain', healthBenefits: ['diabetes'] },
   sweetPotato: { name: "Sweet Potato", protein: 2, carbs: 20, fats: 0, calories: 86, category: 'carb', healthBenefits: ['diabetes'] },
   whitePotato: { name: "White Potato", protein: 2, carbs: 17, fats: 0.1, calories: 77, category: 'carb' },
-  wholeWheatBread: { name: "Whole Wheat Bread", protein: 13, carbs: 41, fats: 4, calories: 247, category: 'grain' },
-  wholeWheatPasta: { name: "Whole Wheat Pasta (cooked)", protein: 5, carbs: 25, fats: 1, calories: 124, category: 'grain' },
+  wholeWheatBread: { name: "Whole Wheat Bread", protein: 13, carbs: 41, fats: 4, calories: 247, category: 'grain', restrictions: ['gluten-free'] },
+  wholeWheatPasta: { name: "Whole Wheat Pasta (cooked)", protein: 5, carbs: 25, fats: 1, calories: 124, category: 'grain', restrictions: ['gluten-free'] },
 
   // Nuts & Seeds
   almonds: { name: "Almonds", protein: 21, carbs: 22, fats: 49, calories: 579, category: 'nut', healthBenefits: ['heart disease'] },
@@ -73,9 +73,9 @@ export const foods: Record<string, Food> = {
   olives: { name: "Olives", protein: 1, carbs: 6, fats: 11, calories: 115, category: 'fat' },
 
   // Vegetables
-  broccoli: { name: "Broccoli", protein: 3, carbs: 7, fats: 0.3, calories: 34, category: 'vegetable', healthBenefits: ['heart disease'] },
-  spinach: { name: "Spinach", protein: 3, carbs: 4, fats: 0.4, calories: 23, category: 'vegetable', healthBenefits: ['high blood pressure'] },
-  kale: { name: "Kale", protein: 4, carbs: 9, fats: 1, calories: 49, category: 'vegetable', healthBenefits: ['heart disease'] },
+  broccoli: { name: "Broccoli", protein: 3, carbs: 7, fats: 0.3, calories: 34, category: 'vegetable', healthBenefits: ['heart disease', 'diabetes'] },
+  spinach: { name: "Spinach", protein: 3, carbs: 4, fats: 0.4, calories: 23, category: 'vegetable', healthBenefits: ['high blood pressure', 'heart disease', 'diabetes'] },
+  kale: { name: "Kale", protein: 4, carbs: 9, fats: 1, calories: 49, category: 'vegetable', healthBenefits: ['heart disease', 'diabetes'] },
   bellPeppers: { name: "Bell Peppers", protein: 1, carbs: 6, fats: 0.3, calories: 31, category: 'vegetable' },
   carrots: { name: "Carrots", protein: 1, carbs: 10, fats: 0.2, calories: 41, category: 'vegetable' },
   tomatoes: { name: "Tomatoes", protein: 1, carbs: 4, fats: 0.2, calories: 18, category: 'vegetable' },
@@ -87,9 +87,9 @@ export const foods: Record<string, Food> = {
   mushrooms: { name: "Mushrooms", protein: 3, carbs: 3, fats: 0.3, calories: 22, category: 'vegetable' },
 
   // Fruits
-  banana: { name: "Banana", protein: 1, carbs: 23, fats: 0.3, calories: 89, category: 'fruit' },
-  apple: { name: "Apple", protein: 0.3, carbs: 14, fats: 0.2, calories: 52, category: 'fruit' },
-  berries: { name: "Mixed Berries", protein: 1, carbs: 12, fats: 0.3, calories: 57, category: 'fruit', healthBenefits: ['heart disease'] },
+  banana: { name: "Banana", protein: 1, carbs: 23, fats: 0.3, calories: 89, category: 'fruit', healthBenefits: ['high blood pressure'] },
+  apple: { name: "Apple", protein: 0.3, carbs: 14, fats: 0.2, calories: 52, category: 'fruit', healthBenefits: ['diabetes', 'heart disease'] },
+  berries: { name: "Mixed Berries", protein: 1, carbs: 12, fats: 0.3, calories: 57, category: 'fruit', healthBenefits: ['heart disease', 'diabetes'] },
   orange: { name: "Orange", protein: 1, carbs: 12, fats: 0.2, calories: 47, category: 'fruit' },
   grapes: { name: "Grapes", protein: 0.6, carbs: 18, fats: 0.2, calories: 62, category: 'fruit' },
   pineapple: { name: "Pineapple", protein: 0.5, carbs: 13, fats: 0.1, calories: 50, category: 'fruit' },

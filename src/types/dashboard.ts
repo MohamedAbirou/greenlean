@@ -27,6 +27,9 @@ export interface HealthCalculations {
     protein: number;
     carbs: number;
     fats: number;
+    proteinGrams?: number;
+    carbsGrams?: number;
+    fatsGrams?: number;
   };
   goalAdjustment: number;
 }

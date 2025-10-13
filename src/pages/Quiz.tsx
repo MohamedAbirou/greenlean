@@ -213,13 +213,13 @@ const Quiz: React.FC = () => {
   };
 
   const calculateAndNavigate = async () => {
-    const weight = parseFloat(answers[3] as string); // current weight
-    const height = parseFloat(answers[4] as string);
-    const goalWeight = parseFloat(answers[5] as string);
     const age = parseInt(answers[1] as string);
     const gender = answers[2] as string;
+    const weight = parseFloat(answers[3] as string); // current weight in kg
+    const height = parseFloat(answers[4] as string); // height in cm
+    const goalWeight = parseFloat(answers[5] as string); // target weight in kg
     const activityLevel = answers[6] as string;
-    const goal = answers[8] as string; // "Lose weight", "Gain weight", "Maintain"
+    const goal = answers[8] as string; // "Lose fat", "Build muscle", "Maintain weight", etc.
 
     // --- BMI ---
     const heightInMeters = height / 100;
@@ -249,17 +249,31 @@ const Quiz: React.FC = () => {
       tdee = bmr * 1.2; // Default to sedentary
     }
 
-    // --- Goal Calories ---
+    // --- Goal Calories with Safety Limits ---
     let goalCalories = tdee;
+
+    // Calculate safe minimum calories (never below BMR * 1.1 for safety)
+    const safeMinimumCalories = Math.max(bmr * 1.1, gender === "Male" ? 1500 : 1200);
+    const safeMaximumCalories = tdee + 500; // Maximum safe surplus
+
     if (goal === "Lose fat") {
-      goalCalories = tdee - 500; // ~0.5kg/week deficit
+      // Safe deficit: 15-25% below TDEE, but never below minimum
+      const deficit = Math.min(500, tdee * 0.25);
+      goalCalories = Math.max(tdee - deficit, safeMinimumCalories);
     } else if (goal === "Build muscle") {
-      goalCalories = tdee + 300; // Moderate surplus for muscle building
+      // Moderate surplus: 10-15% above TDEE for muscle building
+      goalCalories = Math.min(tdee + 300, safeMaximumCalories);
     } else if (goal === "Maintain weight") {
       goalCalories = tdee; // No change
     } else if (goal === "Improve health & wellbeing") {
-      goalCalories = tdee - 200; // Slight deficit for health
+      // Slight deficit: 5-10% below TDEE
+      const deficit = Math.min(200, tdee * 0.1);
+      goalCalories = Math.max(tdee - deficit, safeMinimumCalories);
     }
+
+    // Final safety check
+    goalCalories = Math.max(safeMinimumCalories, Math.min(goalCalories, safeMaximumCalories));
+    goalCalories = Math.round(goalCalories);
 
     // --- Estimate Time to Reach Goal ---
     const weightDiff = goalWeight - weight; // negative if losing

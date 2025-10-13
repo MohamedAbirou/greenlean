@@ -87,16 +87,32 @@ export const useDashboardData = () => {
       const activityLevel = answers[6] as string;
       const age = answers[1] as number;
       const gender = answers[2] as string;
+      const weight = answers[3] as number;
+      const height = answers[4] as number;
+
+      // Calculate BMR for safety checks
+      let bmr;
+      if (gender === "Male") {
+        bmr = 10 * weight + 6.25 * height - 5 * age + 5;
+      } else {
+        bmr = 10 * weight + 6.25 * height - 5 * age - 161;
+      }
+
+      const safeMinimumCalories = Math.max(bmr * 1.1, gender === "Male" ? 1500 : 1200);
+      const tdee = calculations.tdee;
 
       let baseAdjustment = 0;
 
       switch (goal) {
         case "Lose fat":
-          baseAdjustment = -500;
+          // Safe deficit: 15-25% below TDEE
+          const deficit = Math.min(500, tdee * 0.25);
+          baseAdjustment = -deficit;
           break;
 
         case "Build muscle":
-          baseAdjustment = 300;
+          // Moderate surplus: 10-15% above TDEE
+          baseAdjustment = Math.min(300, tdee * 0.15);
           break;
 
         case "Maintain weight":
@@ -104,88 +120,117 @@ export const useDashboardData = () => {
           break;
 
         case "Improve health & wellbeing":
-          baseAdjustment = -200;
+          // Slight deficit: 5-10% below TDEE
+          baseAdjustment = -Math.min(200, tdee * 0.1);
           break;
 
         default:
+          baseAdjustment = 0;
           break;
       }
 
-      const activity = activityLevel.toLowerCase();
-
-      if (
-        activity.includes("very active") ||
-        activity.includes("extremely active")
-      ) {
-        baseAdjustment += 200;
-      } else if (activity.includes("sedentary")) {
-        baseAdjustment -= 200;
+      // Apply safety constraints
+      const targetCalories = tdee + baseAdjustment;
+      if (targetCalories < safeMinimumCalories) {
+        baseAdjustment = safeMinimumCalories - tdee;
       }
 
-      if (age > 50) baseAdjustment -= 200;
-      else if (age > 40) baseAdjustment -= 100;
-
-      if (gender === "Male") {
-        baseAdjustment += 100;
-      }
-
-      return baseAdjustment;
+      return Math.round(baseAdjustment);
     };
 
     const goalAdjustment = getGoalAdjustment();
-    const dailyCalorieTarget = Math.round(calculations.tdee + goalAdjustment);
+    const dailyCalorieTarget = Math.max(
+      calculations.tdee + goalAdjustment,
+      // Absolute minimum safety threshold
+      answers[2] === "Male" ? 1500 : 1200
+    );
 
     const getMacroSplit = () => {
       const goal = answers[8] as string;
       const dietType = answers[7] as string;
       const activityLevel = answers[6] as string;
+      const weight = answers[3] as number;
 
-      let protein = 30,
-        carbs = 40,
-        fats = 30;
+      let proteinPercent = 30,
+        carbsPercent = 40,
+        fatsPercent = 30;
 
+      // First, set base macros by goal
       if (goal === "Lose fat") {
-        protein = 35;
-        carbs = 35;
-        fats = 30;
+        proteinPercent = 35;
+        carbsPercent = 35;
+        fatsPercent = 30;
       } else if (goal === "Build muscle") {
-        protein = 40;
-        carbs = 40;
-        fats = 20;
+        proteinPercent = 35;
+        carbsPercent = 45;
+        fatsPercent = 20;
       } else if (goal === "Maintain weight") {
-        protein = 30;
-        carbs = 40;
-        fats = 30;
+        proteinPercent = 30;
+        carbsPercent = 40;
+        fatsPercent = 30;
       } else if (goal === "Improve health & wellbeing") {
-        protein = 30;
-        carbs = 35;
-        fats = 35;
+        proteinPercent = 30;
+        carbsPercent = 40;
+        fatsPercent = 30;
       }
 
+      // Override with diet-specific macros (these take priority)
       if (dietType === "Keto") {
-        protein = 25;
-        carbs = 5;
-        fats = 70;
+        proteinPercent = 25;
+        carbsPercent = 5;
+        fatsPercent = 70;
       } else if (dietType === "Vegan") {
-        protein = 25;
-        carbs = 45;
-        fats = 30;
+        proteinPercent = 20;
+        carbsPercent = 50;
+        fatsPercent = 30;
       } else if (dietType === "Vegetarian") {
-        protein = 30;
-        carbs = 40;
-        fats = 30;
+        proteinPercent = 25;
+        carbsPercent = 45;
+        fatsPercent = 30;
+      } else if (dietType === "Pescatarian") {
+        proteinPercent = 30;
+        carbsPercent = 40;
+        fatsPercent = 30;
       }
 
-      if (
-        activityLevel.includes("Very active") ||
-        activityLevel.includes("Extremely active")
-      ) {
-        carbs += 5;
-        protein += 2;
-        fats -= 2;
+      // Adjust for activity level (only if not keto)
+      if (dietType !== "Keto") {
+        if (
+          activityLevel.includes("Very active") ||
+          activityLevel.includes("Extremely active")
+        ) {
+          carbsPercent += 5;
+          proteinPercent += 5;
+          fatsPercent -= 10;
+        }
       }
 
-      return { protein, carbs, fats };
+      // Ensure percentages sum to 100
+      const total = proteinPercent + carbsPercent + fatsPercent;
+      if (total !== 100) {
+        const adjustment = (100 - total) / 3;
+        proteinPercent += adjustment;
+        carbsPercent += adjustment;
+        fatsPercent += adjustment;
+      }
+
+      // Calculate grams based on calories
+      const proteinGrams = Math.round((dailyCalorieTarget * (proteinPercent / 100)) / 4);
+      const carbsGrams = Math.round((dailyCalorieTarget * (carbsPercent / 100)) / 4);
+      const fatsGrams = Math.round((dailyCalorieTarget * (fatsPercent / 100)) / 9);
+
+      // Also calculate based on body weight for protein (minimum)
+      const proteinByWeight = weight * (goal === "Build muscle" ? 2.2 : goal === "Lose fat" ? 1.8 : 1.6);
+      const finalProteinGrams = Math.max(proteinGrams, proteinByWeight);
+
+      return {
+        protein: Math.round(proteinPercent),
+        carbs: Math.round(carbsPercent),
+        fats: Math.round(fatsPercent),
+        proteinGrams: Math.round(finalProteinGrams),
+        carbsGrams,
+        fatsGrams,
+      };
     };
 
     const macros = getMacroSplit();

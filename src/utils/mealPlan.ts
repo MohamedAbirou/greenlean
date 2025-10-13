@@ -5,6 +5,9 @@ interface Macros {
   protein: number;
   carbs: number;
   fats: number;
+  proteinGrams?: number;
+  carbsGrams?: number;
+  fatsGrams?: number;
 }
 
 interface Meal {
@@ -47,6 +50,17 @@ export function generateMealPlan(
   mealsPerDay: string | number,
   quizAnswers?: QuizAnswers
 ): Meal[] {
+  // Validate inputs
+  if (!dailyCalories || isNaN(dailyCalories) || dailyCalories < 1000) {
+    console.error("Invalid daily calories:", dailyCalories);
+    dailyCalories = 2000; // Safe fallback
+  }
+
+  if (!macros || isNaN(macros.protein) || isNaN(macros.carbs) || isNaN(macros.fats)) {
+    console.error("Invalid macros:", macros);
+    macros = { protein: 30, carbs: 40, fats: 30 }; // Safe fallback
+  }
+
   // Map quiz diet type to template key
   const normalizedDietType = normalizeDietType(dietType);
   const templates =
@@ -136,7 +150,8 @@ export function generateMealPlan(
       healthConditions,
       goal,
       exerciseTime,
-      usedTemplates
+      usedTemplates,
+      quizAnswers
     );
 
     if (templatePool.length === 0) {
@@ -269,7 +284,8 @@ function getFilteredTemplates(
   healthConditions: HealthConditions,
   _goal: string,
   exerciseTime: string,
-  usedTemplates: Set<string>
+  usedTemplates: Set<string>,
+  quizAnswers?: QuizAnswers
 ) {
   let templatePool: any[];
 
@@ -283,25 +299,49 @@ function getFilteredTemplates(
     templatePool = templates.snacks;
   }
 
-  // Filter based on health conditions
+  // Get dietary restrictions from quiz answers
+  const dietType = quizAnswers?.[7] as string;
+  const isGlutenFree = dietType === "Gluten-free";
+  const isLactoseIntolerant = dietType === "Lactose intolerant";
+  const isVegan = dietType === "Vegan";
+  const isVegetarian = dietType === "Vegetarian" || isVegan;
+
+  // Filter based on health conditions AND dietary restrictions
   let filteredTemplates = templatePool.filter((template) => {
     return template.items.every((item: any) => {
       const food = foods[item.food];
-      if (!food.restrictions) return true;
 
-      // Check if food conflicts with health conditions
-      if (healthConditions.diabetes && food.restrictions.includes("diabetes"))
-        return false;
-      if (
-        healthConditions.heartDisease &&
-        food.restrictions.includes("heart disease")
-      )
-        return false;
-      if (
-        healthConditions.highBloodPressure &&
-        food.restrictions.includes("high blood pressure")
-      )
-        return false;
+      // Check dietary restrictions
+      if (food.restrictions) {
+        if (isGlutenFree && food.restrictions.includes("gluten-free"))
+          return false;
+        if (isLactoseIntolerant && food.category === "dairy")
+          return false;
+        if (isVegan && (food.category === "protein" || food.category === "dairy") && !food.restrictions.includes("soy allergy"))
+          return false;
+      }
+
+      // For vegetarian, exclude meat proteins but allow fish for pescatarian
+      if (isVegetarian && food.category === "protein") {
+        const meatProteins = ["chickenBreast", "turkeyBreast", "leanBeef", "porkTenderloin"];
+        if (meatProteins.includes(item.food)) return false;
+      }
+
+      // Check if food conflicts with health conditions (restrictions here mean "avoid for this condition")
+      if (food.restrictions) {
+        if (healthConditions.diabetes && food.restrictions.includes("diabetes"))
+          return false;
+        if (
+          healthConditions.heartDisease &&
+          food.restrictions.includes("heart disease")
+        )
+          return false;
+        if (
+          healthConditions.highBloodPressure &&
+          food.restrictions.includes("high blood pressure")
+        )
+          return false;
+      }
 
       return true;
     });
@@ -373,7 +413,10 @@ function normalizeDietType(dietType: string): keyof typeof mealTemplates {
     Vegan: "vegan",
     Pescatarian: "pescatarian",
     Keto: "keto",
+    "Gluten-free": "omnivore",
+    "Lactose intolerant": "omnivore",
     omnivore: "omnivore",
+    Other: "omnivore",
   };
 
   return dietMapping[dietType] || "omnivore";
@@ -391,8 +434,21 @@ function createMealFromTemplate(
     return sum + f.calories * (it.base / 100);
   }, 0);
 
-  // Scale factor to meet kcalTarget
-  const scale = Math.max(0.5, Math.min(2.0, kcalTarget / baseCalories)); // Limit scaling to reasonable range
+  // Safety check: ensure baseCalories is valid
+  if (baseCalories === 0 || isNaN(baseCalories)) {
+    console.error("Invalid base calories for template:", template);
+    return {
+      name: mealName,
+      items: [],
+      total: { protein: 0, carbs: 0, fats: 0, calories: 0 },
+      templateName: template.name,
+      difficulty: template.difficulty,
+      prepTime: template.prepTime,
+    };
+  }
+
+  // Scale factor to meet kcalTarget with reasonable limits
+  const scale = Math.max(0.3, Math.min(3.0, kcalTarget / baseCalories)); // Allow wider range but still safe
 
   const total = { protein: 0, carbs: 0, fats: 0, calories: 0 };
   const items = template.items.map(({ food, base }: any) => {
