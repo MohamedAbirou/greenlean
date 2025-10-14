@@ -65,7 +65,7 @@ export const useCommunityPhotos = (userId: string | undefined) => {
           caption: photo.caption,
           week_number: photo.week_number,
           created_at: photo.created_at,
-          user_id: userObj.id,
+          user_id: userObj?.id,
           user: userObj,
           profile: userObj,
           likes: photo.photo_likes?.length || 0,
