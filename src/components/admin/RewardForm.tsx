@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { Reward } from "../../hooks/Queries/useRewards";
 import { queryKeys } from "../../lib/queryKeys";
 import { supabase } from "../../lib/supabase";
+import { createNotification } from "../../services/notificationService";
 
 interface RewardFormProps {
   userId: string;
@@ -33,6 +34,17 @@ const RewardForm: React.FC<RewardFormProps> = ({ userId, reward, onClose }) => {
         .single();
 
       if (error) throw error;
+      // Send notification to user
+      if (data) {
+        await createNotification({
+          recipient_id: userId,
+          sender_id: userId,
+          type: "challenge",
+          entity_id: data.id,
+          entity_type: "challenge",
+          message: `Your reward points have been updated by an admin.`
+        });
+      }
       return data;
     },
 

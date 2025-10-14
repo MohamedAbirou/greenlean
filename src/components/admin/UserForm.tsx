@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { queryKeys } from "../../lib/queryKeys";
 import { supabase } from "../../lib/supabase";
+import { createNotification } from "../../services/notificationService";
 import { } from "../../utils/adminBootstrap";
 
 interface User {
@@ -84,15 +85,18 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose }) => {
       }
 
       // ✅ Update profile data if needed
+      let profileChanged = false;
       if (Object.keys(updates).length > 0) {
         const { error } = await supabase
           .from("profiles")
           .update(updates)
           .eq("id", user.id);
         if (error) throw error;
+        profileChanged = true;
       }
 
       // ✅ Handle role change securely
+      let roleChanged = false;
       if (data.is_admin !== user.is_admin) {
         if (currentRole !== "super_admin")
           throw new Error("Only the Super Admin can modify admin roles.");
@@ -119,6 +123,29 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose }) => {
             .eq("id", user.id);
           if (error) throw error;
         }
+        roleChanged = true;
+      }
+
+      // Notifications for updates
+      if (profileChanged) {
+        await createNotification({
+          recipient_id: user.id,
+          sender_id: currentUser.id,
+          type: "profile_changes",
+          entity_id: user.id,
+          entity_type: "profile_changes",
+          message: `Your profile information has been updated by a super admin.`,
+        });
+      }
+      if (roleChanged) {
+        await createNotification({
+          recipient_id: user.id,
+          sender_id: currentUser.id,
+          type: "role_change",
+          entity_id: user.id,
+          entity_type: "role_change",
+          message: `Your administrative privileges have been updated by a super admin.`,
+        });
       }
 
       return {

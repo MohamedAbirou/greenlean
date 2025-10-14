@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Comment, Photo } from "../types/community";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 5;
 
 export const useCommunityPhotos = (userId: string | undefined) => {
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -65,7 +65,7 @@ export const useCommunityPhotos = (userId: string | undefined) => {
           caption: photo.caption,
           week_number: photo.week_number,
           created_at: photo.created_at,
-          user_id: userObj.id,
+          user_id: userObj?.id,
           user: userObj,
           profile: userObj,
           likes: photo.photo_likes?.length || 0,

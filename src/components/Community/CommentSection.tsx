@@ -1,8 +1,8 @@
 import React, { useCallback, useState } from "react";
 import { fetchReplies } from "../../hooks/useCommunityPhotos";
 import { supabase } from "../../lib/supabase";
-import Profile from "../../pages/Profile";
-import { Photo } from "../../types/community";
+import { createNotification } from "../../services/notificationService";
+import { Photo, Profile } from "../../types/community";
 import { extractMentions } from "../../utils/formatters";
 import { CommentSkeleton, ReplySkeleton } from "../ui/Skeletons";
 import { CommentInput } from "./CommentInput";
@@ -12,18 +12,20 @@ interface CommentSectionProps {
   photo: Photo;
   isExpanded: boolean;
   userId: string | undefined;
+  username: string;
   userAvatar: string | null;
   onPhotosUpdate: (updater: (photos: Photo[]) => Photo[]) => void;
-  commentsLoading: boolean
+  commentsLoading: boolean;
 }
 
 export const CommentSection: React.FC<CommentSectionProps> = ({
   photo,
   isExpanded,
   userId,
+  username,
   userAvatar,
   onPhotosUpdate,
-  commentsLoading
+  commentsLoading,
 }) => {
   const [repliesLoading, setRepliesLoading] = useState<{
     [key: string]: boolean;
@@ -169,11 +171,50 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
         } else {
           setCommentText("");
         }
+        // Notification logic
+        if (!parentId && photo.user_id && userId && photo.user_id !== userId) {
+          // Notify photo owner of new comment
+          await createNotification({
+            recipient_id: photo.user_id,
+            sender_id: userId,
+            type: "comment",
+            entity_id: photo.id,
+            entity_type: "post",
+            message: `${comment.user?.username || "Someone"} commented on your photo.`
+          });
+        }
+        if (parentId) {
+          // Find parent comment
+          const parentC = photo.comments.find((c) => c.id === parentId);
+          if (parentC && parentC.user_id !== userId) {
+            // Notify original commenter
+            await createNotification({
+              recipient_id: parentC.user_id,
+              sender_id: userId ?? "",
+              type: "reply",
+              entity_id: parentId,
+              entity_type: "comment",
+              message: `${comment.user?.username || "Someone"} replied to your comment.`
+            });
+          }
+        }
+        for (const mId of mentionedUserIds) {
+          if (mId !== userId) {
+            await createNotification({
+              recipient_id: mId,
+              sender_id: userId ?? "",
+              type: "mention",
+              entity_id: comment?.id,
+              entity_type: parentId ? "comment" : "post",
+              message: `${comment.user?.username || "Someone"} mentioned you in a comment.`
+            });
+          }
+        }
       } catch (error) {
         console.error("Error posting comment:", error);
       }
     },
-    [commentText, replyText, photo.id, userId, onPhotosUpdate]
+    [commentText, replyText, photo.id, userId, onPhotosUpdate, photo.user_id, photo.comments, extractMentions]
   );
 
   const handleExpandReplies = useCallback(
@@ -295,6 +336,17 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
               };
             })
           );
+          // Notification logic
+          if (comment.user_id !== userId) {
+            await createNotification({
+              recipient_id: comment.user_id,
+              sender_id: userId ?? "",
+              type: "like",
+              entity_id: commentId,
+              entity_type: "comment",
+              message: `${username} liked your comment.`
+            });
+          }
         }
       } catch (error) {
         console.error("Error toggling comment like:", error);
@@ -308,8 +360,9 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
   if (commentsLoading) {
     return (
       <div className="space-y-2">
-        <CommentSkeleton />
-        <CommentSkeleton />
+        {[...Array(2)].map((_, i) => (
+          <CommentSkeleton key={i} />
+        ))}
       </div>
     );
   }

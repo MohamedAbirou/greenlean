@@ -16,6 +16,7 @@
     "@vercel/speed-insights": "^1.2.0",
     "canvas-confetti": "^1.9.2",
     "chart.js": "^4.5.0",
+    "classnames": "^2.5.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^11.0.8",
     "js-cookie": "^3.0.5",

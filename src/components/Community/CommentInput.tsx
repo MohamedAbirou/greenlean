@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import Profile from "../../pages/Profile";
+import { Profile } from "../../types/community";
 import { UserAvatar } from "../ui/UserAvatar";
 import { MentionDropdown } from "./MentionDropdown";
 
@@ -41,8 +41,8 @@ export const CommentInput: React.FC<CommentInputProps> = ({
 
   return (
     <div className="flex items-start space-x-3">
-      <UserAvatar avatarUrl={userAvatar} username="You" size="lg" />
-      <div className="flex-grow relative">
+      <UserAvatar avatarUrl={userAvatar} username="You" size="md" />
+      <div key={inputId} className="flex-grow relative">
         <textarea
           ref={textareaRef}
           value={value}

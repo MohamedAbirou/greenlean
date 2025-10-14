@@ -2,15 +2,17 @@ import { Edit, Loader, Plus, Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useChallengesQuery } from "../../hooks/Queries/useChallenges";
 import { supabase } from "../../lib/supabase";
+import { createNotification } from "../../services/notificationService";
 import { Challenge } from "../../types/challenge";
 import { ColorTheme } from "../../utils/colorUtils";
 import ChallengeForm from "./ChallengeForm";
 
 interface ChallengesTabProps {
+  userId: string | undefined;
   colorTheme: ColorTheme;
 }
 
-const ChallengesTab: React.FC<ChallengesTabProps> = ({ colorTheme }) => {
+const ChallengesTab: React.FC<ChallengesTabProps> = ({ colorTheme, userId }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [difficultyFilter, setDifficultyFilter] = useState<string>("all");
@@ -24,12 +26,28 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({ colorTheme }) => {
 
   const handleCreateChallenge = async (data: Partial<Challenge>) => {
     try {
-      const { error } = await supabase.from("challenges").insert([data]);
+      const { error, data: inserted } = await supabase.from("challenges").insert([data]).select("id").maybeSingle();
 
       if (error) throw error;
 
       setShowForm(false);
       refetch();
+      if (inserted && inserted.id) {
+        // Notify all participants (should check if any by design, else skip)
+        const { data: participants } = await supabase.from("challenge_participants").select("user_id").eq("challenge_id", inserted.id);
+        if (participants && participants.length > 0) {
+          for (const p of participants) {
+            await createNotification({
+              recipient_id: p.user_id,
+              sender_id: userId ?? "", // or actual admin id
+              type: "challenge",
+              entity_id: inserted.id,
+              entity_type: "challenge",
+              message: `A new challenge has been created that you participate in.`
+            });
+          }
+        }
+      }
     } catch (error) {
       console.error("Error creating challenge:", error);
     }
@@ -49,6 +67,20 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({ colorTheme }) => {
       setShowForm(false);
       setEditingChallenge(null);
       refetch();
+      // Notify all participants
+      const { data: participants } = await supabase.from("challenge_participants").select("user_id").eq("challenge_id", editingChallenge.id);
+      if (participants && participants.length > 0) {
+        for (const p of participants) {
+          await createNotification({
+            recipient_id: p.user_id,
+            sender_id: userId ?? "",
+            type: "challenge",
+            entity_id: editingChallenge.id,
+            entity_type: "challenge",
+            message: `A challenge you participate in has been updated.`
+          });
+        }
+      }
     } catch (error) {
       console.error("Error updating challenge:", error);
     }
@@ -56,11 +88,25 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({ colorTheme }) => {
 
   const handleDeleteChallenge = async (id: string) => {
     try {
+      // Notify all participants BEFORE delete
+      const { data: participants } = await supabase.from("challenge_participants").select("user_id").eq("challenge_id", id);
       const { error } = await supabase.from("challenges").delete().eq("id", id);
 
       if (error) throw error;
 
       refetch();
+      if (participants && participants.length > 0) {
+        for (const p of participants) {
+          await createNotification({
+            recipient_id: p.user_id,
+            sender_id: userId ?? "",
+            type: "challenge",
+            entity_id: id,
+            entity_type: "challenge",
+            message: `A challenge you participate in has been deleted.`
+          });
+        }
+      }
     } catch (error) {
       console.error("Error deleting challenge:", error);
     }

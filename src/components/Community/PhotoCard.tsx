@@ -1,9 +1,11 @@
+import { User } from "@supabase/supabase-js";
 import { formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
 import { Heart, MessageCircle, Send } from "lucide-react";
 import React, { useCallback } from "react";
 import { fetchComments } from "../../hooks/useCommunityPhotos";
 import { supabase } from "../../lib/supabase";
+import { createNotification } from "../../services/notificationService";
 import { Photo } from "../../types/community";
 import { formatNumber } from "../../utils/formatters";
 import { UserAvatar } from "../ui/UserAvatar";
@@ -12,6 +14,7 @@ import { CommentSection } from "./CommentSection";
 interface PhotoCardProps {
   photo: Photo;
   userId: string | undefined;
+  user: User;
   userAvatar: string | null;
   isCommentsExpanded: boolean;
   onToggleComments: (photoId: string) => void;
@@ -22,6 +25,7 @@ interface PhotoCardProps {
 export const PhotoCard: React.FC<PhotoCardProps> = ({
   photo,
   userId,
+  user,
   userAvatar,
   isCommentsExpanded,
   onToggleComments,
@@ -29,6 +33,8 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
   photoRef,
 }) => {
   const [commentsLoading, setCommentsLoading] = React.useState(false);
+
+  const username = user?.identities?.[0]?.identity_data?.username;
 
   const toggleLike = useCallback(async () => {
     try {
@@ -58,11 +64,24 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
               : p
           )
         );
+
+        // Notification logic (only if not liking own post)
+        if (photo.user_id && userId && photo.user_id !== userId) {
+          console.log("Username: ", username);
+          await createNotification({
+            recipient_id: photo.user_id,
+            sender_id: userId,
+            type: "like",
+            entity_id: photo.id,
+            entity_type: "post",
+            message: `${username || "Someone"} liked your photo.`,
+          });
+        }
       }
     } catch (error) {
       console.error("Error toggling like:", error);
     }
-  }, [photo.id, photo.liked_by_user, userId, onPhotosUpdate]);
+  }, [photo.id, photo.liked_by_user, userId, onPhotosUpdate, photo.user_id, photo.user?.username]);
 
   const handleShare = useCallback(async () => {
     const shareUrl = `${window.location.origin}/community?photoId=${photo.id}`;
@@ -130,19 +149,22 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
     <motion.div
       layout
       ref={photoRef}
-      className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden w-full max-w-sm md:max-w-lg mx-auto"
+      className="pb-8 border-b border-gray-100 dark:border-gray-700 overflow-hidden w-full max-w-sm mx-auto"
     >
-      <div className="p-2 flex items-center justify-between border-b border-gray-100 dark:border-gray-700">
-        <div className="flex items-center space-x-3">
+      <div className=" flex items-center justify-between">
+        <div className="flex items-center space-x-2">
           <UserAvatar
             avatarUrl={photo.user?.avatar_url}
             username={photo.user?.username}
-            size="lg"
+            size="md"
           />
-          <p className="flex flex-col font-medium text-gray-800 dark:text-white">
+          <p className="font-medium text-sm text-gray-800 dark:text-white">
             {photo.user?.username}
-            <span className="text-xs text-zinc-400 dark:text-gray-400">
-              {formatDistanceToNow(photo.created_at)}
+            <span className="text-xs ml-1 text-zinc-400 dark:text-gray-400">
+              •{" "}
+              {formatDistanceToNow(new Date(photo.created_at), {
+                addSuffix: true,
+              })}
             </span>
           </p>
         </div>
@@ -151,11 +173,11 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
       <img
         src={photo.photo_url}
         alt={`Week ${photo.week_number}`}
-        className="w-full aspect-square object-contain"
+        className="w-full border border-gray-100 dark:border-gray-700 my-3 rounded-sm aspect-square object-contain"
       />
 
-      <div className="p-2 border-t border-gray-100 dark:border-gray-700">
-        <div className="flex items-center justify-between mb-2">
+      <div>
+        <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <button
               onClick={toggleLike}
@@ -189,25 +211,19 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
         </div>
 
         {photo.caption && (
-          <>
-            <p className="text-sm text-gray-800 dark:text-white mb-2">
-              <span className="font-medium mr-2">{photo.user?.username}</span>
-              {photo.caption}
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-200">
-              {formatDistanceToNow(new Date(photo.created_at), {
-                addSuffix: true,
-              })}
-            </p>
-          </>
+          <p className="text-sm text-gray-800 dark:text-white mt-2">
+            <span className="font-medium mr-2">{photo.user?.username}</span>
+            {photo.caption}
+          </p>
         )}
       </div>
 
-      <div className="p-2">
+      <div className={`${isCommentsExpanded ? "py-2" : ""}`}>
         <CommentSection
           photo={photo}
           isExpanded={isCommentsExpanded}
           userId={userId}
+          username={username}
           userAvatar={userAvatar}
           onPhotosUpdate={onPhotosUpdate}
           commentsLoading={commentsLoading}

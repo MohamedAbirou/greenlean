@@ -7,7 +7,7 @@ import {
   PointElement,
   Tooltip,
 } from "chart.js";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader } from "lucide-react";
 import React, { useState } from "react";
 import DailyTip from "../components/DailyTip";
 import { ExerciseSection } from "../components/dashboard/ExerciseSection";
@@ -48,10 +48,8 @@ const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-24 pb-16 bg-gray-50 dark:bg-gray-900">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-gray-600 dark:text-gray-300">Loading...</p>
-        </div>
+      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+        <Loader className={`h-8 w-8 animate-spin ${colorTheme.primaryText}`} />
       </div>
     );
   }

@@ -10,11 +10,11 @@ interface OverviewTabProps {
   colorTheme: ColorTheme;
 }
 
-const OverviewTab: React.FC<OverviewTabProps> = ({colorTheme}) => {
+const OverviewTab: React.FC<OverviewTabProps> = ({ colorTheme }) => {
   const participationChartRef = useRef<HTMLCanvasElement>(null);
   const completionChartRef = useRef<HTMLCanvasElement>(null);
 
-  const { data: stats, isLoading } = useDashboardQuery()
+  const { data: stats, isLoading } = useDashboardQuery();
 
   useEffect(() => {
     if (!stats) return;
@@ -103,11 +103,17 @@ const OverviewTab: React.FC<OverviewTabProps> = ({colorTheme}) => {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <ChartCard title="User Activity" canvasRef={participationChartRef} />
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> */}
+      <div className="flex items-start justify-around rounded-xl shadow-md bg-white dark:bg-gray-800 gap-4">
+        <ChartCard
+          title="User Activity"
+          canvasRef={participationChartRef}
+          className="w-full sm:w-1/2"
+        />
         <ChartCard
           title="Challenge Completion"
           canvasRef={completionChartRef}
+          className="w-full sm:w-1/4"
         />
       </div>
     </div>

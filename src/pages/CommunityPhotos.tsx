@@ -1,3 +1,4 @@
+import { User } from "@supabase/supabase-js";
 import { Camera, Loader, Users } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -11,7 +12,8 @@ import { useColorTheme } from "../utils/colorUtils";
 
 const CommunityPhotos: React.FC = () => {
   const { user, profile } = useAuth();
-  const { photos, setPhotos, loading, loadingMore, hasMore, loadMore } = useCommunityPhotos(user?.id);
+  const { photos, setPhotos, loading, loadingMore, hasMore, loadMore } =
+    useCommunityPhotos(user?.id);
   const [expandedComments, setExpandedComments] = useState<string[]>([]);
   const photoRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const platform = usePlatform();
@@ -106,6 +108,7 @@ const CommunityPhotos: React.FC = () => {
                     key={photo.id}
                     photo={photo}
                     userId={user?.id}
+                    user={user as unknown as User}
                     userAvatar={profile?.avatar_url || null}
                     isCommentsExpanded={expandedComments.includes(photo.id)}
                     onToggleComments={handleToggleComments}
@@ -121,7 +124,9 @@ const CommunityPhotos: React.FC = () => {
                   if (!loadingMore) return null;
                   return (
                     <div className="py-8 flex justify-center">
-                      <Loader className={`h-8 w-8 animate-spin ${colorTheme.primaryText}`} />
+                      <Loader
+                        className={`h-8 w-8 animate-spin ${colorTheme.primaryText}`}
+                      />
                     </div>
                   );
                 },

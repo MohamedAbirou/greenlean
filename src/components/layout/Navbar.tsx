@@ -19,10 +19,13 @@ import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { usePlatform } from "../../contexts/PlatformContext";
 import { useAuth } from "../../contexts/useAuth";
+import { useNotifications } from "../../hooks/useNotifications";
 import { supabase } from "../../lib/supabase";
 import { useThemeStore } from "../../store/themeStore";
 import { useColorTheme } from "../../utils/colorUtils";
 import AuthModal from "../auth/AuthModal";
+import NotificationBell from "../NotificationBell";
+import NotificationsDropdown from "../NotificationsDropdown";
 
 interface NavbarProps {
   scrolled: boolean;
@@ -46,6 +49,8 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
   const { user, signOut } = useAuth();
   const platform = usePlatform();
   const colorTheme = useColorTheme(platform.settings?.theme_color);
+  const { notifications, unreadCount, markAsRead } = useNotifications();
+  const [showDropdown, setShowDropdown] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -142,7 +147,9 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
   return (
     <>
       <header
-        className={`${isSticky ? "sticky" : "fixed"} w-full z-50 transition-all duration-300 ${
+        className={`${
+          isSticky ? "sticky" : "fixed"
+        } w-full z-50 transition-all duration-300 ${
           scrolled || isSticky
             ? isDarkMode
               ? "bg-gray-800 shadow-md"
@@ -193,6 +200,22 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
 
             {/* Desktop User Menu */}
             <div className="hidden md:flex items-center space-x-4">
+              <div className="relative inline-block">
+                <NotificationBell
+                  unreadCount={unreadCount}
+                  onClick={() => setShowDropdown((d) => !d)}
+                />
+                {showDropdown && (
+                  <NotificationsDropdown
+                    notifications={notifications.slice(0, 15)}
+                    onNotificationClick={(n) => {
+                      markAsRead(n.id);
+                      setShowDropdown(false);
+                    }}
+                  />
+                )}
+              </div>
+
               <button
                 onClick={toggleTheme}
                 className={`p-2 rounded-full ${

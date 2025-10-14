@@ -1,11 +1,11 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
-    ArrowRight,
-    Check,
-    ChevronLeft,
-    ChevronRight,
-    Info,
-    LogIn,
+  ArrowRight,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Info,
+  LogIn,
 } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -15,6 +15,7 @@ import { useAuth } from "../contexts/useAuth";
 import { supabase } from "../lib/supabase";
 import { useColorTheme } from "../utils/colorUtils";
 import { logFrontendError, logInfo } from "../utils/errorLogger";
+// import { convertQuizAnswersToUserProfile, calculateMacroTargets, MealGeneratorV2 } from "../utils/mealGenerationV2";
 
 interface Question {
   id: number;
@@ -319,6 +320,48 @@ const Quiz: React.FC = () => {
             userId: user.id,
           });
         }
+
+        // Generate meal plan immediately after saving quiz results
+        // try {
+        //   const userProfile = convertQuizAnswersToUserProfile(answers, user.id);
+        //   const macroTargets = calculateMacroTargets(userProfile, calculations.dailyCalorieTarget);
+          
+        //   const generator = new MealGeneratorV2({
+        //     enableMLPredictions: false, // Disable ML for initial generation
+        //     maxTemplatesToConsider: 10,
+        //     minTemplateScore: 0.2,
+        //     macroTolerance: 0.15,
+        //     healthConditionWeight: 0.3,
+        //     varietyWeight: 0.2,
+        //     userPreferenceWeight: 0.25,
+        //     macroAlignmentWeight: 0.25
+        //   });
+
+        //   const meals = await generator.generateMealPlan(userProfile, macroTargets);
+          
+        //   // Store the generated meal plan in localStorage for immediate access
+        //   localStorage.setItem("generatedMealPlan", JSON.stringify({
+        //     meals,
+        //     userProfile,
+        //     macroTargets,
+        //     generatedAt: new Date().toISOString()
+        //   }));
+
+        //   await logInfo("frontend", "Meal plan generated successfully during quiz completion", {
+        //     userId: user.id,
+        //     mealCount: String(meals.length)
+        //   });
+
+        // } catch (mealError) {
+        //   console.error("Error generating meal plan during quiz completion:", mealError);
+        //   await logFrontendError(
+        //     "Failed to generate meal plan during quiz completion",
+        //     mealError instanceof Error ? mealError.message : String(mealError),
+        //     { userId: user.id }
+        //   );
+        //   // Don't block navigation if meal generation fails
+        // }
+
       } catch (err) {
         console.error("Error saving quiz result:", err);
         await logFrontendError(

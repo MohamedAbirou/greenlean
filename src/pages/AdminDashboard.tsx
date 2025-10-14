@@ -71,7 +71,7 @@ const AdminDashboard: React.FC = () => {
       case 'overview':
         return <OverviewTab colorTheme={colorTheme} />;
       case 'challenges':
-        return <ChallengesTab colorTheme={colorTheme} />;
+        return <ChallengesTab colorTheme={colorTheme} userId={user?.id} />;
       case 'users':
         return <UsersTab colorTheme={colorTheme} />;
       case 'rewards':
@@ -110,6 +110,9 @@ const AdminDashboard: React.FC = () => {
         <div className="mb-8">
           {renderTabContent()}
         </div>
+        {/* <section className="mt-10">
+          <NotificationsMonitor />
+        </section> */}
       </div>
     </div>
   );

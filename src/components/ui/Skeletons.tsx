@@ -20,7 +20,7 @@ export const ReplySkeleton: React.FC = () => (
 );
 
 export const PhotoCardSkeleton: React.FC = () => (
-  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden animate-pulse">
+  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden max-w-sm mx-auto animate-pulse">
     <div className="p-4 flex items-center space-x-3">
       <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600 flex-shrink-0" />
       <div className="flex-grow space-y-2">
