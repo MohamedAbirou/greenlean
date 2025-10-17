@@ -1,16 +1,16 @@
 import { supabase } from "@/lib/supabase";
-import {
-    FoodHealthMapping,
-    GenerationLog,
-    HealthConditions,
-    Macros,
-    MacroTargets,
-    Meal,
-    MealGenerationConfig,
-    MealTemplate,
-    TemplateScore,
-    UserPreference,
-    UserProfile
+import type {
+  FoodHealthMapping,
+  GenerationLog,
+  HealthConditions,
+  Macros,
+  MacroTargets,
+  Meal,
+  MealGenerationConfig,
+  MealTemplate,
+  TemplateScore,
+  UserPreference,
+  UserProfile
 } from "@/types/mealGeneration";
 import { logError } from "./errorLogger";
 import { foods } from "./foods";
@@ -123,7 +123,6 @@ export class MealGeneratorV2 {
       availableTemplates,
       targetMacros,
       userProfile,
-      _mealIndex
     );
 
     // Select best template
@@ -162,7 +161,6 @@ export class MealGeneratorV2 {
     templates: MealTemplate[],
     targetMacros: MacroTargets,
     userProfile: UserProfile,
-    _mealIndex: number
   ): Promise<TemplateScore[]> {
     const scoredTemplates: TemplateScore[] = [];
 
@@ -185,12 +183,11 @@ export class MealGeneratorV2 {
       );
 
       // Calculate variety score
-      const varietyScore = this.calculateVarietyScore(template, _mealIndex);
+      const varietyScore = this.calculateVarietyScore(template);
 
       // Calculate user preference score
       const userPreferenceScore = this.calculateUserPreferenceScore(
-        template,
-        userProfile.userId
+        template
       );
 
       // Calculate total score
@@ -281,7 +278,7 @@ export class MealGeneratorV2 {
   /**
    * Calculate variety score to encourage diverse meal selection
    */
-  private calculateVarietyScore(template: MealTemplate, _mealIndex: number): number {
+  private calculateVarietyScore(template: MealTemplate): number {
     let score = 0.5; // Base score
 
     // Bonus for different food categories
@@ -309,7 +306,7 @@ export class MealGeneratorV2 {
   /**
    * Calculate user preference score based on historical feedback
    */
-  private calculateUserPreferenceScore(template: MealTemplate, userId: string): number {
+  private calculateUserPreferenceScore(template: MealTemplate): number {
     let score = 0.5; // Base neutral score
 
     // Check for food restrictions first - if any restricted food is found, heavily penalize

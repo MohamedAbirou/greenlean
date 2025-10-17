@@ -1,16 +1,19 @@
-"use client";
-
+import type { ChallengeRequirements } from "@/types/challenge";
 import { Edit, Trash2 } from "lucide-react";
 
 export type Challenge = {
   id: string;
   title: string;
   description: string;
-  type: string;
-  difficulty: string;
+  type: "daily" | "weekly" | "streak" | "goal";
+  difficulty: "beginner" | "intermediate" | "advanced";
   participants_count: number;
   completion_rate: number;
   is_active: boolean;
+  points: number;
+  requirements: ChallengeRequirements;
+  start_date: string
+  end_date: string;
 };
 
 export const challengeColumns = ({
@@ -18,14 +21,14 @@ export const challengeColumns = ({
   onDelete,
   cellClassName
 }: {
-  onEdit: (challenge: any) => void;
+  onEdit: (challenge: Challenge) => void;
   onDelete: (challengeId: string) => void;
   cellClassName?: string
 }) => [
   {
     accessorKey: "title",
     header: "Challenge",
-    cell: ({ row }) => {
+    cell: ({ row }: { row: { original: Challenge } }) => {
       const c = row.original;
       return (
         <div className="max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">
@@ -40,14 +43,14 @@ export const challengeColumns = ({
   {
     accessorKey: "type",
     header: "Type",
-    cell: ({ row }) => (
+    cell: ({ row }: { row: { original: Challenge } }) => (
       <span className="capitalize text-foreground">{row.original.type}</span>
     ),
   },
   {
     accessorKey: "difficulty",
     header: "Difficulty",
-    cell: ({ row }) => {
+    cell: ({ row }: { row: { original: Challenge } }) => {
       const diff = row.original.difficulty;
       const color =
         diff === "beginner"
@@ -65,7 +68,7 @@ export const challengeColumns = ({
   {
     accessorKey: "participants_count",
     header: "Participants",
-    cell: ({ row }) => {
+    cell: ({ row }: { row: { original: Challenge } }) => {
       const participants = row.original.participants_count ?? 0;
       return (
         <div className={cellClassName}>
@@ -77,7 +80,7 @@ export const challengeColumns = ({
   {
     accessorKey: "completion_rate",
     header: "Completion",
-    cell: ({ row }) => {
+    cell: ({ row }: { row: { original: Challenge } }) => {
       const rate = Math.round(row.original.completion_rate ?? 0); // 👈 default 0
       return (
         <div className={cellClassName}>
@@ -96,7 +99,7 @@ export const challengeColumns = ({
   {
     accessorKey: "is_active",
     header: "Status",
-    cell: ({ row }) => {
+    cell: ({ row }: { row: { original: Challenge } }) => {
       const active = row.original.is_active;
       return (
         <span
@@ -114,7 +117,7 @@ export const challengeColumns = ({
   {
     id: "actions",
     header: "Actions",
-    cell: ({ row }) => {
+    cell: ({ row }: { row: { original: Challenge } }) => {
       const challenge = row.original;
       return (
         <div className="flex space-x-2">

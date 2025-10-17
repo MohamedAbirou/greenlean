@@ -3,7 +3,7 @@ import React from 'react';
 
 const ChartCard: React.FC<{
   title: string;
-  canvasRef: React.RefObject<HTMLCanvasElement>;
+  canvasRef?: React.Ref<HTMLCanvasElement>;
   className?: string;
 }> = ({ title, canvasRef, className }) => (
   <div className={classNames("p-6 rounded-md bg-card", className)}>

@@ -1,6 +1,6 @@
 import NotificationsDropdown from "@/components/NotificationsDropdown";
 import { useNotifications } from "@/hooks/useNotifications";
-import { Notification, NotificationType } from "@/types/notification";
+import type { Notification, NotificationType } from "@/types/notification";
 import React, { useState } from "react";
 
 const FILTERS: { label: string; value: NotificationType | "all" }[] = [

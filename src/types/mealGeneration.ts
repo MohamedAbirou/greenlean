@@ -97,7 +97,7 @@ export interface FoodHealthMapping {
 }
 
 export interface UserPreference {
-  preferenceType: 'food_likes' | 'food_dislikes' | 'meal_timing' | 'cooking_style';
+  preferenceType: 'food_likes' | 'food_dislikes' | 'meal_timing' | 'cooking_style' | 'food_restrictions' | 'template_likes';
   preferenceKey: string;
   preferenceValue: number; // -1 to +1
   confidence: number; // 0 to 1

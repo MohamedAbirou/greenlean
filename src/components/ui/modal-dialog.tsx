@@ -28,7 +28,6 @@ export function ModalDialog({
   onOpenChange,
   children,
   size = "md",
-  hideCloseButton = false,
 }: ModalDialogProps) {
   const sizeClasses = {
     sm: "max-w-sm",

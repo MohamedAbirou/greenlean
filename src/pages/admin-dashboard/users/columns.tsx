@@ -1,13 +1,12 @@
-"use client";
-
 import { Edit, Trash } from "lucide-react";
 
 export type User = {
   id: string;
   full_name: string;
   email: string;
+  username: string;
   is_admin: boolean;
-  role: string;
+  role?: "super_admin" | "admin";
   created_at: string;
 };
 
@@ -17,13 +16,13 @@ export const userColumns = ({
   onDelete,
 }: {
   currentUserId?: string;
-  onEdit: (user: any) => void;
+  onEdit: (user: User) => void;
   onDelete: (userId: string) => void;
 }) => [
   {
     accessorKey: "full_name",
     header: "Name",
-    cell: ({ row }) => {
+    cell: ({ row }: { row: { original: User } }) => {
       const user = row.original;
       return (
         <div className="flex items-center gap-3">
@@ -41,7 +40,7 @@ export const userColumns = ({
   {
     accessorKey: "role",
     header: "Status",
-    cell: ({ row }) => {
+    cell: ({ row }: { row: { original: User } }) => {
       const u = row.original;
       const isSuper = u.role === "super_admin";
       const isAdmin = u.is_admin;
@@ -62,7 +61,7 @@ export const userColumns = ({
   {
     accessorKey: "created_at",
     header: "Created",
-    cell: ({ row }) => (
+    cell: ({ row }: { row: { original: User } }) => (
       <span className="text-sm">
         {new Date(row.original.created_at).toLocaleDateString()}
       </span>
@@ -71,7 +70,7 @@ export const userColumns = ({
   {
     id: "actions",
     header: "Actions",
-    cell: ({ row }) => {
+    cell: ({ row }: { row: { original: User } }) => {
       const user = row.original;
       return (
         <div className="flex gap-2">

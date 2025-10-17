@@ -82,6 +82,8 @@ const DailyTip: React.FC<DailyTipProps> = ({colorTheme}) => {
           .eq("tip_id", todaysTip.id)
           .limit(1);
 
+          if (!savedTip) return;
+
         // Check if current tip is bookmarked
         setIsBookmarked(savedTip?.length > 0);
       } catch (error) {

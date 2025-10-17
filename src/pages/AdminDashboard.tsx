@@ -110,9 +110,6 @@ const AdminDashboard: React.FC = () => {
         <div className="mb-8">
           {renderTabContent()}
         </div>
-        {/* <section className="mt-10">
-          <NotificationsMonitor />
-        </section> */}
       </div>
     </div>
   );

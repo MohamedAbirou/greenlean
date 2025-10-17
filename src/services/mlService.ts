@@ -5,13 +5,13 @@
  * for meal prediction and user feedback submission.
  */
 
-import {
-    MacroTargets,
-    MealFeedback,
-    UserProfile
+import type {
+  MacroTargets,
+  MealFeedback,
+  UserProfile
 } from '@/types/mealGeneration';
 
-const ML_SERVICE_URL = process.env.REACT_APP_ML_SERVICE_URL || 'http://localhost:8000';
+const ML_SERVICE_URL = import.meta.env.REACT_APP_ML_SERVICE_URL || 'http://localhost:8000';
 
 export interface MLPredictionRequest {
   user_id: string;
@@ -215,3 +215,4 @@ export const mlService = new MLService();
 
 // Export class for testing
 export { MLService };
+

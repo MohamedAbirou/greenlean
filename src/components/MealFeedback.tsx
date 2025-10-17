@@ -12,7 +12,7 @@
 
 import { useAuth } from '@/contexts/useAuth';
 import { useMealFeedback } from '@/hooks/useMealPlanV2';
-import { MealFeedback as MealFeedbackType } from '@/types/mealGeneration';
+import type { MealFeedback as MealFeedbackType } from '@/types/mealGeneration';
 import React, { useState } from 'react';
 
 interface MealFeedbackProps {

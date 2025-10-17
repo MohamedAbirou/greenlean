@@ -240,7 +240,6 @@ const Quiz: React.FC = () => {
 
   const handleNext = () => {
     if (!user) {
-      setShowAuthModal(true);
       return;
     }
 
@@ -545,37 +544,6 @@ const Quiz: React.FC = () => {
             ))}
           </RadioGroup>
         )}
-
-        {/* {currentQuestion.type === "radio" && (
-          <div className="space-y-3">
-            {currentQuestion.options?.map((option) => (
-              <button
-                key={option}
-                className={`w-full p-4 text-left rounded-xl border bg-input text-foreground transition-all duration-300 ${
-                  answers[currentQuestion.id] === option
-                    ? `${colorTheme.primaryBorder} ${colorTheme.primaryBg} dark:${colorTheme.primaryDark}/20 dark:${colorTheme.primaryText} shadow-md`
-                    : "border-border hover:border-border"
-                }`}
-                onClick={() => handleAnswer(option)}
-              >
-                <div className="flex items-center">
-                  <div
-                    className={`flex-shrink-0 w-6 h-6 rounded-full bg-background border-2 ${
-                      answers[currentQuestion.id] === option
-                        ? `${colorTheme.primaryBorder} bg-primary`
-                        : "border-border"
-                    } flex items-center justify-center mr-3`}
-                  >
-                    {answers[currentQuestion.id] === option && (
-                      <Check className="h-4 w-4 text-white" />
-                    )}
-                  </div>
-                  <span className="text-lg">{option}</span>
-                </div>
-              </button>
-            ))}
-          </div>
-        )} */}
 
         {error && (
           <p className="mt-3 text-sm text-red-500 dark:text-red-400">{error}</p>

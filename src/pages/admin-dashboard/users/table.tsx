@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { DataTable } from "@/components/data-table/data-table"
-import { userColumns } from "./columns"
+import { DataTable } from "@/components/data-table/data-table";
+import { userColumns, type User } from "./columns";
 
 export default function UsersTable({
   users,
@@ -9,15 +9,19 @@ export default function UsersTable({
   onDelete,
   currentUser,
 }: {
-  users: any[]
-  onEdit: (user: any) => void
-  onDelete: (id: string) => void
-  currentUser: any
+  users: User[];
+  onEdit: (user: User) => void;
+  onDelete: (id: string) => void;
+  currentUser: User;
 }) {
   return (
     <DataTable
-      columns={userColumns(onEdit, onDelete, currentUser?.id)}
+      columns={userColumns({
+        onEdit,
+        onDelete,
+        currentUserId: currentUser?.id,
+      })}
       data={users}
     />
-  )
+  );
 }

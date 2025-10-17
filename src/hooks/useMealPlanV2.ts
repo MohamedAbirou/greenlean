@@ -12,17 +12,17 @@
 import { useAuth } from '@/contexts/useAuth';
 import { supabase } from '@/lib/supabase';
 import { mlService } from '@/services/mlService';
-import {
-    MacroTargets,
-    Meal,
-    MealFeedback,
-    UserProfile
+import type {
+  MacroTargets,
+  Meal,
+  MealFeedback,
+  UserProfile
 } from '@/types/mealGeneration';
 import { logError } from '@/utils/errorLogger';
 import {
-    calculateMacroTargets,
-    convertQuizAnswersToUserProfile,
-    MealGeneratorV2
+  calculateMacroTargets,
+  convertQuizAnswersToUserProfile,
+  MealGeneratorV2
 } from '@/utils/mealGenerationV2';
 import { useCallback, useEffect, useState } from 'react';
 

@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
 import Cookies from 'js-cookie';
+import { useEffect, useState } from 'react';
 
 export default function CookieConsent() {
   const [showBanner, setShowBanner] = useState(false);

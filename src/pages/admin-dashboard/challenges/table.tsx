@@ -1,23 +1,24 @@
-"use client"
+"use client";
 
-import { DataTable } from "@/components/data-table/data-table"
-import { userColumns } from "./columns"
+import { DataTable } from "@/components/data-table/data-table";
+import type { Challenge } from "@/types/challenge";
+import { challengeColumns } from "./columns";
 
 export default function UsersTable({
-  users,
+  challenges,
   onEdit,
   onDelete,
-  currentUser,
+  cellClassName
 }: {
-  users: any[]
-  onEdit: (user: any) => void
-  onDelete: (id: string) => void
-  currentUser: any
+  challenges: Challenge[];
+  onEdit: (challenge: Challenge) => void;
+  onDelete: (challengeId: string) => void;
+  cellClassName?: string;
 }) {
   return (
     <DataTable
-      columns={userColumns(onEdit, onDelete, currentUser?.id)}
-      data={users}
+      columns={challengeColumns({onEdit, onDelete, cellClassName})}
+      data={challenges}
     />
-  )
+  );
 }

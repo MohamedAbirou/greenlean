@@ -11,10 +11,11 @@
 
 import { usePlatform } from '@/contexts/PlatformContext';
 import { useMealPlanV2 } from '@/hooks/useMealPlanV2';
-import { Meal } from '@/types/mealGeneration';
+import type { Meal } from '@/types/mealGeneration';
 import { useColorTheme } from '@/utils/colorUtils';
-import MealFeedback from '@MealFeedback';
+
 import React, { useState } from 'react';
+import MealFeedback from '../MealFeedback';
 
 interface EnhancedMealPlanSectionProps {
   className?: string;

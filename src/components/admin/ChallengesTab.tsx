@@ -26,6 +26,7 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({
   const [editingChallenge, setEditingChallenge] = useState<Challenge | null>(
     null
   );
+  setSearchTerm("");
 
   const queryClient = useQueryClient();
   const { data: challenges = [], isLoading } = useChallengesQuery();
