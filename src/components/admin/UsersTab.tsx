@@ -115,7 +115,7 @@ const UsersTab: React.FC<UserTabProps> = ({ colorTheme }) => {
             onDelete: (userId) => deleteUserMutation.mutate(userId),
           })}
           data={filteredUsers} // ✅ use filtered list
-          filterKey="email"
+          filterKey="full_name"
         />
 
         <UserForm

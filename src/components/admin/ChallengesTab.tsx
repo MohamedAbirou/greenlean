@@ -20,13 +20,12 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({
   colorTheme,
   userId,
 }) => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
   const [showForm, setShowForm] = useState(false);
   const [editingChallenge, setEditingChallenge] = useState<Challenge | null>(
     null
   );
-  setSearchTerm("");
 
   const queryClient = useQueryClient();
   const { data: challenges = [], isLoading } = useChallengesQuery();
