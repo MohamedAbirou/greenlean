@@ -1,29 +1,22 @@
+import { usePlatform } from "@/contexts/PlatformContext";
+import { supabase } from "@/lib/supabase";
+import { logFrontendError, logInfo } from "@/utils/errorLogger";
 import {
   AlertTriangle,
-  Bell,
   Loader,
   Save,
   Settings,
-  Shield,
-  PenTool as Tool,
+  PenTool as Tool
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { usePlatform } from "../../contexts/PlatformContext";
-import { supabase } from "../../lib/supabase";
-import { ColorTheme } from "../../utils/colorUtils";
-import { logFrontendError, logInfo } from "../../utils/errorLogger";
 // Sections import
+import { useSettingsQuery, type PlatformSettings } from "@/hooks/Queries/useSettings";
+import { queryKeys } from "@/lib/queryKeys";
+import type { ColorTheme } from "@/utils/colorUtils";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  PlatformSettings,
-  useSettingsQuery,
-} from "../../hooks/Queries/useSettings";
-import { queryKeys } from "../../lib/queryKeys";
 import CustomizationTab from "./SettingsTabs/CustomizationTab";
 import LogsTab from "./SettingsTabs/LogsTab";
 import MaintenanceTab from "./SettingsTabs/MaintenanceTab";
-import NotificationsTab from "./SettingsTabs/NotificationsTab";
-import SecurityTab from "./SettingsTabs/SecurityTab";
 
 interface SettingsTabProps {
   colorTheme: ColorTheme;
@@ -84,19 +77,6 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ colorTheme }) => {
           platform_name: settings.platform_name,
           theme_color: settings.theme_color,
           logo_url: settings.logo_url,
-        };
-      } else if (section === "security") {
-        updateData = {
-          id: settings.id,
-          admin_2fa_required: settings.admin_2fa_required,
-          account_lockout_attempts: settings.account_lockout_attempts,
-          session_timeout_minutes: settings.session_timeout_minutes,
-        };
-      } else if (section === "notifications") {
-        updateData = {
-          id: settings.id,
-          email_notifications_enabled: settings.email_notifications_enabled,
-          notification_frequency: settings.notification_frequency,
         };
       }
 
@@ -171,7 +151,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ colorTheme }) => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-6">
-        <Loader className="h-8 w-8 animate-spin text-green-500" />
+        <Loader className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -179,7 +159,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ colorTheme }) => {
   if (!settings) {
     return (
       <div className="p-6 text-center">
-        <p className="text-red-500">Failed to load settings</p>
+        <p className="text-destructive">Failed to load settings</p>
       </div>
     );
   }
@@ -188,12 +168,12 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ colorTheme }) => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold dark:text-white">
+        <h2 className="text-2xl font-bold text-foreground">
           Platform Settings
         </h2>
         <button
           onClick={() => handleSaveSettings(activeSection)}
-          className={`px-4 py-2 ${colorTheme.primaryBg} text-white rounded-lg hover:${colorTheme.primaryHover} transition-colors flex items-center`}
+          className={`px-4 py-2 ${colorTheme.primaryBg} text-white rounded-lg hover:${colorTheme.primaryHover} transition-colors flex items-center cursor-pointer`}
           disabled={saving}
         >
           {saving ? (
@@ -206,33 +186,31 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ colorTheme }) => {
       </div>
 
       {error && (
-        <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg">
+        <div className="p-4 bg-destructive/30 text-destructive rounded-lg">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="p-4 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-lg">
+        <div className="p-4 bg-primary/30 text-primary rounded-lg">
           {success}
         </div>
       )}
 
       {/* Navigation */}
-      <div className="flex space-x-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex space-x-4 border-b border-border">
         {[
           { id: "customization", label: "Customization", icon: Settings },
-          { id: "security", label: "Security", icon: Shield },
-          { id: "notifications", label: "Notifications", icon: Bell },
           { id: "maintenance", label: "Maintenance", icon: Tool },
           { id: "logs", label: "Logs", icon: AlertTriangle },
         ].map((section) => (
           <button
             key={section.id}
             onClick={() => setActiveSection(section.id)}
-            className={`flex items-center px-4 py-2 border-b-2 transition-colors ${
+            className={`flex items-center px-4 py-2 border-b-2 transition-colors cursor-pointer ${
               activeSection === section.id
-                ? "border-green-500 text-green-500"
-                : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                ? "border-primary text-primary"
+                : "border-transparent text-foreground hover:text-primary"
             }`}
           >
             <section.icon className="h-5 w-5 mr-2" />
@@ -242,29 +220,13 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ colorTheme }) => {
       </div>
 
       {/* Content */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+      <div className="bg-card rounded-xl shadow-md p-2">
         {/* Customization Section */}
         {activeSection === "customization" && (
           <CustomizationTab
             settings={settings}
             handleSettingChange={handleSettingChange}
             handleFileUpload={handleFileUpload}
-          />
-        )}
-
-        {/* Security Section */}
-        {activeSection === "security" && (
-          <SecurityTab
-            settings={settings}
-            handleSettingChange={handleSettingChange}
-          />
-        )}
-
-        {/* Notifications Section */}
-        {activeSection === "notifications" && (
-          <NotificationsTab
-            settings={settings}
-            handleSettingChange={handleSettingChange}
           />
         )}
 

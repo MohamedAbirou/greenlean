@@ -1,9 +1,14 @@
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { usePlatform } from "@/contexts/PlatformContext";
+import { useColorTheme } from "@/utils/colorUtils";
 import { motion } from "framer-motion";
 import { Mail, MapPin, MessageSquare, Send } from "lucide-react";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { usePlatform } from "../contexts/PlatformContext";
-import { useColorTheme } from "../utils/colorUtils";
 
 const Contact: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -110,11 +115,11 @@ const Contact: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-gray-50 dark:bg-gray-800">
+    <div className="min-h-screen pt-24 pb-16 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <motion.h1
-            className="text-3xl font-bold text-gray-800 dark:text-gray-300 mb-4"
+            className="text-3xl font-bold text-foreground mb-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -122,7 +127,7 @@ const Contact: React.FC = () => {
             Contact Us
           </motion.h1>
           <motion.p
-            className="text-lg text-gray-600 dark:text-gray-200 max-w-2xl mx-auto"
+            className="text-lg text-foreground/80 max-w-2xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
@@ -141,14 +146,16 @@ const Contact: React.FC = () => {
             transition={{ duration: 0.5 }}
           >
             <div className="bg-white dark:bg-gray-700 rounded-xl shadow-md p-6">
-              <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-300 mb-6">
+              <h2 className="text-xl font-semibold text-foreground mb-6">
                 Get in Touch
               </h2>
 
               <div className="space-y-4">
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
-                    <div className={`w-10 h-10 rounded-full ${colorTheme.primaryBg}/20 flex items-center justify-center`}>
+                    <div
+                      className={`w-10 h-10 rounded-full ${colorTheme.primaryBg}/20 flex items-center justify-center`}
+                    >
                       <Mail className={`h-5 w-5 ${colorTheme.primaryText}`} />
                     </div>
                   </div>
@@ -158,7 +165,7 @@ const Contact: React.FC = () => {
                     </h3>
                     <a
                       href="mailto:support@greenlean.com"
-                      className="text-sm text-gray-600 dark:text-gray-200 hover:text-green-500"
+                      className="text-sm text-foreground/80 hover:text-primary"
                     >
                       support@greenlean.com
                     </a>
@@ -167,7 +174,9 @@ const Contact: React.FC = () => {
 
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
-                    <div className={`w-10 h-10 rounded-full ${colorTheme.primaryBg}/20 flex items-center justify-center`}>
+                    <div
+                      className={`w-10 h-10 rounded-full ${colorTheme.primaryBg}/20 flex items-center justify-center`}
+                    >
                       <MapPin className={`h-5 w-5 ${colorTheme.primaryText}`} />
                     </div>
                   </div>
@@ -179,7 +188,7 @@ const Contact: React.FC = () => {
                       href="https://maps.google.com/?q=229+West+28th+Street+New+York+NY+10001"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-gray-600 dark:text-gray-200 hover:text-green-500"
+                      className="text-sm text-foreground/80 hover:text-primary"
                     >
                       229 West 28th Street
                       <br />
@@ -192,15 +201,19 @@ const Contact: React.FC = () => {
 
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
-                    <div className={`w-10 h-10 rounded-full ${colorTheme.primaryBg}/20 flex items-center justify-center`}>
-                      <MessageSquare className={`h-5 w-5 ${colorTheme.primaryText}`} />
+                    <div
+                      className={`w-10 h-10 rounded-full ${colorTheme.primaryBg}/20 flex items-center justify-center`}
+                    >
+                      <MessageSquare
+                        className={`h-5 w-5 ${colorTheme.primaryText}`}
+                      />
                     </div>
                   </div>
                   <div className="ml-4">
                     <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       Support Hours
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-200">
+                    <p className="text-sm text-foreground/80">
                       Monday - Friday: 9:00 AM - 6:00 PM EST
                       <br />
                       Saturday: 10:00 AM - 4:00 PM EST
@@ -211,7 +224,9 @@ const Contact: React.FC = () => {
                 </div>
               </div>
 
-              <div className={`mt-8 p-4 ${colorTheme.primaryBg}/20 rounded-lg border ${colorTheme.primaryBorder}`}>
+              <div
+                className={`mt-8 p-4 ${colorTheme.primaryBg}/20 rounded-lg border ${colorTheme.primaryBorder}`}
+              >
                 <p className={`text-sm ${colorTheme.primaryText}`}>
                   For immediate assistance, please check our{" "}
                   <Link
@@ -234,14 +249,14 @@ const Contact: React.FC = () => {
             transition={{ duration: 0.5 }}
           >
             <div className="bg-white dark:bg-gray-700 rounded-xl shadow-md p-6">
-              <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-300 mb-6">
+              <h2 className="text-xl font-semibold text-foreground mb-6">
                 Send us a Message
               </h2>
 
               {submitStatus === "success" ? (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
                   <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Send className="h-8 w-8 text-green-500" />
+                    <Send className="h-8 w-8 text-primary" />
                   </div>
                   <h3 className="text-xl font-semibold text-green-700 mb-2">
                     Message Sent Successfully!
@@ -251,139 +266,133 @@ const Contact: React.FC = () => {
                     will get back to you within 24-48 hours.
                   </p>
                   <button
-                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                    className="px-4 py-2 bg-primary hover:bg-primary/80 text-white rounded-lg  transition-colors"
                     onClick={() => setSubmitStatus("idle")}
                   >
                     Send Another Message
                   </button>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit}>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Name & Email */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
-                      <label
-                        htmlFor="name"
-                        className="block text-sm font-medium text-gray-700 mb-1"
-                      >
-                        Name
-                      </label>
-                      <input
-                        type="text"
+                      <Label htmlFor="name">Name</Label>
+                      <Input
                         id="name"
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
-                        className={`w-full text-gray-800 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 dark:border-gray-500 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-colors ${
+                        placeholder="Your name"
+                        className={`${
                           errors.name ? "border-red-300" : "border-gray-300"
                         }`}
-                        placeholder="Your name"
                       />
                       {errors.name && (
-                        <p className="mt-1 text-sm text-red-600">
+                        <p className="mt-1 text-sm text-destructive">
                           {errors.name}
                         </p>
                       )}
                     </div>
 
                     <div>
-                      <label
-                        htmlFor="email"
-                        className="block text-sm font-medium text-gray-700 mb-1"
-                      >
-                        Email
-                      </label>
-                      <input
+                      <Label htmlFor="email">Email</Label>
+                      <Input
                         type="email"
                         id="email"
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        className={`w-full text-gray-800 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 dark:border-gray-500 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-colors ${
+                        placeholder="your.email@example.com"
+                        className={`${
                           errors.email ? "border-red-300" : "border-gray-300"
                         }`}
-                        placeholder="your.email@example.com"
                       />
                       {errors.email && (
-                        <p className="mt-1 text-sm text-red-600">
+                        <p className="mt-1 text-sm text-destructive">
                           {errors.email}
                         </p>
                       )}
                     </div>
                   </div>
 
-                  <div className="mb-6">
-                    <label
-                      htmlFor="subject"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      Subject
-                    </label>
-                    <select
-                      id="subject"
-                      name="subject"
+                  {/* Subject */}
+                  <div>
+                    <Label htmlFor="subject">Subject</Label>
+                    <Select
                       value={formData.subject}
-                      onChange={handleChange}
-                      className={`w-full text-gray-800 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 dark:border-gray-500 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-colors ${
-                        errors.subject ? "border-red-300" : "border-gray-300"
-                      }`}
+                      onValueChange={(val) =>
+                        handleChange({
+                          target: { name: "subject", value: val },
+                        } as any)
+                      }
                     >
-                      <option value="">Select a subject</option>
-                      <option value="General Inquiry">General Inquiry</option>
-                      <option value="Diet Plan Question">
-                        Diet Plan Question
-                      </option>
-                      <option value="Exercise Routine Question">
-                        Exercise Routine Question
-                      </option>
-                      <option value="Technical Support">
-                        Technical Support
-                      </option>
-                      <option value="Partnership Inquiry">
-                        Partnership Inquiry
-                      </option>
-                      <option value="Media Inquiry">Media Inquiry</option>
-                      <option value="Other">Other</option>
-                    </select>
+                      <SelectTrigger
+                        className={`w-full ${
+                          errors.subject ? "border-red-300" : "border-gray-300"
+                        }`}
+                      >
+                        <SelectValue placeholder="Select a subject" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="General Inquiry">
+                          General Inquiry
+                        </SelectItem>
+                        <SelectItem value="Diet Plan Question">
+                          Diet Plan Question
+                        </SelectItem>
+                        <SelectItem value="Exercise Routine Question">
+                          Exercise Routine Question
+                        </SelectItem>
+                        <SelectItem value="Technical Support">
+                          Technical Support
+                        </SelectItem>
+                        <SelectItem value="Partnership Inquiry">
+                          Partnership Inquiry
+                        </SelectItem>
+                        <SelectItem value="Media Inquiry">
+                          Media Inquiry
+                        </SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
                     {errors.subject && (
-                      <p className="mt-1 text-sm text-red-600">
+                      <p className="mt-1 text-sm text-destructive">
                         {errors.subject}
                       </p>
                     )}
                   </div>
 
-                  <div className="mb-6">
-                    <label
-                      htmlFor="message"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      Message
-                    </label>
-                    <textarea
+                  {/* Message */}
+                  <div>
+                    <Label htmlFor="message">Message</Label>
+                    <Textarea
                       id="message"
                       name="message"
+                      rows={6}
                       value={formData.message}
                       onChange={handleChange}
-                      rows={6}
-                      className={`w-full text-gray-800 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 dark:border-gray-500 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-colors ${
+                      placeholder="How can we help you?"
+                      className={`${
                         errors.message ? "border-red-300" : "border-gray-300"
                       }`}
-                      placeholder="How can we help you?"
-                    ></textarea>
+                    />
                     {errors.message && (
-                      <p className="mt-1 text-sm text-red-600">
+                      <p className="mt-1 text-sm text-destructive">
                         {errors.message}
                       </p>
                     )}
                   </div>
 
+                  {/* Submit */}
                   <div>
-                    <button
+                    <Button
                       type="submit"
-                      className={`w-full py-3 px-6 flex justify-center items-center rounded-lg text-white font-medium ${
+                      className={`w-full flex justify-center items-center ${
                         submitStatus === "loading"
                           ? "bg-gray-400 cursor-not-allowed"
                           : `${colorTheme.primaryBg} ${colorTheme.primaryHover}`
-                      } transition-colors`}
+                      }`}
                       disabled={submitStatus === "loading"}
                     >
                       {submitStatus === "loading" ? (
@@ -416,7 +425,7 @@ const Contact: React.FC = () => {
                           Send Message
                         </>
                       )}
-                    </button>
+                    </Button>
                   </div>
                 </form>
               )}

@@ -1,9 +1,9 @@
+import { fetchReplies } from "@/hooks/useCommunityPhotos";
+import { supabase } from "@/lib/supabase";
+import { createNotification } from "@/services/notificationService";
+import type { Photo, Profile } from "@/types/community";
+import { extractMentions } from "@/utils/formatters";
 import React, { useCallback, useState } from "react";
-import { fetchReplies } from "../../hooks/useCommunityPhotos";
-import { supabase } from "../../lib/supabase";
-import { createNotification } from "../../services/notificationService";
-import { Photo, Profile } from "../../types/community";
-import { extractMentions } from "../../utils/formatters";
 import { CommentSkeleton, ReplySkeleton } from "../ui/Skeletons";
 import { CommentInput } from "./CommentInput";
 import { CommentItem } from "./CommentItem";
@@ -214,7 +214,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
         console.error("Error posting comment:", error);
       }
     },
-    [commentText, replyText, photo.id, userId, onPhotosUpdate, photo.user_id, photo.comments, extractMentions]
+    [commentText, replyText, photo.id, userId, onPhotosUpdate, photo.user_id, photo.comments]
   );
 
   const handleExpandReplies = useCallback(
@@ -352,7 +352,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
         console.error("Error toggling comment like:", error);
       }
     },
-    [photo.id, photo.comments, userId, onPhotosUpdate]
+    [photo.comments, photo.id, userId, onPhotosUpdate, username]
   );
 
   if (!isExpanded) return null;

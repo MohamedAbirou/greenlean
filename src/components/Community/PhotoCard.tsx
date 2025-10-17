@@ -1,13 +1,13 @@
-import { User } from "@supabase/supabase-js";
+import { fetchComments } from "@/hooks/useCommunityPhotos";
+import { supabase } from "@/lib/supabase";
+import { createNotification } from "@/services/notificationService";
+import type { Photo } from "@/types/community";
+import { formatNumber } from "@/utils/formatters";
+import type { User } from "@supabase/supabase-js";
 import { formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
 import { Heart, MessageCircle, Send } from "lucide-react";
 import React, { useCallback } from "react";
-import { fetchComments } from "../../hooks/useCommunityPhotos";
-import { supabase } from "../../lib/supabase";
-import { createNotification } from "../../services/notificationService";
-import { Photo } from "../../types/community";
-import { formatNumber } from "../../utils/formatters";
 import { UserAvatar } from "../ui/UserAvatar";
 import { CommentSection } from "./CommentSection";
 
@@ -81,7 +81,7 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
     } catch (error) {
       console.error("Error toggling like:", error);
     }
-  }, [photo.id, photo.liked_by_user, userId, onPhotosUpdate, photo.user_id, photo.user?.username]);
+  }, [photo.liked_by_user, photo.id, photo.user_id, userId, onPhotosUpdate, username]);
 
   const handleShare = useCallback(async () => {
     const shareUrl = `${window.location.origin}/community?photoId=${photo.id}`;
@@ -149,18 +149,18 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
     <motion.div
       layout
       ref={photoRef}
-      className="pb-8 border-b border-gray-100 dark:border-gray-700 overflow-hidden w-full max-w-sm mx-auto"
+      className="bg-card/50 border border-border rounded-md shadow-lg overflow-hidden w-full max-w-sm mx-auto"
     >
-      <div className=" flex items-center justify-between">
+      <div className="p-2 flex items-center justify-between border-b border-border">
         <div className="flex items-center space-x-2">
           <UserAvatar
             avatarUrl={photo.user?.avatar_url}
             username={photo.user?.username}
             size="md"
           />
-          <p className="font-medium text-sm text-gray-800 dark:text-white">
+          <p className="font-medium text-sm text-foreground">
             {photo.user?.username}
-            <span className="text-xs ml-1 text-zinc-400 dark:text-gray-400">
+            <span className="text-xs ml-1 text-foreground/60">
               •{" "}
               {formatDistanceToNow(new Date(photo.created_at), {
                 addSuffix: true,
@@ -173,19 +173,19 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
       <img
         src={photo.photo_url}
         alt={`Week ${photo.week_number}`}
-        className="w-full border border-gray-100 dark:border-gray-700 my-3 rounded-sm aspect-square object-contain"
+        className="w-full rounded-sm aspect-square object-contain"
       />
 
-      <div>
+      <div className="p-2 border-t border-border">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <button
               onClick={toggleLike}
-              className="flex items-center text-black dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400"
+              className="flex items-center text-foreground hover:text-destructive cursor-pointer"
             >
               <Heart
                 className={`h-5 w-5 ${
-                  photo.liked_by_user ? "fill-red-500 text-red-500" : ""
+                  photo.liked_by_user ? "fill-destructive text-destructive" : ""
                 }`}
               />
               <span className="ml-1 text-xs font-semibold">
@@ -194,7 +194,7 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
             </button>
             <button
               onClick={handleExpandComments}
-              className="flex items-center text-black dark:text-gray-400"
+              className="flex items-center text-foreground cursor-pointer"
             >
               <MessageCircle className="h-5 w-5" />
               <span className="ml-1 text-xs font-semibold">
@@ -203,7 +203,7 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
             </button>
             <button
               onClick={handleShare}
-              className="text-black dark:text-gray-400"
+              className="text-foreground cursor-pointer"
             >
               <Send className="h-5 w-5" />
             </button>
@@ -211,14 +211,14 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
         </div>
 
         {photo.caption && (
-          <p className="text-sm text-gray-800 dark:text-white mt-2">
+          <p className="text-sm text-foreground mt-2">
             <span className="font-medium mr-2">{photo.user?.username}</span>
             {photo.caption}
           </p>
         )}
       </div>
 
-      <div className={`${isCommentsExpanded ? "py-2" : ""}`}>
+      <div className={`${isCommentsExpanded ? "p-2" : ""}`}>
         <CommentSection
           photo={photo}
           isExpanded={isCommentsExpanded}

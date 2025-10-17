@@ -1,7 +1,6 @@
-import React from "react";
 import { motion } from "framer-motion";
-import { Search, ChevronDown, ChevronUp } from "lucide-react";
-import { useState } from "react";
+import { ChevronDown, ChevronUp, Search } from "lucide-react";
+import React, { useState } from "react";
 
 interface FAQCategory {
   title: string;
@@ -149,11 +148,11 @@ const FAQ: React.FC = () => {
     .filter((category) => category.questions.length > 0);
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen pt-24 pb-16 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <motion.h1
-            className="text-4xl font-bold text-gray-800 dark:text-white mb-4"
+            className="text-4xl font-bold text-foreground mb-4"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -161,7 +160,7 @@ const FAQ: React.FC = () => {
             Frequently Asked Questions
           </motion.h1>
           <motion.p
-            className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto"
+            className="text-lg text-secondary-foreground max-w-2xl mx-auto"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
@@ -183,7 +182,7 @@ const FAQ: React.FC = () => {
             <input
               type="text"
               placeholder="Search FAQ..."
-              className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
+              className="w-full pl-12 pr-4 py-3 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-green-500 bg-background text-foreground"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -195,16 +194,16 @@ const FAQ: React.FC = () => {
           {filteredFAQ.map((category, categoryIndex) => (
             <motion.div
               key={category.title}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden"
+              className="bg-background rounded-xl shadow-md overflow-hidden"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: categoryIndex * 0.1 }}
             >
               <button
-                className="w-full px-6 py-4 flex items-center justify-between text-left bg-gray-50 dark:bg-gray-700/50"
+                className="w-full px-6 py-4 flex items-center justify-between text-left bg-card/50"
                 onClick={() => toggleCategory(category.title)}
               >
-                <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+                <h2 className="text-xl font-semibold text-foreground">
                   {category.title}
                 </h2>
                 {expandedCategories.includes(category.title) ? (
@@ -228,7 +227,7 @@ const FAQ: React.FC = () => {
                         className="w-full flex items-center justify-between text-left"
                         onClick={() => toggleQuestion(item.question)}
                       >
-                        <h3 className="text-lg font-medium text-gray-800 dark:text-white">
+                        <h3 className="text-lg font-medium text-foreground">
                           {item.question}
                         </h3>
                         {expandedQuestions.includes(item.question) ? (
@@ -240,7 +239,7 @@ const FAQ: React.FC = () => {
 
                       {expandedQuestions.includes(item.question) && (
                         <motion.p
-                          className="mt-3 text-gray-600 dark:text-gray-300"
+                          className="mt-3 text-secondary-foreground"
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: "auto" }}
                           transition={{ duration: 0.3 }}
@@ -263,7 +262,7 @@ const FAQ: React.FC = () => {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
-          <p className="text-gray-600 dark:text-gray-300 mb-4">
+          <p className="text-secondary-foreground mb-4">
             Can't find what you're looking for?
           </p>
           <a

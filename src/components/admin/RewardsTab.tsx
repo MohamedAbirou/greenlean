@@ -1,7 +1,7 @@
+import { useRewardsQuery, type Reward } from "@/hooks/Queries/useRewards";
+import type { ColorTheme } from "@/utils/colorUtils";
 import { Edit, Loader, Search, Star } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
-import { Reward, useRewardsQuery } from "../../hooks/Queries/useRewards";
-import { ColorTheme } from "../../utils/colorUtils";
 import RewardForm from "./RewardForm";
 
 interface RewardsTabProps {
@@ -47,61 +47,58 @@ const RewardsTab: React.FC<RewardsTabProps> = ({ colorTheme }) => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold dark:text-white">
+        <h2 className="text-2xl font-bold text-foreground">
           Rewards Management
         </h2>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground/80" />
           <input
             type="text"
             placeholder="Search users..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="pl-10 pr-4 py-2 border border-border rounded-lg bg-card text-foreground"
           />
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredRewards.map((reward) => (
-          <div
-            key={reward.id}
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6"
-          >
+          <div key={reward.id} className="bg-card rounded-xl shadow-md p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-full bg-green-500 flex items-center justify-center text-white">
+                <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-white">
                   {reward.user?.username?.[0]?.toUpperCase() ||
                     reward.user.email[0].toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="font-medium dark:text-white">
+                  <h3 className="font-medium text-foreground">
                     {reward.user?.username}
                   </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-300">
+                  <p className="text-sm text-foreground/80">
                     {reward.user.email}
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => handleEditReward(reward)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                className="p-2 hover:bg-background rounded-lg cursor-pointer"
               >
-                <Edit className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                <Edit className="h-5 w-5 text-foreground/80" />
               </button>
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <Star className="h-5 w-5 text-green-500" />
-                <span className="font-medium text-green-700 dark:text-green-300">
+              <div className="flex items-center gap-2 p-3 bg-primary/30 rounded-lg">
+                <Star className="h-5 w-5 text-primary" />
+                <span className="font-medium text-primary">
                   {reward.points} Points
                 </span>
               </div>
 
               {reward.badges && reward.badges.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <h4 className="text-sm font-medium text-foreground mb-2">
                     Badges Earned
                   </h4>
                   <div className="flex flex-wrap gap-2">
@@ -123,16 +120,14 @@ const RewardsTab: React.FC<RewardsTabProps> = ({ colorTheme }) => {
         ))}
       </div>
 
-      {showForm && selectedReward && (
-        <RewardForm
-          userId={selectedReward.user_id}
-          reward={selectedReward}
-          onClose={() => {
-            setShowForm(false);
-            setSelectedReward(null);
-          }}
-        />
-      )}
+      <RewardForm
+        userId={selectedReward?.user_id}
+        open={showForm}
+        onOpenChange={(open) => {
+          setShowForm(open);
+        }}
+        reward={selectedReward}
+      />
     </div>
   );
 };

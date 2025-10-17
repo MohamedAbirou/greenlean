@@ -1,7 +1,7 @@
+import NotificationsDropdown from "@/components/NotificationsDropdown";
+import { useNotifications } from "@/hooks/useNotifications";
+import { Notification, NotificationType } from "@/types/notification";
 import React, { useState } from "react";
-import NotificationsDropdown from "../components/NotificationsDropdown";
-import { useNotifications } from "../hooks/useNotifications";
-import { Notification, NotificationType } from "../types/notification";
 
 const FILTERS: { label: string; value: NotificationType | "all" }[] = [
   { label: "All", value: "all" },
@@ -33,7 +33,7 @@ const NotificationsPage: React.FC = () => {
         {FILTERS.map(f => (
           <button
             key={f.value}
-            className={`px-3 py-1 rounded-full text-sm ${filter===f.value ? 'bg-green-100 text-green-800 dark:bg-green-700 dark:text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'}`}
+            className={`px-3 py-1 rounded-full text-sm ${filter===f.value ? 'bg-green-100 text-green-800 dark:bg-green-700 dark:text-white' : 'bg-gray-100 dark:bg-gray-700 text-secondary-foreground'}`}
             onClick={()=>setFilter(f.value)}
           >{f.label}</button>
         ))}

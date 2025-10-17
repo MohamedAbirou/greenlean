@@ -1,23 +1,23 @@
+import { usePlatform } from '@/contexts/PlatformContext';
+import { useAuth } from "@/contexts/useAuth";
+import { supabase } from '@/lib/supabase';
+import { useColorTheme } from '@/utils/colorUtils';
 import confetti from 'canvas-confetti';
 import { motion } from 'framer-motion';
 import {
-    Award,
-    Calendar,
-    ChevronDown,
-    ChevronUp,
-    Clock,
-    Dumbbell,
-    Flame,
-    Loader,
-    Target,
-    Trophy,
-    Users
+  Award,
+  Calendar,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  Dumbbell,
+  Flame,
+  Loader,
+  Target,
+  Trophy,
+  Users
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { usePlatform } from '../contexts/PlatformContext';
-import { useAuth } from "../contexts/useAuth";
-import { supabase } from '../lib/supabase';
-import { useColorTheme } from '../utils/colorUtils';
 
 interface Challenge {
   id: string;
@@ -307,18 +307,18 @@ const Challenges: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen pt-24 pb-16 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header with Rewards Summary */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
+        <div className="bg-card rounded-xl shadow-md p-6 mb-8">
           <div className="flex flex-col md:flex-row items-center justify-between">
             <div className="flex items-center mb-4 md:mb-0">
               <Trophy className="h-8 w-8 text-yellow-500 mr-3" />
               <div>
-                <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+                <h1 className="text-2xl font-bold text-foreground">
                   Workout Challenges
                 </h1>
-                <p className="text-gray-600 dark:text-gray-300">
+                <p className="text-foreground/80">
                   Complete challenges, earn points, unlock rewards
                 </p>
               </div>
@@ -326,13 +326,13 @@ const Challenges: React.FC = () => {
             
             <div className="flex items-center space-x-6">
               <div className="text-center">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Points</p>
+                <p className="text-sm text-foreground/70">Points</p>
                 <p className="text-2xl font-bold text-yellow-500">
                   {userRewards?.points || 0}
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Badges</p>
+                <p className="text-sm text-foreground/70">Badges</p>
                 <p className="text-2xl font-bold text-purple-500">
                   {userRewards?.badges?.length || 0}
                 </p>
@@ -342,17 +342,17 @@ const Challenges: React.FC = () => {
         </div>
 
         {/* Filters */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
+        <div className="bg-card rounded-xl shadow-md p-6 mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
             <div className="flex flex-wrap gap-2">
               {['all', 'daily', 'weekly', 'streak', 'goal'].map((type) => (
                 <button
                   key={type}
                   onClick={() => setActiveFilter(type as any)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium capitalize transition-colors ${
+                  className={`px-4 py-2 rounded-full text-sm font-medium capitalize transition-colors cursor-pointer ${
                     activeFilter === type
                       ? `${colorTheme.primaryBg} text-white`
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      : 'bg-background text-gray-700 dark:text-gray-300 hover:bg-primary'
                   }`}
                 >
                   {type}
@@ -365,10 +365,10 @@ const Challenges: React.FC = () => {
                 <button
                   key={difficulty}
                   onClick={() => setDifficultyFilter(difficulty as any)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium capitalize transition-colors ${
+                  className={`px-4 py-2 rounded-full text-sm font-medium capitalize transition-colors cursor-pointer ${
                     difficultyFilter === difficulty
                       ? `${colorTheme.primaryBg} text-white`
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      : 'bg-background text-gray-700 dark:text-gray-300 hover:bg-primary'
                   }`}
                 >
                   {difficulty}
@@ -383,7 +383,7 @@ const Challenges: React.FC = () => {
           {filteredChallenges.map((challenge) => (
             <div
               key={challenge.id}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden self-start"
+              className="bg-card rounded-xl shadow-md overflow-hidden self-start"
             >
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
@@ -392,7 +392,7 @@ const Challenges: React.FC = () => {
                       {getChallengeIcon(challenge.type)}
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                      <h3 className="text-lg font-semibold text-foreground">
                         {challenge.title}
                       </h3>
                       <span className={`text-sm font-medium px-3 py-0.5 rounded-full capitalize ${getDifficultyColor(challenge.difficulty)}`}>
@@ -402,20 +402,20 @@ const Challenges: React.FC = () => {
                   </div>
                   <div className="flex items-center">
                     <Award className="h-5 w-5 text-yellow-500 mr-1" />
-                    <span className="font-medium dark:text-gray-200">{challenge.points}</span>
+                    <span className="font-medium text-foreground/90">{challenge.points}</span>
                   </div>
                 </div>
 
-                <p className="text-gray-600 dark:text-gray-300 mb-4">
+                <p className="text-foreground/80 mb-4">
                   {challenge.description}
                 </p>
 
                 <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center text-sm text-foreground/70">
                     <Users className="h-4 w-4 mr-1" />
                     {challenge.participants_count} participants
                   </div>
-                  <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center text-sm text-foreground/70">
                     <Clock className="h-4 w-4 mr-1" />
                     {new Date(challenge.end_date).toLocaleDateString()}
                   </div>
@@ -425,14 +425,14 @@ const Challenges: React.FC = () => {
                   <div>
                     <div className="mb-4">
                       <div className="flex justify-between text-sm mb-1">
-                        <span className="text-gray-600 dark:text-gray-300">Progress</span>
-                        <span className="font-medium text-gray-800 dark:text-white">
+                        <span className="text-foreground/80">Progress</span>
+                        <span className="font-medium text-foreground">
                           {challenge.user_progress.progress.current} / {challenge.requirements.target} {challenge.requirements.metric}
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div className="w-full bg-button rounded-full h-2">
                         <div
-                          className="bg-green-500 h-2 rounded-full transition-all"
+                          className="bg-primary h-2 rounded-full transition-all"
                           style={{
                             width: `${Math.min(
                               (challenge.user_progress.progress.current / challenge.requirements.target) * 100,
@@ -453,7 +453,7 @@ const Challenges: React.FC = () => {
                             )
                           }
                           disabled={updatingProgress === challenge.id}
-                          className="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                          className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                         >
                           {updatingProgress === challenge.id ? (
                             <>
@@ -472,7 +472,7 @@ const Challenges: React.FC = () => {
                             }
                           }}
                           disabled={updatingProgress === challenge.id}
-                          className="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-full px-4 py-2 bg-destructive text-white rounded-lg hover:bg-destructive/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Quit Challenge
                         </button>
@@ -480,7 +480,7 @@ const Challenges: React.FC = () => {
                     )}
 
                     {challenge.user_progress.completed && (
-                      <div className="flex items-center justify-center p-2 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-lg">
+                      <div className="flex items-center justify-center p-2 bg-primary/50 hover:bg-primary/60 text-primary-foreground rounded-lg">
                         <Trophy className="h-5 w-5 mr-2" />
                         Challenge Completed!
                       </div>
@@ -489,7 +489,7 @@ const Challenges: React.FC = () => {
                 ) : (
                   <button
                     onClick={() => joinChallenge(challenge.id)}
-                    className={`w-full px-4 py-2 ${colorTheme.primaryBg} text-white rounded-lg hover:${colorTheme.primaryBg} transition-colors`}
+                    className={`w-full px-4 py-2 ${colorTheme.primaryBg} text-white rounded-lg hover:${colorTheme.primaryBg} transition-colors cursor-pointer`}
                   >
                     Join Challenge
                   </button>
@@ -502,7 +502,7 @@ const Challenges: React.FC = () => {
                       expandedChallenge === challenge.id ? null : challenge.id
                     );
                   }}
-                  className="w-full mt-4 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                  className="w-full mt-4 flex items-center justify-center text-foreground/70 hover:text-foreground/90 cursor-pointer"
                 >
                   {expandedChallenge === challenge.id ? (
                     <ChevronUp className="h-5 w-5" />
@@ -517,12 +517,12 @@ const Challenges: React.FC = () => {
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.3, ease: 'easeInOut' }}
-                    className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 overflow-hidden"
+                    className="mt-4 pt-4 border-t border-border overflow-hidden"
                   >
-                    <h4 className="font-medium text-gray-800 dark:text-white mb-2">
+                    <h4 className="font-medium text-foreground mb-2">
                       Challenge Details
                     </h4>
-                    <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                    <ul className="space-y-2 text-sm text-foreground/80">
                       <li>
                         <strong>Type:</strong> {challenge.type}
                       </li>
@@ -550,11 +550,11 @@ const Challenges: React.FC = () => {
 
         {filteredChallenges.length === 0 && (
           <div className="text-center py-12">
-            <Trophy className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
+            <Trophy className="h-12 w-12 text-foreground/90 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-foreground mb-2">
               No Challenges Found
             </h2>
-            <p className="text-gray-600 dark:text-gray-300">
+            <p className="text-foreground/80">
               Try adjusting your filters or check back later for new challenges.
             </p>
           </div>

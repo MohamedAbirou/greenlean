@@ -1,9 +1,9 @@
+import { supabase } from "@/lib/supabase";
+import type { ColorTheme } from "@/utils/colorUtils";
+import { logFrontendError, logInfo } from "@/utils/errorLogger";
 import { motion } from "framer-motion";
 import { Eye, Loader, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { supabase } from "../../../lib/supabase";
-import { ColorTheme } from "../../../utils/colorUtils";
-import { logFrontendError, logInfo } from "../../../utils/errorLogger";
 
 interface Log {
   id: string;
@@ -74,12 +74,12 @@ const LogsTab: React.FC<LogsTabProps> = ({ colorTheme, setSuccess }) => {
   };
 
   return (
-    <motion.div animate={{ opacity: 1 }} className="space-y-6">
+    <motion.div animate={{ opacity: 1 }}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-medium dark:text-white">System Logs</h3>
+        <h3 className="text-lg font-medium text-foreground/80">System Logs</h3>
         <button
           onClick={fetchLogs}
-          className={`px-4 py-2 ${colorTheme.primaryBg} text-white rounded-lg hover:${colorTheme.primaryHover} transition-colors flex items-center`}
+          className={`px-4 py-2 ${colorTheme.primaryBg} text-white rounded-lg hover:${colorTheme.primaryHover} transition-colors flex items-center cursor-pointer`}
           disabled={logsLoading}
         >
           {logsLoading ? (
@@ -91,17 +91,17 @@ const LogsTab: React.FC<LogsTabProps> = ({ colorTheme, setSuccess }) => {
         </button>
         <button
           onClick={clearLogs}
-          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center"
+          className="px-4 py-2 bg-destructive hover:bg-destructive/80 text-white transition-colors flex items-center rounded-lg cursor-pointer"
         >
           <Trash2 className="h-4 w-4" />
           <span className="ml-2">Clear All</span>
         </button>
       </div>
 
-      <div className="bg-gray-100/50 dark:bg-gray-900 font-mono text-sm p-4 rounded-lg h-96 overflow-auto">
+      <div className="bg-background font-mono text-sm p-4 rounded-lg h-96 overflow-auto">
         <div className="space-y-2">
           {logs.length === 0 ? (
-            <p className="text-gray-500">No logs available</p>
+            <p className="text-foreground/80">No logs available</p>
           ) : (
             logs.map((log) => {
               // Determine color based on log level
@@ -124,12 +124,12 @@ const LogsTab: React.FC<LogsTabProps> = ({ colorTheme, setSuccess }) => {
               }
 
               return (
-                <div key={log.id} className="border-b border-gray-700 py-1">
+                <div key={log.id} className="border-b border-border py-1">
                   <p className={`${levelColor}`}>
                     <span className="font-semibold">[{log.level}]</span>{" "}
                     {log.message}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-foreground/60">
                     {new Date(log.created_at).toLocaleString()} — {log.source}
                   </p>
                 </div>

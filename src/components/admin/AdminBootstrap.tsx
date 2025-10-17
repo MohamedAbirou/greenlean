@@ -1,8 +1,8 @@
+import { useAuth } from "@/contexts/useAuth";
+import { checkAdminStatus, createFirstAdmin } from '@/utils/adminBootstrap';
 import { motion } from 'framer-motion';
 import { AlertCircle, Check, Loader, Shield, User } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { useAuth } from "../../contexts/useAuth";
-import { checkAdminStatus, createFirstAdmin } from '../../utils/adminBootstrap';
 
 const AdminBootstrap: React.FC = () => {
   const { user } = useAuth();
@@ -68,21 +68,21 @@ const AdminBootstrap: React.FC = () => {
 
   if (isAdmin) {
     return (
-      <div className="min-h-screen pt-24 pb-16 bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen pt-24 pb-16 bg-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-md mx-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-8 text-center"
+              className="bg-background rounded-xl shadow-md p-8 text-center"
             >
               <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Check className="h-8 w-8 text-green-500" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
+              <h2 className="text-2xl font-bold text-foreground mb-4">
                 Admin Access Active
               </h2>
-              <p className="text-gray-600 dark:text-gray-300 mb-6">
+              <p className="text-secondary-foreground mb-6">
                 You have admin privileges. You can now access the admin dashboard.
               </p>
               <a
@@ -100,21 +100,21 @@ const AdminBootstrap: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen pt-24 pb-16 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-md mx-auto">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-8 text-center"
+            className="bg-background rounded-xl shadow-md p-8 text-center"
           >
             <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-6">
               <Shield className="h-8 w-8 text-blue-500" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
+            <h2 className="text-2xl font-bold text-foreground mb-4">
               Admin Bootstrap
             </h2>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
+            <p className="text-secondary-foreground mb-6">
               Grant yourself admin access to manage the platform. This should only be done once for the initial setup.
             </p>
 
@@ -135,8 +135,8 @@ const AdminBootstrap: React.FC = () => {
               </div>
             )}
 
-            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
-              <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+            <div className="bg-card rounded-lg p-4 mb-6">
+              <div className="flex items-center text-sm text-secondary-foreground">
                 <User className="h-4 w-4 mr-2" />
                 <span>Current user: {user?.email}</span>
               </div>

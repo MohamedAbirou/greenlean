@@ -1,31 +1,17 @@
+import { usePlatform } from "@/contexts/PlatformContext";
+import { useAuth } from "@/contexts/useAuth";
+import { useNotifications } from "@/hooks/useNotifications";
+import { supabase } from "@/lib/supabase";
+import { useThemeStore } from "@/store/themeStore";
+import { useColorTheme } from "@/utils/colorUtils";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  Camera,
-  History,
-  LayoutDashboard,
-  Leaf,
-  LogOut,
-  Menu,
-  Moon,
-  Settings,
-  Shield,
-  Sun,
-  Trophy,
-  UserCircle,
-  Users,
-  X,
-} from "lucide-react";
+import { Bell, Leaf, Menu, Moon, Sun, UserCircle, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { usePlatform } from "../../contexts/PlatformContext";
-import { useAuth } from "../../contexts/useAuth";
-import { useNotifications } from "../../hooks/useNotifications";
-import { supabase } from "../../lib/supabase";
-import { useThemeStore } from "../../store/themeStore";
-import { useColorTheme } from "../../utils/colorUtils";
 import AuthModal from "../auth/AuthModal";
-import NotificationBell from "../NotificationBell";
 import NotificationsDropdown from "../NotificationsDropdown";
+import { Button } from "../ui/button";
+import { UserMenu } from "../UserMenu";
 
 interface NavbarProps {
   scrolled: boolean;
@@ -39,9 +25,6 @@ interface Profile {
 
 const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showMobileUserMenu, setShowMobileUserMenu] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const location = useLocation();
@@ -85,24 +68,11 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
-    setShowMobileUserMenu(false);
-  };
-
-  const toggleUserMenu = () => {
-    setShowUserMenu(!showUserMenu);
-    setIsOpen(false);
-  };
-
-  const toggleMobileUserMenu = () => {
-    setShowMobileUserMenu(!showMobileUserMenu);
-    setIsOpen(false);
   };
 
   const handleSignOut = async () => {
     try {
       await signOut();
-      setShowUserMenu(false);
-      setShowMobileUserMenu(false);
     } catch (error) {
       console.error("Error signing out:", error);
     }
@@ -118,7 +88,7 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
   ];
 
   const renderAvatar = () => {
-    if (!user) return <UserCircle size={32} className="text-green-500" />;
+    if (!user) return <UserCircle size={32} className="text-primary" />;
 
     if (profile?.avatar_url) {
       return (
@@ -130,18 +100,16 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
       );
     }
 
-    return <UserCircle size={32} className="text-green-500" />;
+    return <UserCircle size={32} className="text-primary " />;
   };
 
   const renderUserMenu = () => (
-    <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-      <p className="text-sm font-medium text-gray-900 dark:text-white">
+    <>
+      <p className="text-sm font-medium text-foreground">
         {profile?.full_name || user?.email?.split("@")[0]}
       </p>
-      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-        {user?.email}
-      </p>
-    </div>
+      <p className="text-xs text-foreground/70 truncate">{user?.email}</p>
+    </>
   );
 
   return (
@@ -150,17 +118,11 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
         className={`${
           isSticky ? "sticky" : "fixed"
         } w-full z-50 transition-all duration-300 ${
-          scrolled || isSticky
-            ? isDarkMode
-              ? "bg-gray-800 shadow-md"
-              : "bg-white shadow-md"
-            : isDarkMode
-            ? "bg-transparent"
-            : "bg-transparent"
+          scrolled || isSticky ? "bg-background shadow-md" : "bg-transparent"
         }`}
       >
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+        <div className="container py-1 mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-2">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2">
               {platform.settings?.logo_url ? (
@@ -190,7 +152,7 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
                   className={`text-base font-medium transition-colors ${
                     location.pathname === item.path
                       ? colorTheme.primaryText
-                      : "text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
+                      : "text-foreground hover:text-primary"
                   }`}
                 >
                   {item.label}
@@ -199,12 +161,29 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
             </nav>
 
             {/* Desktop User Menu */}
-            <div className="hidden md:flex items-center space-x-4">
+            <div className="hidden md:flex items-center space-x-2">
               <div className="relative inline-block">
-                <NotificationBell
-                  unreadCount={unreadCount}
+                <Button
+                  variant="secondary"
                   onClick={() => setShowDropdown((d) => !d)}
-                />
+                  className="rounded-full p-2"
+                  aria-label="View notifications"
+                >
+                  <motion.span
+                    initial={{ rotate: 0 }}
+                    animate={
+                      unreadCount > 0 ? { rotate: [-10, 10, -10, 0] } : {}
+                    }
+                    transition={{ duration: 0.5 }}
+                  >
+                    <Bell size={20} />
+                  </motion.span>
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-2 inline-flex items-center justify-center px-1 min-w-[16px] h-4 text-[0.6rem] font-bold leading-none text-white bg-red-600 rounded-full animate-pulse">
+                      {unreadCount}
+                    </span>
+                  )}
+                </Button>
                 {showDropdown && (
                   <NotificationsDropdown
                     notifications={notifications.slice(0, 15)}
@@ -216,144 +195,81 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
                 )}
               </div>
 
-              <button
+              <Button
+                variant="secondary"
                 onClick={toggleTheme}
-                className={`p-2 rounded-full ${
-                  isDarkMode
-                    ? "bg-gray-700 text-yellow-500"
-                    : "bg-gray-200 text-gray-600"
-                }`}
+                className={`rounded-full ${isDarkMode && "text-yellow-500"}`}
               >
                 {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-              </button>
+              </Button>
 
               {user ? (
-                <div className="relative">
-                  <button
-                    onClick={toggleUserMenu}
-                    className="flex items-center space-x-2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  >
-                    {renderAvatar()}
-                  </button>
-
-                  <AnimatePresence>
-                    {showUserMenu && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-lg py-2 border border-gray-200 dark:border-gray-700"
-                      >
-                        {renderUserMenu()}
-                        <Link
-                          to="/dashboard"
-                          className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                          onClick={() => setShowUserMenu(false)}
-                        >
-                          <LayoutDashboard size={18} className="mr-2" />
-                          Dashboard
-                        </Link>
-                        {isAdmin && (
-                          <Link
-                            to="/admin"
-                            className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                            onClick={() => setShowUserMenu(false)}
-                          >
-                            <Shield size={18} className="mr-2" />
-                            Admin Dashboard
-                          </Link>
-                        )}
-                        <Link
-                          to="/profile"
-                          className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                          onClick={() => setShowUserMenu(false)}
-                        >
-                          <Settings size={18} className="mr-2" />
-                          Profile Settings
-                        </Link>
-                        <Link
-                          to="/quiz-history"
-                          className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                          onClick={() => setShowUserMenu(false)}
-                        >
-                          <History size={18} className="mr-2" />
-                          Quiz History
-                        </Link>
-                        <Link
-                          to="/progress-photos"
-                          className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                          onClick={() => setShowUserMenu(false)}
-                        >
-                          <Camera size={18} className="mr-2" />
-                          Progress Photos
-                        </Link>
-                        <Link
-                          to="/community"
-                          className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                          onClick={() => setShowUserMenu(false)}
-                        >
-                          <Users size={18} className="mr-2" />
-                          Community
-                        </Link>
-                        <Link
-                          to="/challenges"
-                          className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                          onClick={() => setShowUserMenu(false)}
-                        >
-                          <Trophy size={18} className="mr-2" />
-                          Challenges
-                        </Link>
-                        <button
-                          onClick={handleSignOut}
-                          className="flex items-center w-full px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        >
-                          <LogOut size={18} className="mr-2" />
-                          Sign Out
-                        </button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+                <UserMenu
+                  handleSignOut={handleSignOut}
+                  isAdmin={isAdmin}
+                  renderAvatar={renderAvatar}
+                  renderUserMenu={renderUserMenu}
+                />
               ) : (
-                <button
-                  onClick={() => setShowAuthModal(true)}
-                  className={`flex items-center px-4 py-2 rounded-full ${colorTheme.primaryBg} text-white hover:${colorTheme.primaryHover} transition-colors duration-300`}
-                >
-                  <UserCircle size={18} className="mr-2" />
-                  <span>Sign In</span>
-                </button>
+                <AuthModal colorTheme={colorTheme} />
               )}
             </div>
 
             {/* Mobile Menu Buttons */}
-            <div className="md:hidden flex items-center space-x-4">
-              <button
+            <div className="md:hidden flex items-center space-x-2">
+              <div className="relative inline-block">
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowDropdown((d) => !d)}
+                  className="rounded-full p-2"
+                  aria-label="View notifications"
+                >
+                  <motion.span
+                    initial={{ rotate: 0 }}
+                    animate={
+                      unreadCount > 0 ? { rotate: [-10, 10, -10, 0] } : {}
+                    }
+                    transition={{ duration: 0.5 }}
+                  >
+                    <Bell size={20} />
+                  </motion.span>
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-2 inline-flex items-center justify-center px-1 min-w-[16px] h-4 text-[0.6rem] font-bold leading-none text-white bg-red-600 rounded-full animate-pulse">
+                      {unreadCount}
+                    </span>
+                  )}
+                </Button>
+                {showDropdown && (
+                  <NotificationsDropdown
+                    notifications={notifications.slice(0, 15)}
+                    onNotificationClick={(n) => {
+                      markAsRead(n.id);
+                      setShowDropdown(false);
+                    }}
+                  />
+                )}
+              </div>
+
+              <Button
+                variant="secondary"
                 onClick={toggleTheme}
-                className={`p-2 rounded-full ${
-                  isDarkMode
-                    ? "bg-gray-700 text-yellow-500"
-                    : "bg-gray-200 text-gray-600"
-                }`}
+                className={`rounded-full ${isDarkMode && "text-yellow-500"}`}
               >
                 {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-              </button>
+              </Button>
 
               {user && (
-                <button
-                  onClick={toggleMobileUserMenu}
-                  className="flex items-center space-x-2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                >
-                  {renderAvatar()}
-                </button>
+                <UserMenu
+                  handleSignOut={handleSignOut}
+                  isAdmin={isAdmin}
+                  renderAvatar={renderAvatar}
+                  renderUserMenu={renderUserMenu}
+                />
               )}
 
-              <button
-                className={isDarkMode ? "text-white" : "text-gray-800"}
-                onClick={toggleMenu}
-                aria-label="Toggle menu"
-              >
+              <Button variant="ghost" onClick={toggleMenu} className="w-9">
                 {isOpen ? <X size={24} /> : <Menu size={24} />}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -366,11 +282,7 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className={
-                isDarkMode
-                  ? "md:hidden bg-gray-800 shadow-lg"
-                  : "md:hidden bg-white shadow-lg"
-              }
+              className="bg-background"
             >
               <div className="container mx-auto px-4 py-4">
                 <nav className="flex flex-col space-y-4">
@@ -381,126 +293,20 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
                       className={`text-base font-medium py-2 transition-colors ${
                         location.pathname === item.path
                           ? colorTheme.primaryText
-                          : "text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
+                          : "text-foreground"
                       }`}
                       onClick={() => setIsOpen(false)}
                     >
                       {item.label}
                     </Link>
                   ))}
-                  {!user && (
-                    <button
-                      onClick={() => {
-                        setIsOpen(false);
-                        setShowAuthModal(true);
-                      }}
-                      className="flex items-center justify-center px-4 py-2 rounded-full bg-green-500 text-white hover:bg-green-600 transition-colors duration-300"
-                    >
-                      <UserCircle size={18} className="mr-2" />
-                      <span>Sign In</span>
-                    </button>
-                  )}
-                </nav>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Mobile User Menu */}
-        <AnimatePresence>
-          {showMobileUserMenu && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className={`md:hidden ${
-                isDarkMode ? "bg-gray-800" : "bg-white"
-              } shadow-lg`}
-            >
-              <div className="container mx-auto px-4 py-4">
-                {renderUserMenu()}
-                <nav className="flex flex-col space-y-4 mt-4">
-                  <Link
-                    to="/dashboard"
-                    className="flex items-center py-2 text-gray-700 dark:text-gray-300"
-                    onClick={() => setShowMobileUserMenu(false)}
-                  >
-                    <LayoutDashboard size={18} className="mr-2" />
-                    Dashboard
-                  </Link>
-                  {isAdmin && (
-                    <Link
-                      to="/admin"
-                      className="flex items-center py-2 text-gray-700 dark:text-gray-300"
-                      onClick={() => setShowMobileUserMenu(false)}
-                    >
-                      <Shield size={18} className="mr-2" />
-                      Admin Dashboard
-                    </Link>
-                  )}
-                  <Link
-                    to="/profile"
-                    className="flex items-center py-2 text-gray-700 dark:text-gray-300"
-                    onClick={() => setShowMobileUserMenu(false)}
-                  >
-                    <Settings size={18} className="mr-2" />
-                    Profile Settings
-                  </Link>
-                  <Link
-                    to="/quiz-history"
-                    className="flex items-center py-2 text-gray-700 dark:text-gray-300"
-                    onClick={() => setShowMobileUserMenu(false)}
-                  >
-                    <History size={18} className="mr-2" />
-                    Quiz History
-                  </Link>
-                  <Link
-                    to="/progress-photos"
-                    className="flex items-center py-2 text-gray-700 dark:text-gray-300"
-                    onClick={() => setShowMobileUserMenu(false)}
-                  >
-                    <Camera size={18} className="mr-2" />
-                    Progress Photos
-                  </Link>
-                  <Link
-                    to="/community"
-                    className="flex items-center py-2 text-gray-700 dark:text-gray-300"
-                    onClick={() => setShowMobileUserMenu(false)}
-                  >
-                    <Users size={18} className="mr-2" />
-                    Community
-                  </Link>
-                  <Link
-                    to="/challenges"
-                    className="flex items-center py-2 text-gray-700 dark:text-gray-300"
-                    onClick={() => setShowMobileUserMenu(false)}
-                  >
-                    <Trophy size={18} className="mr-2" />
-                    Challenges
-                  </Link>
-                  <button
-                    onClick={handleSignOut}
-                    className="flex items-center py-2 text-gray-700 dark:text-gray-300"
-                  >
-                    <LogOut size={18} className="mr-2" />
-                    Sign Out
-                  </button>
+                  {!user && <AuthModal colorTheme={colorTheme} classNames="w-full" />}
                 </nav>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </header>
-
-      <AnimatePresence>
-        {showAuthModal && (
-          <AuthModal
-            isOpen={showAuthModal}
-            onClose={() => setShowAuthModal(false)}
-          />
-        )}
-      </AnimatePresence>
     </>
   );
 };

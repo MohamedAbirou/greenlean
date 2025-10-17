@@ -1,10 +1,19 @@
-import { motion } from 'framer-motion';
-import { Calendar, Camera, Eye, EyeOff, Loader, Plus, Trash2, Users } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
-import { usePlatform } from '../contexts/PlatformContext';
-import { useAuth } from "../contexts/useAuth";
-import { supabase } from '../lib/supabase';
-import { useColorTheme } from '../utils/colorUtils';
+import { usePlatform } from "@/contexts/PlatformContext";
+import { useAuth } from "@/contexts/useAuth";
+import { supabase } from "@/lib/supabase";
+import { useColorTheme } from "@/utils/colorUtils";
+import { motion } from "framer-motion";
+import {
+  Calendar,
+  Camera,
+  Eye,
+  EyeOff,
+  Loader,
+  Plus,
+  Trash2,
+  Users,
+} from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
 
 interface ProgressPhoto {
   id: string;
@@ -22,7 +31,7 @@ const ProgressPhotos: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
-  const [caption, setCaption] = useState('');
+  const [caption, setCaption] = useState("");
   const [isPrivate, setIsPrivate] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [compareMode, setCompareMode] = useState(false);
@@ -37,12 +46,12 @@ const ProgressPhotos: React.FC = () => {
   const getPublicUrl = (filePath: string) => {
     try {
       const { data } = supabase.storage
-        .from('progress-photos')
+        .from("progress-photos")
         .getPublicUrl(filePath);
 
       return data.publicUrl;
     } catch (error) {
-      console.error('Error getting public URL:', error);
+      console.error("Error getting public URL:", error);
       return null;
     }
   };
@@ -52,89 +61,92 @@ const ProgressPhotos: React.FC = () => {
       if (!user) return;
 
       const { data, error } = await supabase
-        .from('progress_photos')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('week_number', { ascending: true });
+        .from("progress_photos")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("week_number", { ascending: true });
 
       if (error) throw error;
 
       // Get signed URLs for all photos
-      const urlPromises = data?.map(async (photo) => {
-        const urlParts = photo.photo_url.split('/');
-        const filePath = `${user.id}/${photo.week_number}/${urlParts[urlParts.length - 1]}`;
-        const publicUrl = getPublicUrl(filePath);
-        if (!publicUrl) return null;
-        return { ...photo, photo_url: publicUrl || photo.photo_url };
-      }) || [];
+      const urlPromises =
+        data?.map(async (photo) => {
+          const urlParts = photo.photo_url.split("/");
+          const filePath = `${user.id}/${photo.week_number}/${
+            urlParts[urlParts.length - 1]
+          }`;
+          const publicUrl = getPublicUrl(filePath);
+          if (!publicUrl) return null;
+          return { ...photo, photo_url: publicUrl || photo.photo_url };
+        }) || [];
 
       const photosWithSignedUrls = await Promise.all(urlPromises);
       setPhotos(photosWithSignedUrls);
-      
+
       // Set initial selected week
       if (data && data.length > 0) {
-        const latestWeek = Math.max(...data.map(p => p.week_number));
+        const latestWeek = Math.max(...data.map((p) => p.week_number));
         setSelectedWeek(latestWeek);
       } else {
         setSelectedWeek(1);
       }
     } catch (error) {
-      console.error('Error fetching photos:', error);
+      console.error("Error fetching photos:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     try {
       const file = event.target.files?.[0];
       if (!file || !user || !selectedWeek) return;
 
       // Validate file type
-      if (!file.type.startsWith('image/')) {
-        throw new Error('Please upload an image file.');
+      if (!file.type.startsWith("image/")) {
+        throw new Error("Please upload an image file.");
       }
 
       // Validate file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
-        throw new Error('Image size should be less than 10MB.');
+        throw new Error("Image size should be less than 10MB.");
       }
 
       setUploading(true);
 
       // Upload photo to storage
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}/${selectedWeek}/${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('progress-photos')
+        .from("progress-photos")
         .upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
       // Get signed URL
       const publicUrl = getPublicUrl(fileName);
-      if (!publicUrl) throw new Error('Failed to get signed URL');
+      if (!publicUrl) throw new Error("Failed to get signed URL");
 
       // Save photo record in database
-      const { error: dbError } = await supabase
-        .from('progress_photos')
-        .insert({
-          user_id: user.id,
-          photo_url: publicUrl,
-          caption,
-          week_number: selectedWeek,
-          is_private: isPrivate
-        });
+      const { error: dbError } = await supabase.from("progress_photos").insert({
+        user_id: user.id,
+        photo_url: publicUrl,
+        caption,
+        week_number: selectedWeek,
+        is_private: isPrivate,
+      });
 
       if (dbError) throw dbError;
 
       // Refresh photos
       await fetchPhotos();
-      setCaption('');
+      setCaption("");
     } catch (error) {
-      console.error('Error uploading photo:', error);
-      alert(error instanceof Error ? error.message : 'Error uploading photo');
+      console.error("Error uploading photo:", error);
+      alert(error instanceof Error ? error.message : "Error uploading photo");
     } finally {
       setUploading(false);
     }
@@ -145,49 +157,51 @@ const ProgressPhotos: React.FC = () => {
       if (!user) return;
 
       // Extract file path from URL
-      const urlParts = photo.photo_url.split('/');
-      const fileName = `${user.id}/${photo.week_number}/${urlParts[urlParts.length - 1]}`;
+      const urlParts = photo.photo_url.split("/");
+      const fileName = `${user.id}/${photo.week_number}/${
+        urlParts[urlParts.length - 1]
+      }`;
 
       // Delete from storage
       const { error: storageError } = await supabase.storage
-        .from('progress-photos')
+        .from("progress-photos")
         .remove([fileName]);
 
       if (storageError) throw storageError;
 
       // Delete from database
       const { error: dbError } = await supabase
-        .from('progress_photos')
+        .from("progress_photos")
         .delete()
-        .eq('id', photo.id);
+        .eq("id", photo.id);
 
       if (dbError) throw dbError;
 
       // Refresh photos
       await fetchPhotos();
     } catch (error) {
-      console.error('Error deleting photo:', error);
-      alert('Error deleting photo');
+      console.error("Error deleting photo:", error);
+      alert("Error deleting photo");
     }
   };
 
   const togglePhotoPrivacy = async (photo: ProgressPhoto) => {
     try {
       const { error } = await supabase
-        .from('progress_photos')
-        .update({ 
+        .from("progress_photos")
+        .update({
           is_private: !photo.is_private,
           // If making public, also remove from community
-          community_visible: photo.is_private ? false : photo.community_visible 
+          community_visible: photo.is_private ? false : photo.community_visible,
         })
-        .eq('id', photo.id);
+        .eq("id", photo.id);
 
       if (error) throw error;
 
       await fetchPhotos();
     } catch (error) {
-      console.error('Error updating photo privacy:', error);
-      alert('Error updating photo privacy');
+      console.error("Error updating photo privacy:", error);
+      alert("Error updating photo privacy");
     }
   };
 
@@ -195,27 +209,27 @@ const ProgressPhotos: React.FC = () => {
     try {
       // Can't share private photos to community
       if (photo.is_private) {
-        alert('Make the photo public before sharing with the community');
+        alert("Make the photo public before sharing with the community");
         return;
       }
 
       const { error } = await supabase
-        .from('progress_photos')
+        .from("progress_photos")
         .update({ community_visible: !photo.community_visible })
-        .eq('id', photo.id);
+        .eq("id", photo.id);
 
       if (error) throw error;
 
       await fetchPhotos();
     } catch (error) {
-      console.error('Error updating community visibility:', error);
-      alert('Error updating community visibility');
+      console.error("Error updating community visibility:", error);
+      alert("Error updating community visibility");
     }
   };
 
   const handleCompareSelect = (photo: ProgressPhoto) => {
     if (selectedPhotos.includes(photo)) {
-      setSelectedPhotos(selectedPhotos.filter(p => p.id !== photo.id));
+      setSelectedPhotos(selectedPhotos.filter((p) => p.id !== photo.id));
     } else if (selectedPhotos.length < 2) {
       setSelectedPhotos([...selectedPhotos, photo]);
     }
@@ -224,58 +238,64 @@ const ProgressPhotos: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
-        <Loader className="h-8 w-8 animate-spin text-green-500" />
+        <Loader className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen pt-24 pb-16 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Progress Photos</h1>
+            <h1 className="text-2xl font-bold text-foreground">
+              Progress Photos
+            </h1>
             <button
               onClick={() => setCompareMode(!compareMode)}
-              className={`px-4 py-2 rounded-lg font-medium ${
+              className={`px-4 py-2 rounded-lg font-medium cursor-pointer ${
                 compareMode
-                  ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-                  : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+                  ? "bg-primary hover:bg-primary/80 text-primary-foreground"
+                  : "bg-card hover:bg-card/80 text-foreground"
               }`}
             >
-              {compareMode ? 'Exit Compare' : 'Compare Photos'}
+              {compareMode ? "Exit Compare" : "Compare Photos"}
             </button>
           </div>
 
           {!compareMode && (
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
-              <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Upload New Photo</h2>
-              
+            <div className="bg-card rounded-xl shadow-md p-6 mb-8">
+              <h2 className="text-lg font-semibold text-foreground mb-4">
+                Upload New Photo
+              </h2>
+
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-foreground/80 mb-1">
                     Week Number
                   </label>
                   <select
-                    value={selectedWeek || ''}
+                    value={selectedWeek || ""}
                     onChange={(e) => setSelectedWeek(Number(e.target.value))}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
+                    className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-foreground"
                   >
                     {[...Array(52)].map((_, i) => (
-                      <option key={i + 1} value={i + 1}>Week {i + 1}</option>
+                      <option key={i + 1} value={i + 1}>
+                        Week {i + 1}
+                      </option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-foreground/80 mb-1">
                     Caption
                   </label>
                   <input
                     type="text"
                     value={caption}
                     onChange={(e) => setCaption(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
+                    className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-foreground"
                     placeholder="Add a caption (optional)"
                   />
                 </div>
@@ -286,9 +306,12 @@ const ProgressPhotos: React.FC = () => {
                     id="isPrivate"
                     checked={isPrivate}
                     onChange={(e) => setIsPrivate(e.target.checked)}
-                    className="rounded border-gray-300 text-green-500 focus:ring-green-500"
+                    className="rounded border-gray-300 text-primary focus:ring-primary"
                   />
-                  <label htmlFor="isPrivate" className="text-sm text-gray-700 dark:text-gray-300">
+                  <label
+                    htmlFor="isPrivate"
+                    className="text-sm text-foreground/80"
+                  >
                     Keep this photo private
                   </label>
                 </div>
@@ -333,7 +356,7 @@ const ProgressPhotos: React.FC = () => {
                       alt={`Week ${photo.week_number}`}
                       className="w-full h-96 object-cover rounded-lg"
                     />
-                    <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-4 rounded-b-lg">
+                    <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white p-4 rounded-b-lg">
                       <div className="flex items-center">
                         <Calendar className="h-4 w-4 mr-2" />
                         Week {photo.week_number}
@@ -353,20 +376,25 @@ const ProgressPhotos: React.FC = () => {
                     onClick={() => handleCompareSelect(photo)}
                     className={`relative aspect-square rounded-lg overflow-hidden ${
                       selectedPhotos.includes(photo)
-                        ? 'ring-4 ring-green-500'
+                        ? "ring-4 ring-primary"
                         : selectedPhotos.length >= 2
-                        ? 'opacity-50 cursor-not-allowed'
-                        : ''
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
                     }`}
-                    disabled={selectedPhotos.length >= 2 && !selectedPhotos.includes(photo)}
+                    disabled={
+                      selectedPhotos.length >= 2 &&
+                      !selectedPhotos.includes(photo)
+                    }
                   >
                     <img
                       src={photo.photo_url}
                       alt={`Week ${photo.week_number}`}
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                      <span className="text-white font-medium">Week {photo.week_number}</span>
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <span className="text-white font-medium">
+                        Week {photo.week_number}
+                      </span>
                     </div>
                   </button>
                 ))}
@@ -378,7 +406,7 @@ const ProgressPhotos: React.FC = () => {
                 <motion.div
                   key={photo.id}
                   layout
-                  className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden"
+                  className="bg-card rounded-xl shadow-md overflow-hidden"
                 >
                   <div className="relative">
                     <img
@@ -389,8 +417,10 @@ const ProgressPhotos: React.FC = () => {
                     <div className="absolute top-2 right-2 flex space-x-2">
                       <button
                         onClick={() => togglePhotoPrivacy(photo)}
-                        className="p-2 bg-black bg-opacity-50 rounded-full text-white hover:bg-opacity-75 transition-opacity"
-                        title={photo.is_private ? 'Make Public' : 'Make Private'}
+                        className="p-2 bg-black/50 rounded-full text-white hover:bg-opacity-75 transition-opacity"
+                        title={
+                          photo.is_private ? "Make Public" : "Make Private"
+                        }
                       >
                         {photo.is_private ? (
                           <EyeOff className="h-4 w-4" />
@@ -401,29 +431,37 @@ const ProgressPhotos: React.FC = () => {
                       {!photo.is_private && (
                         <button
                           onClick={() => toggleCommunityVisibility(photo)}
-                          className={`p-2 bg-black bg-opacity-50 rounded-full text-white hover:bg-opacity-75 transition-opacity ${
-                            photo.community_visible ? 'text-green-400' : ''
-                          }`}
-                          title={photo.community_visible ? 'Remove from Community' : 'Share with Community'}
+                          className="p-2 bg-black/50 rounded-full text-white hover:bg-opacity-75 transition-opacity"
+                          title={
+                            photo.community_visible
+                              ? "Remove from Community"
+                              : "Share with Community"
+                          }
                         >
-                          <Users className="h-4 w-4" />
+                          <Users
+                            className={`h-4 w-4 ${
+                              photo.community_visible ? "text-primary" : ""
+                            }`}
+                          />
                         </button>
                       )}
                       <button
                         onClick={() => handleDeletePhoto(photo)}
-                        className="p-2 bg-black bg-opacity-50 rounded-full text-white hover:bg-opacity-75 transition-opacity"
+                        className="p-2 bg-black/50 rounded-full text-destructive hover:bg-opacity-75 transition-opacity"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
                   <div className="p-4">
-                    <div className="flex items-center text-gray-500 dark:text-gray-400 mb-2">
+                    <div className="flex items-center text-foreground/80 mb-2">
                       <Calendar className="h-4 w-4 mr-2" />
                       Week {photo.week_number}
                     </div>
                     {photo.caption && (
-                      <p className="text-gray-600 dark:text-gray-300">{photo.caption}</p>
+                      <p className="text-secondary-foreground">
+                        {photo.caption}
+                      </p>
                     )}
                   </div>
                 </motion.div>
@@ -434,15 +472,16 @@ const ProgressPhotos: React.FC = () => {
           {photos.length === 0 && (
             <div className="text-center py-12">
               <Camera className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
+              <h2 className="text-xl font-semibold text-foreground mb-2">
                 No Progress Photos Yet
               </h2>
-              <p className="text-gray-600 dark:text-gray-300 mb-6">
-                Start tracking your fitness journey by uploading your first progress photo.
+              <p className="text-secondary-foreground mb-6">
+                Start tracking your fitness journey by uploading your first
+                progress photo.
               </p>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-green-600 transition-colors"
               >
                 <Plus className="h-5 w-5 mr-2" />
                 Upload First Photo

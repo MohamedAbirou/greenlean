@@ -1,9 +1,17 @@
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { usePlatform } from "@/contexts/PlatformContext";
+import { useColorTheme } from "@/utils/colorUtils";
 import { motion } from "framer-motion";
 import { ArrowRight, Filter, Search } from "lucide-react";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { usePlatform } from "../contexts/PlatformContext";
-import { useColorTheme } from "../utils/colorUtils";
 
 interface DietPlan {
   id: number;
@@ -173,91 +181,73 @@ const DietPlans: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen pt-24 pb-16 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">
+          <h1 className="text-3xl font-bold text-foreground mb-4">
             Explore Diet Plans
           </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+          <p className="text-lg text-foreground/80 max-w-2xl mx-auto">
             Browse our collection of diet plans designed to help you achieve
             your health and fitness goals.
           </p>
         </div>
 
         {/* Search and Filters */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
+        <div className="bg-card rounded-xl shadow-md p-3 mb-8">
           <div className="flex flex-col md:flex-row gap-4">
+            {/* Search Input */}
             <div className="flex-grow relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/70" />
+              <Input
                 type="text"
                 placeholder="Search diet plans..."
-                className="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
+                className="pl-10 pr-4 py-3 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-green-500"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
 
+            {/* Filters */}
             <div className="flex flex-col sm:flex-row gap-4">
+              {/* Category Filter */}
               <div className="relative">
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <select
-                  className="pl-10 pr-8 py-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 appearance-none"
+                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/70" />
+                <Select
                   value={categoryFilter}
-                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  onValueChange={(val) => setCategoryFilter(val)}
                 >
-                  {categories.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                  <svg
-                    className="h-4 w-4 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </div>
+                  <SelectTrigger className="pl-10 pr-8 py-3 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-green-500">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
+              {/* Difficulty Filter */}
               <div className="relative">
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <select
-                  className="pl-10 pr-8 py-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 appearance-none"
+                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/70" />
+                <Select
                   value={difficultyFilter}
-                  onChange={(e) => setDifficultyFilter(e.target.value)}
+                  onValueChange={(val) => setDifficultyFilter(val)}
                 >
-                  {difficulties.map((difficulty) => (
-                    <option key={difficulty} value={difficulty}>
-                      {difficulty}
-                    </option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                  <svg
-                    className="h-4 w-4 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </div>
+                  <SelectTrigger className="pl-10 pr-8 py-3 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-green-500">
+                    <SelectValue placeholder="Select difficulty" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {difficulties.map((difficulty) => (
+                      <SelectItem key={difficulty} value={difficulty}>
+                        {difficulty}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
@@ -269,7 +259,7 @@ const DietPlans: React.FC = () => {
             {filteredPlans.map((plan, index) => (
               <motion.div
                 key={plan.id}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                className="bg-card rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
@@ -281,13 +271,13 @@ const DietPlans: React.FC = () => {
                     alt={plan.title}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute top-4 right-4 bg-white dark:bg-gray-800 py-1 px-3 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <div className="absolute top-4 right-4 bg-background py-1 px-3 rounded-full text-sm font-medium text-foreground/80">
                     {plan.category}
                   </div>
                 </div>
                 <div className="p-6">
                   <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-xl font-bold text-gray-800 dark:text-white">
+                    <h3 className="text-xl font-bold text-foreground">
                       {plan.title}
                     </h3>
                     <span
@@ -302,11 +292,11 @@ const DietPlans: React.FC = () => {
                       {plan.difficulty}
                     </span>
                   </div>
-                  <p className="text-gray-600 dark:text-gray-300 mb-4">
+                  <p className="text-secondary-foreground mb-4">
                     {plan.description}
                   </p>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                    <span className="text-sm text-gray-500 dark:text-foreground/70">
                       {plan.duration}
                     </span>
                     <Link
@@ -322,11 +312,11 @@ const DietPlans: React.FC = () => {
           </div>
         ) : (
           <div className="text-center py-12">
-            <p className="text-gray-600 dark:text-gray-300 text-lg">
+            <p className="text-secondary-foreground text-lg">
               No diet plans found matching your criteria.
             </p>
             <button
-              className="mt-4 text-green-500 hover:text-green-600 font-medium"
+              className="mt-4 text-primary font-medium"
               onClick={() => {
                 setSearchTerm("");
                 setCategoryFilter("All");

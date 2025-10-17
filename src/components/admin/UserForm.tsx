@@ -1,32 +1,35 @@
+import { queryKeys } from "@/lib/queryKeys";
+import { supabase } from "@/lib/supabase";
+import { createNotification } from "@/services/notificationService";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { queryKeys } from "../../lib/queryKeys";
-import { supabase } from "../../lib/supabase";
-import { createNotification } from "../../services/notificationService";
-import { } from "../../utils/adminBootstrap";
+import { Button } from "../ui/button";
+import { Checkbox } from "../ui/checkbox";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { ModalDialog } from "../ui/modal-dialog";
 
 interface User {
-  id: string;
-  username: string;
-  full_name: string;
-  email: string;
-  is_admin: boolean;
+  id: string
+  username: string
+  full_name: string
+  email: string
+  is_admin: boolean
 }
 
 interface UserFormProps {
-  user?: User;
-  onClose: () => void;
+  user: User | null;
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }
 
-const UserForm: React.FC<UserFormProps> = ({ user, onClose }) => {
+const UserForm: React.FC<UserFormProps> = ({ user, open, onOpenChange }) => {
   const [formData, setFormData] = useState({
     username: "",
     full_name: "",
     is_admin: false,
   });
-  const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -162,105 +165,74 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose }) => {
       );
 
       toast.success("User updated successfully");
-      onClose();
+      onOpenChange(false);
     },
 
     onError: (err: Error) => {
-      console.error("Error updating user:", err);
       toast.error(err?.message || "Update failed");
-      setError(err?.message || "Update failed");
     },
   });
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 w-full max-w-md">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold dark:text-white">Edit User</h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
-          >
-            <X className="h-5 w-5 text-gray-500" />
-          </button>
+    <ModalDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Edit User"
+      description="Modify user information and roles."
+      size="md"
+    >
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          updateUserMutation.mutate(formData)
+        }}
+        className="space-y-4"
+      >
+        <div>
+          <Label>Username</Label>
+          <Input
+            value={formData.username}
+            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+            placeholder="Enter username"
+            required
+          />
         </div>
 
-        {error && (
-          <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg">
-            {error}
-          </div>
-        )}
+        <div>
+          <Label>Full Name</Label>
+          <Input
+            value={formData.full_name}
+            onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+            placeholder="Enter full name"
+            required
+          />
+        </div>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            updateUserMutation.mutate(formData);
-          }}
-          className="space-y-4"
-        >
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Username
-            </label>
-            <input
-              type="text"
-              value={formData.username}
-              onChange={(e) =>
-                setFormData({ ...formData, username: e.target.value })
-              }
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              required
-            />
-          </div>
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="admin"
+            checked={formData.is_admin}
+            onCheckedChange={(checked) =>
+              setFormData({ ...formData, is_admin: !!checked })
+            }
+          />
+          <Label htmlFor="admin">Admin Access</Label>
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Full Name
-            </label>
-            <input
-              type="text"
-              value={formData.full_name}
-              onChange={(e) =>
-                setFormData({ ...formData, full_name: e.target.value })
-              }
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              required
-            />
-          </div>
-
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              checked={formData.is_admin}
-              onChange={(e) =>
-                setFormData({ ...formData, is_admin: e.target.checked })
-              }
-              className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-            />
-            <label className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-              Admin Access
-            </label>
-          </div>
-
-          <div className="flex justify-end space-x-4 mt-6">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={updateUserMutation.isPending}
-              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-            >
-              {updateUserMutation.isPending ? "Saving..." : "Save Changes"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div className="flex justify-end gap-2 pt-4">
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => onOpenChange(false)}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" disabled={updateUserMutation.isPending}>
+            {updateUserMutation.isPending ? "Saving..." : "Save Changes"}
+          </Button>
+        </div>
+      </form>
+    </ModalDialog>
   );
 };
 

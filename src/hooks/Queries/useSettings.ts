@@ -1,6 +1,6 @@
+import { queryKeys } from "@/lib/queryKeys";
+import { supabase } from "@/lib/supabase";
 import { useQuery } from "@tanstack/react-query";
-import { queryKeys } from "../../lib/queryKeys";
-import { supabase } from "../../lib/supabase";
 
 export interface PlatformSettings {
   id: string;
@@ -37,3 +37,4 @@ export const useSettingsQuery = () =>
     queryFn: fetchSettings,
     staleTime: 5 * 60 * 1000,
   });
+

@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
-import Navbar from './Navbar';
-import Footer from './Footer';
+import { useThemeStore } from '@/store/themeStore';
 import { motion } from 'framer-motion';
-import { useThemeStore } from '../../store/themeStore';
+import React, { useEffect, useState } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
+import Footer from './Footer';
+import Navbar from './Navbar';
 
 const Layout: React.FC = () => {
   const location = useLocation();

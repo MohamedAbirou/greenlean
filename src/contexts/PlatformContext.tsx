@@ -1,5 +1,5 @@
+import { supabase } from "@/lib/supabase";
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
 
 interface PlatformSettings {
   platform_name: string;

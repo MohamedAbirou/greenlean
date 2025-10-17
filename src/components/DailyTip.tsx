@@ -1,9 +1,9 @@
+import { useAuth } from "@/contexts/useAuth";
+import { supabase } from "@/lib/supabase";
+import type { ColorTheme } from "@/utils/colorUtils";
 import { motion } from "framer-motion";
 import { BookmarkCheck, BookmarkPlus, Lightbulb, Share2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { useAuth } from "../contexts/useAuth";
-import { supabase } from "../lib/supabase";
-import { ColorTheme } from "../utils/colorUtils";
 
 interface Tip {
   id: number;
@@ -56,7 +56,6 @@ interface DailyTipProps {
 const DailyTip: React.FC<DailyTipProps> = ({colorTheme}) => {
   const [currentTip, setCurrentTip] = useState<Tip | null>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const [showShareMenu, setShowShareMenu] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -136,8 +135,6 @@ const DailyTip: React.FC<DailyTipProps> = ({colorTheme}) => {
       } catch (error) {
         console.error("Error sharing:", error);
       }
-    } else {
-      setShowShareMenu(!showShareMenu);
     }
   };
 
@@ -148,7 +145,7 @@ const DailyTip: React.FC<DailyTipProps> = ({colorTheme}) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 relative overflow-hidden"
+      className="bg-card rounded-xl shadow-md p-6 relative overflow-hidden"
     >
       <div className={`absolute top-0 left-0 w-2 h-full ${colorTheme.primaryBg}`} />
 
@@ -157,7 +154,7 @@ const DailyTip: React.FC<DailyTipProps> = ({colorTheme}) => {
           <div className={`p-2 ${colorTheme.primaryBg}/20 dark:bg-${colorTheme.primaryDark} rounded-lg`}>
             <Lightbulb className={`h-6 w-6 ${colorTheme.primaryText}`} />
           </div>
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+          <h3 className="text-lg font-semibold text-foreground">
             Tip of the Day
           </h3>
         </div>
@@ -165,7 +162,7 @@ const DailyTip: React.FC<DailyTipProps> = ({colorTheme}) => {
         <div className="flex items-center space-x-2">
           <button
             onClick={handleBookmark}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            className="p-2 hover:bg-background rounded-lg transition-colors"
             title={isBookmarked ? "Remove from saved tips" : "Save tip"}
           >
             {isBookmarked ? (
@@ -177,7 +174,7 @@ const DailyTip: React.FC<DailyTipProps> = ({colorTheme}) => {
 
           <button
             onClick={handleShare}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            className="p-2 hover:bg-background rounded-lg transition-colors"
             title="Share tip"
           >
             <Share2 className={`h-5 w-5 text-gray-400 hover:${colorTheme.primaryText}`} />
@@ -186,17 +183,17 @@ const DailyTip: React.FC<DailyTipProps> = ({colorTheme}) => {
       </div>
 
       <div className="mt-4">
-        <h4 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
+        <h4 className="text-xl font-semibold text-foreground mb-2">
           {currentTip.title}
         </h4>
-        <p className="text-gray-600 dark:text-gray-300">{currentTip.content}</p>
+        <p className="text-foreground/80">{currentTip.content}</p>
       </div>
 
-      {showShareMenu && (
+      {/* {showShareMenu && (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded-lg shadow-lg py-1 z-10"
+          className="absolute right-0 mt-2 w-48 bg-background rounded-lg shadow-lg py-1 z-10"
         >
           <button
             onClick={() => {
@@ -205,12 +202,12 @@ const DailyTip: React.FC<DailyTipProps> = ({colorTheme}) => {
               );
               setShowShareMenu(false);
             }}
-            className="w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
+            className="w-full px-4 py-2 text-left text-foreground hover:text-foreground/80"
           >
             Copy to clipboard
           </button>
         </motion.div>
-      )}
+      )} */}
     </motion.div>
   );
 };

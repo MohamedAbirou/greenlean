@@ -1,8 +1,9 @@
+
+import { useDashboardQuery } from "@/hooks/Queries/useDashboard";
+import type { ColorTheme } from "@/utils/colorUtils";
 import Chart from "chart.js/auto";
 import { Award, Loader, Star, TrendingUp, Users } from "lucide-react";
 import React, { useEffect, useRef } from "react";
-import { useDashboardQuery } from "../../hooks/Queries/useDashboard";
-import { ColorTheme } from "../../utils/colorUtils";
 import ChartCard from "../helpers/ChartCard";
 import StatCard from "../helpers/StatCard";
 
@@ -103,8 +104,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ colorTheme }) => {
       </div>
 
       {/* Charts */}
-      {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> */}
-      <div className="flex items-start justify-around rounded-xl shadow-md bg-white dark:bg-gray-800 gap-4">
+      <div className="flex items-start justify-around rounded-xl shadow-md bg-card gap-4">
         <ChartCard
           title="User Activity"
           canvasRef={participationChartRef}

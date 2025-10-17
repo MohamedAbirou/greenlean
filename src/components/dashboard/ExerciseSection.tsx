@@ -1,7 +1,7 @@
+import type { HealthProfile } from "@/types/dashboard";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import React from "react";
-import { HealthProfile } from "../../types/dashboard";
 
 interface ExerciseSectionProps {
   healthProfile: HealthProfile;
@@ -32,59 +32,59 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
+      <h2 className="text-2xl font-bold text-foreground mb-6">
         Your Exercise Routine
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6">
-          <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+        <div className="bg-background rounded-lg p-6">
+          <h3 className="text-xl font-semibold text-foreground mb-4">
             Workout Summary
           </h3>
           <ul className="space-y-4">
             <li className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-300">
+              <span className="text-foreground/90">
                 Preferred Type
               </span>
-              <span className="font-semibold text-gray-800 dark:text-white">
+              <span className="font-semibold text-foreground">
                 {answers[12] as string}
               </span>
             </li>
             <li className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-300">Duration</span>
-              <span className="font-semibold text-gray-800 dark:text-white">
+              <span className="text-foreground/90">Duration</span>
+              <span className="font-semibold text-foreground">
                 {answers[11] as string}
               </span>
             </li>
             <li className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-300">Frequency</span>
-              <span className="font-semibold text-gray-800 dark:text-white">
+              <span className="text-foreground/90">Frequency</span>
+              <span className="font-semibold text-foreground">
                 4-5 times per week
               </span>
             </li>
           </ul>
         </div>
 
-        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6">
-          <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+        <div className="bg-background rounded-lg p-6">
+          <h3 className="text-xl font-semibold text-foreground mb-4">
             Weekly Goals
           </h3>
           <ul className="space-y-3">
             <li className="flex items-center">
               <Check className={`h-5 w-5 ${colorTheme.primaryText} mr-2`} />
-              <span className="text-gray-600 dark:text-gray-300">
+              <span className="text-foreground/90">
                 Complete 4-5 workout sessions
               </span>
             </li>
             <li className="flex items-center">
               <Check className={`h-5 w-5 ${colorTheme.primaryText} mr-2`} />
-              <span className="text-gray-600 dark:text-gray-300">
+              <span className="text-foreground/90">
                 Maintain consistent intensity
               </span>
             </li>
             <li className="flex items-center">
               <Check className={`h-5 w-5 ${colorTheme.primaryText} mr-2`} />
-              <span className="text-gray-600 dark:text-gray-300">
+              <span className="text-foreground/90">
                 Include both cardio and strength
               </span>
             </li>
@@ -92,21 +92,21 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({
         </div>
       </div>
 
-      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6">
-        <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-6">
+      <div className="bg-background rounded-lg p-6">
+        <h3 className="text-xl font-semibold text-foreground mb-6">
           Weekly Schedule
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {weeklySchedule.map((day, index) => (
             <div
               key={index}
-              className="bg-white dark:bg-gray-800 rounded-lg p-4 border dark:border-gray-700"
+              className="bg-card rounded-lg p-4 border border-border"
             >
-              <h4 className="font-medium text-gray-800 dark:text-white mb-2">
+              <h4 className="font-medium text-foreground mb-2">
                 {day.day}
               </h4>
-              <p className="text-gray-600 dark:text-gray-300">{day.workout}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-foreground/90">{day.workout}</p>
+              <p className="text-sm text-foreground/60 mt-1">
                 {day.duration}
               </p>
             </div>

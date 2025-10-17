@@ -1,7 +1,7 @@
+import { queryKeys } from "@/lib/queryKeys";
+import { supabase } from "@/lib/supabase";
+import type { Challenge } from "@/types/challenge";
 import { useQuery } from "@tanstack/react-query";
-import { queryKeys } from "../../lib/queryKeys";
-import { supabase } from "../../lib/supabase";
-import { Challenge } from "../../types/challenge";
 
 export const fetchChallenges = async (): Promise<Challenge[]> => {
   const [challengesResp, participantsResp] = await Promise.all([

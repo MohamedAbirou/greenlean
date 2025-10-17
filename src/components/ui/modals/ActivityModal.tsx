@@ -1,5 +1,5 @@
+import type { ActivityFormData } from "@/types/dashboard";
 import { X } from "lucide-react";
-import { ActivityFormData } from "../../../types/dashboard";
 
 interface ActivityModalProps {
   title: string;
@@ -39,24 +39,24 @@ const ActivityModal: React.FC<ActivityModalProps> = ({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 w-full max-w-md relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="bg-background rounded-xl shadow-lg p-3 w-full max-w-md relative">
         <button
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+          className="absolute top-4 right-4 text-foreground hover:text-foreground/80 cursor-pointer"
           onClick={onClose}
         >
           <X className="h-6 w-6" />
         </button>
-        <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6">
+        <h2 className="text-xl font-bold text-foreground mb-6">
           {title}
         </h2>
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
-            <label className="block text-gray-700 dark:text-gray-200 mb-1">
+            <label className="block text-foreground mb-1">
               Activity Type
             </label>
             <select
-              className="w-full p-2 border rounded-lg bg-white dark:bg-gray-800 dark:text-white"
+              className="w-full p-2 border rounded-lg bg-background text-foreground"
               value={formData.activity_type}
               onChange={(e) =>
                 setFormData((f) => ({ ...f, activity_type: e.target.value }))
@@ -69,12 +69,12 @@ const ActivityModal: React.FC<ActivityModalProps> = ({
             </select>
           </div>
           <div>
-            <label className="block text-gray-700 dark:text-gray-200 mb-1">
+            <label className="block text-foreground mb-1">
               Duration (minutes)
             </label>
             <input
               type="number"
-              className="w-full p-2 border rounded-lg bg-white dark:bg-gray-800 dark:text-white"
+              className="w-full p-2 border rounded-lg bg-background text-foreground"
               value={formData.duration_minutes}
               onChange={(e) =>
                 setFormData((f) => ({ ...f, duration_minutes: e.target.value }))
@@ -83,12 +83,12 @@ const ActivityModal: React.FC<ActivityModalProps> = ({
             />
           </div>
           <div>
-            <label className="block text-gray-700 dark:text-gray-200 mb-1">
+            <label className="block text-foreground mb-1">
               Calories Burned
             </label>
             <input
               type="number"
-              className="w-full p-2 border rounded-lg bg-white dark:bg-gray-800 dark:text-white"
+              className="w-full p-2 border rounded-lg bg-background text-foreground"
               value={formData.calories_burned}
               onChange={(e) =>
                 setFormData((f) => ({ ...f, calories_burned: e.target.value }))
@@ -97,12 +97,12 @@ const ActivityModal: React.FC<ActivityModalProps> = ({
             />
           </div>
           <div>
-            <label className="block text-gray-700 dark:text-gray-200 mb-1">
+            <label className="block text-foreground mb-1">
               Steps
             </label>
             <input
               type="number"
-              className="w-full p-2 border rounded-lg bg-white dark:bg-gray-800 dark:text-white"
+              className="w-full p-2 border rounded-lg bg-background text-foreground"
               value={formData.steps}
               onChange={(e) =>
                 setFormData((f) => ({ ...f, steps: e.target.value }))
@@ -111,11 +111,11 @@ const ActivityModal: React.FC<ActivityModalProps> = ({
             />
           </div>
           <div>
-            <label className="block text-gray-700 dark:text-gray-200 mb-1">
+            <label className="block text-foreground mb-1">
               Notes
             </label>
             <textarea
-              className="w-full p-2 border rounded-lg bg-white dark:bg-gray-800 dark:text-white"
+              className="w-full p-2 border rounded-lg bg-background text-foreground"
               value={formData.notes}
               onChange={(e) =>
                 setFormData((f) => ({ ...f, notes: e.target.value }))

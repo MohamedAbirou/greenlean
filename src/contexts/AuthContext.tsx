@@ -1,6 +1,6 @@
-import { User } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
+import type { User } from "@supabase/supabase-js";
 import React, { createContext, useCallback, useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
 
 interface Profile {
   id: string;

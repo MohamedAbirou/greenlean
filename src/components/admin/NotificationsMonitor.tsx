@@ -1,7 +1,7 @@
+import { supabase } from "@/lib/supabase";
+import { Notification } from "@/types/notification";
 import React, { useEffect, useState } from "react";
 import { Chart } from "react-chartjs-2";
-import { supabase } from "../../lib/supabase";
-import { Notification } from "../../types/notification";
 
 const NotificationsMonitor: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);

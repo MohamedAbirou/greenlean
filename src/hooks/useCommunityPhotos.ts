@@ -1,6 +1,6 @@
+import { supabase } from "@/lib/supabase";
+import type { Comment, Photo } from "@/types/community";
 import { useCallback, useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
-import { Comment, Photo } from "../types/community";
 
 const PAGE_SIZE = 5;
 

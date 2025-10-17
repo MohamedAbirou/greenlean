@@ -1,9 +1,9 @@
+import { useAuth } from "@/contexts/useAuth";
+import { supabase } from "@/lib/supabase";
+import type { HealthCalculations, HealthProfile, Meal } from "@/types/dashboard";
+import { logError } from "@/utils/errorLogger";
+import { generateMealPlan } from "@/utils/mealPlan";
 import { useEffect, useMemo, useState } from "react";
-import { useAuth } from "../contexts/useAuth";
-import { supabase } from "../lib/supabase";
-import { HealthCalculations, HealthProfile, Meal } from "../types/dashboard";
-import { logError } from "../utils/errorLogger";
-import { generateMealPlan } from "../utils/mealPlan";
 
 export const useDashboardData = () => {
   const [healthProfile, setHealthProfile] = useState<HealthProfile | null>(
@@ -84,7 +84,7 @@ export const useDashboardData = () => {
 
     const getGoalAdjustment = () => {
       const goal = answers[8] as string;
-      const activityLevel = answers[6] as string;
+      // const activityLevel = answers[6] as string;
       const age = answers[1] as number;
       const gender = answers[2] as string;
       const weight = answers[3] as number;
@@ -102,11 +102,12 @@ export const useDashboardData = () => {
       const tdee = calculations.tdee;
 
       let baseAdjustment = 0;
+      let deficit;
 
       switch (goal) {
         case "Lose fat":
           // Safe deficit: 15-25% below TDEE
-          const deficit = Math.min(500, tdee * 0.25);
+          deficit = Math.min(500, tdee * 0.25);
           baseAdjustment = -deficit;
           break;
 

@@ -1,11 +1,11 @@
+import { usePlatform } from '@/contexts/PlatformContext';
+import { useAuth } from "@/contexts/useAuth";
+import { supabase } from '@/lib/supabase';
+import { useColorTheme } from '@/utils/colorUtils';
 import { motion } from 'framer-motion';
 import { Activity, ArrowLeft, Calendar, Flame, Loader, Scale } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { usePlatform } from '../contexts/PlatformContext';
-import { useAuth } from "../contexts/useAuth";
-import { supabase } from '../lib/supabase';
-import { useColorTheme } from '../utils/colorUtils';
 
 interface QuizResult {
   id: string;
@@ -56,22 +56,22 @@ const QuizResult: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
-        <Loader className="h-8 w-8 animate-spin text-green-500" />
+        <Loader className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   if (!result) {
     return (
-      <div className="min-h-screen pt-24 pb-16 bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen pt-24 pb-16 bg-background">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
+            <h1 className="text-2xl font-bold text-foreground mb-4">
               Quiz Result Not Found
             </h1>
             <Link 
               to="/quiz-history" 
-              className="text-green-500 hover:text-green-600 inline-flex items-center"
+              className="text-primary hover:text-primary/80 inline-flex items-center"
             >
               <ArrowLeft className="mr-2 h-5 w-5" />
               Back to Quiz History
@@ -85,7 +85,7 @@ const QuizResult: React.FC = () => {
   // Calculate weight status based on BMI
   const getBMIStatus = (bmi: number) => {
     if (bmi < 18.5) return { status: 'Underweight', color: 'text-blue-500' };
-    if (bmi < 25) return { status: 'Normal', color: 'text-green-500' };
+    if (bmi < 25) return { status: 'Normal', color: 'text-primary' };
     if (bmi < 30) return { status: 'Overweight', color: 'text-yellow-500' };
     return { status: 'Obese', color: 'text-red-500' };
   };
@@ -93,7 +93,7 @@ const QuizResult: React.FC = () => {
   const bmiStatus = getBMIStatus(result.calculations.bmi);
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen pt-24 pb-16 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
@@ -110,14 +110,14 @@ const QuizResult: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden"
+            className="bg-card rounded-xl shadow-md overflow-hidden"
           >
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+                <h1 className="text-2xl font-bold text-foreground">
                   Quiz Result Details
                 </h1>
-                <div className="flex items-center text-gray-500 dark:text-gray-400">
+                <div className="flex items-center text-foreground/70">
                   <Calendar className="h-5 w-5 mr-2" />
                   {new Date(result.created_at).toLocaleDateString('en-US', {
                     year: 'numeric',
@@ -130,12 +130,12 @@ const QuizResult: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                <div className="bg-background rounded-lg p-4">
                   <div className="flex items-center mb-2">
                     <Scale className="h-5 w-5 text-blue-500 mr-2" />
-                    <span className="text-gray-600 dark:text-gray-300">BMI</span>
+                    <span className="text-foreground/80">BMI</span>
                   </div>
-                  <div className="text-2xl font-bold text-gray-800 dark:text-white">
+                  <div className="text-2xl font-bold text-foreground">
                     {result.calculations.bmi?.toFixed(1)}
                   </div>
                   <div className={`text-sm ${bmiStatus.color}`}>
@@ -143,90 +143,90 @@ const QuizResult: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                <div className="bg-background rounded-lg p-4">
                   <div className="flex items-center mb-2">
-                    <Activity className="h-5 w-5 text-green-500 mr-2" />
-                    <span className="text-gray-600 dark:text-gray-300">BMR</span>
+                    <Activity className="h-5 w-5 text-primary mr-2" />
+                    <span className="text-foreground/80">BMR</span>
                   </div>
-                  <div className="text-2xl font-bold text-gray-800 dark:text-white">
+                  <div className="text-2xl font-bold text-foreground">
                     {Math.round(result.calculations.bmr)}
                   </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                  <div className="text-sm text-foreground/70">
                     calories/day
                   </div>
                 </div>
 
-                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                <div className="bg-background rounded-lg p-4">
                   <div className="flex items-center mb-2">
                     <Flame className="h-5 w-5 text-orange-500 mr-2" />
-                    <span className="text-gray-600 dark:text-gray-300">TDEE</span>
+                    <span className="text-foreground/80">TDEE</span>
                   </div>
-                  <div className="text-2xl font-bold text-gray-800 dark:text-white">
+                  <div className="text-2xl font-bold text-foreground">
                     {Math.round(result.calculations.tdee)}
                   </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                  <div className="text-sm text-foreground/70">
                     calories/day
                   </div>
                 </div>
 
-                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                <div className="bg-background rounded-lg p-4">
                   <div className="flex items-center mb-2">
                     <Activity className="h-5 w-5 text-purple-500 mr-2" />
-                    <span className="text-gray-600 dark:text-gray-300">Activity Level</span>
+                    <span className="text-foreground/80">Activity Level</span>
                   </div>
-                  <div className="text-lg font-semibold text-gray-800 dark:text-white">
+                  <div className="text-lg font-semibold text-foreground">
                     {result.answers[6] as string}
                   </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6">
-                  <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+                <div className="bg-background rounded-lg p-6">
+                  <h2 className="text-xl font-semibold text-foreground mb-4">
                     Your Goals
                   </h2>
                   <div className="space-y-4">
                     <div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">Primary Goal</div>
-                      <div className="text-gray-800 dark:text-white">
+                      <div className="text-sm text-foreground/70">Primary Goal</div>
+                      <div className="text-foreground">
                         {result.answers[8] as string}
                       </div>
                     </div>
                     <div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">Target Weight</div>
-                      <div className="text-gray-800 dark:text-white">
+                      <div className="text-sm text-foreground/70">Target Weight</div>
+                      <div className="text-foreground">
                         {result.answers[5]} kg
                       </div>
                     </div>
                     <div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">Exercise Preference</div>
-                      <div className="text-gray-800 dark:text-white">
+                      <div className="text-sm text-foreground/70">Exercise Preference</div>
+                      <div className="text-foreground">
                         {result.answers[12] as string}
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6">
-                  <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+                <div className="bg-background rounded-lg p-6">
+                  <h2 className="text-xl font-semibold text-foreground mb-4">
                     Dietary Preferences
                   </h2>
                   <div className="space-y-4">
                     <div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">Dietary Restrictions</div>
-                      <div className="text-gray-800 dark:text-white">
+                      <div className="text-sm text-foreground/70">Dietary Restrictions</div>
+                      <div className="text-foreground">
                         {result.answers[7] as string}
                       </div>
                     </div>
                     <div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">Meals per Day</div>
-                      <div className="text-gray-800 dark:text-white">
+                      <div className="text-sm text-foreground/70">Meals per Day</div>
+                      <div className="text-foreground">
                         {result.answers[9] as string}
                       </div>
                     </div>
                     <div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">Health Conditions</div>
-                      <div className="text-gray-800 dark:text-white">
+                      <div className="text-sm text-foreground/70">Health Conditions</div>
+                      <div className="text-foreground">
                         {result.answers[10] as string}
                       </div>
                     </div>

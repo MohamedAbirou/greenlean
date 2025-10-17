@@ -1,7 +1,7 @@
+import type { PlatformSettings } from "@/hooks/Queries/useSettings";
 import { motion } from "framer-motion";
 import { PenTool as Tool, Upload } from "lucide-react";
 import React from "react";
-import { PlatformSettings } from "../../../hooks/Queries/useSettings";
 
 type HandleSettingChange = <K extends keyof PlatformSettings>(
   key: K,
@@ -28,11 +28,11 @@ const CustomizationTab: React.FC<CustomizationTabProps> = ({
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="space-y-6"
+      className="space-y-4"
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="bg-background p-2 rounded-lg grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-foreground/80 mb-1">
             Platform Name
           </label>
           <input
@@ -41,16 +41,16 @@ const CustomizationTab: React.FC<CustomizationTabProps> = ({
             onChange={(e) =>
               handleSettingChange("platform_name", e.target.value)
             }
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full px-4 py-2 rounded-lg border border-border bg-input text-foreground"
             placeholder="Enter platform name..."
           />
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-foreground/70 mt-1">
             This name will appear throughout the platform
           </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-foreground/80 mb-1">
             Primary Color
           </label>
           <div className="flex items-center gap-4">
@@ -60,15 +60,15 @@ const CustomizationTab: React.FC<CustomizationTabProps> = ({
               onChange={(e) =>
                 handleSettingChange("theme_color", e.target.value)
               }
-              className="w-16 h-12 rounded-lg border border-gray-300 dark:border-gray-600 cursor-pointer"
+              className="w-16 h-12 rounded-lg border border-border cursor-pointer"
             />
             <div className="flex flex-col">
-              <span className="text-sm font-medium dark:text-white">
+              <span className="text-sm font-medium text-foreground">
                 {settings.theme_color.toUpperCase()}
               </span>
               <button
-                onClick={() => handleSettingChange("theme_color", "#10B981")}
-                className="text-sm text-green-500 hover:text-green-600 text-left"
+                onClick={() => handleSettingChange("theme_color", "#00c951")}
+                className="text-sm text-primary hover:text-primary/80 text-left cursor-pointer"
               >
                 Reset to default
               </button>
@@ -77,9 +77,9 @@ const CustomizationTab: React.FC<CustomizationTabProps> = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="bg-background p-2 rounded-lg grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-foreground/80 mb-1">
             Platform Logo
           </label>
           <div className="flex items-center gap-4">
@@ -88,17 +88,17 @@ const CustomizationTab: React.FC<CustomizationTabProps> = ({
                 <img
                   src={settings.logo_url}
                   alt="Logo preview"
-                  className="h-16 w-16 object-contain rounded-lg bg-gray-100 dark:bg-gray-700 p-2"
+                  className="h-16 w-16 object-contain rounded-lg bg-card p-2"
                 />
               ) : (
-                <div className="h-16 w-16 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                  <Tool className="h-8 w-8 text-gray-400" />
+                <div className="h-16 w-16 rounded-lg bg-card flex items-center justify-center">
+                  <Tool className="h-8 w-8 text-foreground/80" />
                 </div>
               )}
             </div>
             <div className="flex flex-col gap-2">
-              <label className="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 w-fit">
-                <Upload className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+              <label className="px-4 py-2 bg-card rounded-lg cursor-pointer hover:bg-card w-fit">
+                <Upload className="h-5 w-5 text-secondary-foreground" />
                 <input
                   type="file"
                   accept="image/png, image/svg+xml, image/jpeg"
@@ -106,7 +106,7 @@ const CustomizationTab: React.FC<CustomizationTabProps> = ({
                   className="hidden"
                 />
               </label>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-foreground/70">
                 Recommended: SVG or PNG (300x300px)
               </p>
             </div>
@@ -114,7 +114,7 @@ const CustomizationTab: React.FC<CustomizationTabProps> = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-foreground/80 mb-1">
             Favicon
           </label>
           <div className="flex items-center gap-4">
@@ -123,17 +123,17 @@ const CustomizationTab: React.FC<CustomizationTabProps> = ({
                 <img
                   src={settings.favicon_url}
                   alt="Favicon preview"
-                  className="h-12 w-12 object-contain rounded-lg bg-gray-100 dark:bg-gray-700 p-2"
+                  className="h-12 w-12 object-contain rounded-lg bg-card p-2"
                 />
               ) : (
-                <div className="h-12 w-12 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                  <Tool className="h-6 w-6 text-gray-400" />
+                <div className="h-12 w-12 rounded-lg bg-card flex items-center justify-center">
+                  <Tool className="h-6 w-6 text-foreground/80" />
                 </div>
               )}
             </div>
             <div className="flex flex-col gap-2">
-              <label className="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 w-fit">
-                <Upload className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+              <label className="px-4 py-2 bg-card rounded-lg cursor-pointer hover:bg-card w-fit">
+                <Upload className="h-5 w-5 text-secondary-foreground" />
                 <input
                   type="file"
                   accept="image/png, image/x-icon, image/svg+xml"
@@ -141,7 +141,7 @@ const CustomizationTab: React.FC<CustomizationTabProps> = ({
                   className="hidden"
                 />
               </label>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-foreground/70">
                 Recommended: ICO or PNG (32x32px)
               </p>
             </div>
@@ -149,8 +149,8 @@ const CustomizationTab: React.FC<CustomizationTabProps> = ({
         </div>
       </div>
 
-      <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-        <h3 className="text-sm font-medium dark:text-white mb-2">
+      <div className="bg-background p-2 rounded-lg">
+        <h3 className="text-sm font-medium text-foreground mb-2">
           Live Preview
         </h3>
         <div className="flex items-center gap-4">
@@ -162,8 +162,8 @@ const CustomizationTab: React.FC<CustomizationTabProps> = ({
                 className="h-8 w-8 object-contain"
               />
             ) : (
-              <div className="h-8 w-8 rounded bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
-                <Tool className="h-4 w-4 text-gray-400" />
+              <div className="h-8 w-8 rounded bg-card flex items-center justify-center">
+                <Tool className="h-4 w-4 text-foreground/80" />
               </div>
             )}
           </div>
@@ -174,7 +174,7 @@ const CustomizationTab: React.FC<CustomizationTabProps> = ({
             >
               {settings.platform_name}
             </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-300">
+            <p className="text-sm text-foreground/80">
               Platform preview text
             </p>
           </div>

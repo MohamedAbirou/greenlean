@@ -1,20 +1,35 @@
-import { X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { Challenge } from "@/types/challenge";
+import type { ColorTheme } from "@/utils/colorUtils";
 import React, { useEffect, useState } from "react";
-import { Challenge } from "../../types/challenge";
-import { ColorTheme } from "../../utils/colorUtils";
+import { Button } from "../ui/button";
+import { Checkbox } from "../ui/checkbox";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { ModalDialog } from "../ui/modal-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { Textarea } from "../ui/textarea";
 
 interface ChallengeFormProps {
   challenge?: Challenge | null;
+  open?: boolean; // make optional since you’re conditionally rendering it
+  onOpenChange: (open: boolean) => void;
   onSubmit: (data: Partial<Challenge>) => void;
-  onClose: () => void;
   colorTheme: ColorTheme;
 }
 
 const ChallengeForm: React.FC<ChallengeFormProps> = ({
   challenge,
+  open,
   onSubmit,
-  onClose,
-  colorTheme
+  onOpenChange,
+  colorTheme,
 }) => {
   const [requirementsJson, setRequirementsJson] = useState("");
   const [jsonError, setJsonError] = useState<string | null>(null);
@@ -34,18 +49,31 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({
 
   useEffect(() => {
     if (challenge) {
+      // editing existing challenge
       setFormData({
         ...challenge,
         start_date: new Date(challenge.start_date).toISOString().split("T")[0],
         end_date: new Date(challenge.end_date).toISOString().split("T")[0],
       });
-      // Initialize the JSON textarea with pretty-printed JSON
-      setRequirementsJson(JSON.stringify(challenge.requirements, null, 2));
+      setRequirementsJson(
+        JSON.stringify(challenge.requirements ?? { target: 0 }, null, 2)
+      );
     } else {
-      // Initialize with default empty requirements
+      // creating new challenge → reset form
+      setFormData({
+        title: "",
+        description: "",
+        type: "daily",
+        difficulty: "beginner",
+        points: 0,
+        requirements: { target: 0 },
+        start_date: new Date().toISOString().split("T")[0],
+        end_date: new Date().toISOString().split("T")[0],
+        is_active: true,
+      });
       setRequirementsJson(JSON.stringify({ target: 0 }, null, 2));
     }
-  }, [challenge]);
+  }, [challenge, open]); // 👈 include `open` so it runs when modal opens
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -97,200 +125,185 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold dark:text-white">
-            {challenge ? "Edit Challenge" : "Create Challenge"}
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
-          >
-            <X className="h-5 w-5 text-gray-500" />
-          </button>
+    <ModalDialog
+      open={open ?? true}
+      onOpenChange={onOpenChange ?? (() => {})}
+      title={challenge ? "Edit Challenge" : "Create Challenge"}
+      size="md"
+    >
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Title */}
+        <div>
+          <Label htmlFor="title">Title</Label>
+          <Input
+            id="title"
+            name="title"
+            value={formData.title}
+            onChange={(e) =>
+              setFormData({ ...formData, title: e.target.value })
+            }
+            placeholder="Enter challenge title"
+            required
+          />
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Description */}
+        <div>
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            name="description"
+            value={formData.description}
+            onChange={(e) =>
+              setFormData({ ...formData, description: e.target.value })
+            }
+            rows={3}
+            placeholder="Describe the challenge"
+            required
+          />
+        </div>
+
+        {/* Type & Difficulty */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Title
-            </label>
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Description
-            </label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              rows={3}
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              required
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Type
-              </label>
-              <select
-                name="type"
-                value={formData.type}
-                onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                required
-              >
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="streak">Streak</option>
-                <option value="goal">Goal</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Difficulty
-              </label>
-              <select
-                name="difficulty"
-                value={formData.difficulty}
-                onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                required
-              >
-                <option value="beginner">Beginner</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="advanced">Advanced</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Points
-              </label>
-              <input
-                type="number"
-                name="points"
-                value={formData.points}
-                onChange={handleChange}
-                min="0"
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Target
-              </label>
-              <input
-                type="number"
-                name="target"
-                value={challenge?.requirements?.target}
-                disabled
-                min="0"
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Requirements (JSON)
-            </label>
-            <textarea
-              name="requirements"
-              value={requirementsJson}
-              onChange={handleRequirementsChange}
-              rows={8}
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-mono text-sm"
-              placeholder={`Example:\n{\n  "activity": "cardio",\n  "target": 3,\n  "weekly_sessions": 3\n}`}
-            />
-            {jsonError && (
-              <p className="text-red-500 text-sm mt-1">{jsonError}</p>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Start Date
-              </label>
-              <input
-                type="date"
-                name="start_date"
-                value={formData.start_date}
-                onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                End Date
-              </label>
-              <input
-                type="date"
-                name="end_date"
-                value={formData.end_date}
-                onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              name="is_active"
-              checked={formData.is_active}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  is_active: e.target.checked,
-                }))
+            <Label>Type</Label>
+            <Select
+              value={formData.type}
+              onValueChange={(value) =>
+                setFormData({ ...formData, type: value as any })
               }
-              className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-            />
-            <label className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-              Active Challenge
-            </label>
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="daily">Daily</SelectItem>
+                <SelectItem value="weekly">Weekly</SelectItem>
+                <SelectItem value="streak">Streak</SelectItem>
+                <SelectItem value="goal">Goal</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="flex justify-end space-x-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+          <div>
+            <Label>Difficulty</Label>
+            <Select
+              value={formData.difficulty}
+              onValueChange={(value) =>
+                setFormData({ ...formData, difficulty: value as any })
+              }
             >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className={`px-4 py-2 ${colorTheme.primaryBg} text-white rounded-lg hover:${colorTheme.primaryBg}`}
-            >
-              {challenge ? "Update Challenge" : "Create Challenge"}
-            </button>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select difficulty" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="beginner">Beginner</SelectItem>
+                <SelectItem value="intermediate">Intermediate</SelectItem>
+                <SelectItem value="advanced">Advanced</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        </form>
-      </div>
-    </div>
+        </div>
+
+        {/* Points & Target */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <Label htmlFor="points">Points</Label>
+            <Input
+              type="number"
+              id="points"
+              name="points"
+              min={0}
+              value={formData.points}
+              onChange={(e) =>
+                setFormData({ ...formData, points: Number(e.target.value) })
+              }
+              required
+            />
+          </div>
+
+          <div>
+            <Label>Target</Label>
+            <Input
+              type="number"
+              disabled
+              value={formData.requirements?.target ?? 0}
+            />
+          </div>
+        </div>
+
+        {/* Requirements JSON */}
+        <div>
+          <Label htmlFor="requirements">Requirements (JSON)</Label>
+          <Textarea
+            id="requirements"
+            value={requirementsJson}
+            onChange={handleRequirementsChange}
+            rows={8}
+            className="font-mono text-sm"
+            placeholder={`Example:\n{\n  "activity": "cardio",\n  "target": 3\n}`}
+          />
+          {jsonError && (
+            <p className="text-destructive text-sm mt-1">{jsonError}</p>
+          )}
+        </div>
+
+        {/* Dates */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <Label>Start Date</Label>
+            <Input
+              type="date"
+              value={formData.start_date}
+              onChange={(e) =>
+                setFormData({ ...formData, start_date: e.target.value })
+              }
+              required
+            />
+          </div>
+          <div>
+            <Label>End Date</Label>
+            <Input
+              type="date"
+              value={formData.end_date}
+              onChange={(e) =>
+                setFormData({ ...formData, end_date: e.target.value })
+              }
+              required
+            />
+          </div>
+        </div>
+
+        {/* Active Checkbox */}
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="is_active"
+            checked={formData.is_active}
+            onCheckedChange={(checked) =>
+              setFormData({ ...formData, is_active: !!checked })
+            }
+          />
+          <Label htmlFor="is_active">Active Challenge</Label>
+        </div>
+
+        {/* Buttons */}
+        <div className="flex justify-end gap-2 pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            className={cn(`${colorTheme.primaryBg} text-white`)}
+          >
+            {challenge ? "Update Challenge" : "Create Challenge"}
+          </Button>
+        </div>
+      </form>
+    </ModalDialog>
   );
 };
 

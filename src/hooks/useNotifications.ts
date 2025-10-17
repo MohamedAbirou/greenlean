@@ -1,6 +1,6 @@
+import { useAuth } from "@/contexts/useAuth";
+import { supabase } from "@/lib/supabase";
 import { useCallback, useEffect, useState } from "react";
-import { useAuth } from "../contexts/useAuth";
-import { supabase } from "../lib/supabase";
 
 export interface Notification {
   id: string;

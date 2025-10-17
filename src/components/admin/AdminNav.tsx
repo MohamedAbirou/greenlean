@@ -1,6 +1,6 @@
+import type { ColorTheme } from '@/utils/colorUtils';
 import { Award, BarChart2, Settings, Trophy, Users } from 'lucide-react';
 import React from 'react';
-import { ColorTheme } from '../../utils/colorUtils';
 
 interface AdminNavProps {
   activeTab: string;
@@ -18,16 +18,16 @@ const AdminNav: React.FC<AdminNavProps> = ({ activeTab, setActiveTab, colorTheme
   ];
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md mb-8">
+    <div className="bg-card rounded-xl shadow-md mb-8">
       <div className="flex overflow-x-auto">
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center px-6 py-4 border-b-2 transition-colors ${
+            className={`flex items-center px-6 py-4 border-b-2 cursor-pointer transition-colors ${
               activeTab === tab.id
                 ? `${colorTheme.primaryBorder} ${colorTheme.primaryText}`
-                : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                : 'border-transparent text-foreground hover:text-primary'
             }`}
           >
             <tab.icon className="h-5 w-5 mr-2" />

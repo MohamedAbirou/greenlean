@@ -9,12 +9,12 @@
  * - Comprehensive meal information
  */
 
+import { usePlatform } from '@/contexts/PlatformContext';
+import { useMealPlanV2 } from '@/hooks/useMealPlanV2';
+import { Meal } from '@/types/mealGeneration';
+import { useColorTheme } from '@/utils/colorUtils';
+import MealFeedback from '@MealFeedback';
 import React, { useState } from 'react';
-import { usePlatform } from '../../contexts/PlatformContext';
-import { useMealPlanV2 } from '../../hooks/useMealPlanV2';
-import { Meal } from '../../types/mealGeneration';
-import { useColorTheme } from '../../utils/colorUtils';
-import MealFeedback from '../MealFeedback';
 
 interface EnhancedMealPlanSectionProps {
   className?: string;
@@ -66,12 +66,12 @@ const EnhancedMealPlanSection: React.FC<EnhancedMealPlanSectionProps> = ({ class
 
   if (loading) {
     return (
-      <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 ${className}`}>
+      <div className={`bg-background rounded-lg shadow-md p-6 ${className}`}>
         <div className="animate-pulse">
           <div className="h-6 bg-gray-200 dark:bg-gray-600 rounded w-1/4 mb-4"></div>
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+              <div key={i} className="border border-border rounded-lg p-4">
                 <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-1/3 mb-2"></div>
                 <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-1/2"></div>
               </div>
@@ -84,7 +84,7 @@ const EnhancedMealPlanSection: React.FC<EnhancedMealPlanSectionProps> = ({ class
 
   if (error) {
     return (
-      <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 ${className}`}>
+      <div className={`bg-background rounded-lg shadow-md p-6 ${className}`}>
         <div className="text-center">
           <div className="text-red-600 dark:text-red-400 mb-4">
             <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -92,7 +92,7 @@ const EnhancedMealPlanSection: React.FC<EnhancedMealPlanSectionProps> = ({ class
             </svg>
           </div>
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Error Loading Meal Plan</h3>
-          <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
+          <p className="text-secondary-foreground mb-4">{error}</p>
           <div className="space-x-3">
             <button
               onClick={generateMealPlan}
@@ -102,7 +102,7 @@ const EnhancedMealPlanSection: React.FC<EnhancedMealPlanSectionProps> = ({ class
             </button>
             <button
               onClick={clearError}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-border text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               Dismiss
             </button>
@@ -114,7 +114,7 @@ const EnhancedMealPlanSection: React.FC<EnhancedMealPlanSectionProps> = ({ class
 
   if (!meals || meals.length === 0) {
     return (
-      <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 ${className}`}>
+      <div className={`bg-background rounded-lg shadow-md p-6 ${className}`}>
         <div className="text-center">
           <div className="text-gray-400 dark:text-gray-500 mb-4">
             <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -122,7 +122,7 @@ const EnhancedMealPlanSection: React.FC<EnhancedMealPlanSectionProps> = ({ class
             </svg>
           </div>
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Meal Plan Available</h3>
-          <p className="text-gray-600 dark:text-gray-300 mb-4">Complete the health quiz to generate your personalized meal plan.</p>
+          <p className="text-secondary-foreground mb-4">Complete the health quiz to generate your personalized meal plan.</p>
           <button
             onClick={generateMealPlan}
             className={`px-4 py-2 ${colorTheme.primaryBg} text-white rounded-md ${colorTheme.primaryHover} focus:outline-none focus:ring-2 focus:ring-blue-500`}
@@ -135,12 +135,12 @@ const EnhancedMealPlanSection: React.FC<EnhancedMealPlanSectionProps> = ({ class
   }
 
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 ${className}`}>
+    <div className={`bg-background rounded-lg shadow-md p-6 ${className}`}>
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Your Meal Plan</h2>
-          <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600 dark:text-gray-300">
+          <div className="flex items-center space-x-4 mt-2 text-sm text-secondary-foreground">
             <span>Generated: {lastGenerated?.toLocaleDateString()}</span>
             <span className={`px-2 py-1 rounded-full text-xs ${
               mlEnabled ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'
@@ -159,24 +159,24 @@ const EnhancedMealPlanSection: React.FC<EnhancedMealPlanSectionProps> = ({ class
 
       {/* Macro Summary */}
       {macroTargets && (
-        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
+        <div className="bg-card rounded-lg p-4 mb-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Daily Macro Targets</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{Math.round(macroTargets.calories)}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-300">Calories</div>
+              <div className="text-sm text-secondary-foreground">Calories</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600 dark:text-green-400">{Math.round(macroTargets.protein)}g</div>
-              <div className="text-sm text-gray-600 dark:text-gray-300">Protein</div>
+              <div className="text-sm text-secondary-foreground">Protein</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{Math.round(macroTargets.carbs)}g</div>
-              <div className="text-sm text-gray-600 dark:text-gray-300">Carbs</div>
+              <div className="text-sm text-secondary-foreground">Carbs</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{Math.round(macroTargets.fats)}g</div>
-              <div className="text-sm text-gray-600 dark:text-gray-300">Fats</div>
+              <div className="text-sm text-secondary-foreground">Fats</div>
             </div>
           </div>
         </div>
@@ -185,12 +185,12 @@ const EnhancedMealPlanSection: React.FC<EnhancedMealPlanSectionProps> = ({ class
       {/* Meals */}
       <div className="space-y-4">
         {meals.map((meal, index) => (
-          <div key={index} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
+          <div key={index} className="border border-border rounded-lg p-4 hover:shadow-md transition-shadow bg-background">
             <div className="flex justify-between items-start mb-3">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{meal.name}</h3>
                 {meal.templateName && (
-                  <p className="text-sm text-gray-600 dark:text-gray-300">Template: {meal.templateName}</p>
+                  <p className="text-sm text-secondary-foreground">Template: {meal.templateName}</p>
                 )}
               </div>
               <button
@@ -205,14 +205,14 @@ const EnhancedMealPlanSection: React.FC<EnhancedMealPlanSectionProps> = ({ class
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <div>
                 <h4 className="font-medium text-gray-900 dark:text-white mb-2">Nutrition</h4>
-                <div className="text-sm text-gray-600 dark:text-gray-300">
+                <div className="text-sm text-secondary-foreground">
                   <div>{Math.round(meal.total.calories)} calories</div>
                   <div>{formatMacros(meal.total)}</div>
                 </div>
               </div>
               <div>
                 <h4 className="font-medium text-gray-900 dark:text-white mb-2">Details</h4>
-                <div className="text-sm text-gray-600 dark:text-gray-300">
+                <div className="text-sm text-secondary-foreground">
                   {meal.difficulty && <div>Difficulty: {meal.difficulty}</div>}
                   {meal.prepTime && <div>Prep time: {meal.prepTime} min</div>}
                 </div>

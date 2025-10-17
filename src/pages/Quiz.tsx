@@ -1,3 +1,20 @@
+import AuthModal from "@/components/auth/AuthModal";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { usePlatform } from "@/contexts/PlatformContext";
+import { useAuth } from "@/contexts/useAuth";
+import { supabase } from "@/lib/supabase";
+import { useColorTheme } from "@/utils/colorUtils";
+import { logFrontendError, logInfo } from "@/utils/errorLogger";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowRight,
@@ -9,13 +26,7 @@ import {
 } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import AuthModal from "../components/auth/AuthModal";
-import { usePlatform } from "../contexts/PlatformContext";
-import { useAuth } from "../contexts/useAuth";
-import { supabase } from "../lib/supabase";
-import { useColorTheme } from "../utils/colorUtils";
-import { logFrontendError, logInfo } from "../utils/errorLogger";
-// import { convertQuizAnswersToUserProfile, calculateMacroTargets, MealGeneratorV2 } from "../utils/mealGenerationV2";
+// import { convertQuizAnswersToUserProfile, calculateMacroTargets, MealGeneratorV2 } from "@/utils/mealGenerationV2";
 
 interface Question {
   id: number;
@@ -30,11 +41,48 @@ interface Question {
 }
 
 const questions: Question[] = [
-  { id: 1, question: "How old are you?", type: "number", min: 12, max: 100, required: true },
-  { id: 2, question: "What is your gender?", type: "select", options: ["Male", "Female"], required: true },
-  { id: 3, question: "What is your current weight?", type: "number", unit: "kg", min: 30, max: 300, required: true },
-  { id: 4, question: "What is your height?", type: "number", unit: "cm", min: 100, max: 250, required: true },
-  { id: 5, question: "What is your target weight?", type: "number", unit: "kg", min: 30, max: 300, required: true },
+  {
+    id: 1,
+    question: "How old are you?",
+    type: "number",
+    min: 12,
+    max: 100,
+    required: true,
+  },
+  {
+    id: 2,
+    question: "What is your gender?",
+    type: "select",
+    options: ["Male", "Female"],
+    required: true,
+  },
+  {
+    id: 3,
+    question: "What is your current weight?",
+    type: "number",
+    unit: "kg",
+    min: 30,
+    max: 300,
+    required: true,
+  },
+  {
+    id: 4,
+    question: "What is your height?",
+    type: "number",
+    unit: "cm",
+    min: 100,
+    max: 250,
+    required: true,
+  },
+  {
+    id: 5,
+    question: "What is your target weight?",
+    type: "number",
+    unit: "kg",
+    min: 30,
+    max: 300,
+    required: true,
+  },
   {
     id: 6,
     question: "How active are you on a typical day?",
@@ -82,14 +130,27 @@ const questions: Question[] = [
     id: 9,
     question: "How many meals do you prefer each day?",
     type: "select",
-    options: ["2 (intermittent fasting)", "3 (standard)", "4 meals", "5 meals", "6 small meals"],
+    options: [
+      "2 (intermittent fasting)",
+      "3 (standard)",
+      "4 meals",
+      "5 meals",
+      "6 small meals",
+    ],
     required: true,
   },
   {
     id: 10,
     question: "Do you have any health conditions we should consider?",
     type: "select",
-    options: ["None", "Diabetes", "High blood pressure", "Heart disease", "Thyroid issues", "Other"],
+    options: [
+      "None",
+      "Diabetes",
+      "High blood pressure",
+      "Heart disease",
+      "Thyroid issues",
+      "Other",
+    ],
     required: true,
     info: "This ensures your plan is safe and effective",
   },
@@ -122,7 +183,6 @@ const Quiz: React.FC = () => {
   );
   const [errors, setErrors] = useState<{ [key: number]: string }>({});
   const [completed, setCompleted] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
   const platform = usePlatform();
@@ -254,7 +314,10 @@ const Quiz: React.FC = () => {
     let goalCalories = tdee;
 
     // Calculate safe minimum calories (never below BMR * 1.1 for safety)
-    const safeMinimumCalories = Math.max(bmr * 1.1, gender === "Male" ? 1500 : 1200);
+    const safeMinimumCalories = Math.max(
+      bmr * 1.1,
+      gender === "Male" ? 1500 : 1200
+    );
     const safeMaximumCalories = tdee + 500; // Maximum safe surplus
 
     if (goal === "Lose fat") {
@@ -273,7 +336,10 @@ const Quiz: React.FC = () => {
     }
 
     // Final safety check
-    goalCalories = Math.max(safeMinimumCalories, Math.min(goalCalories, safeMaximumCalories));
+    goalCalories = Math.max(
+      safeMinimumCalories,
+      Math.min(goalCalories, safeMaximumCalories)
+    );
     goalCalories = Math.round(goalCalories);
 
     // --- Estimate Time to Reach Goal ---
@@ -325,7 +391,7 @@ const Quiz: React.FC = () => {
         // try {
         //   const userProfile = convertQuizAnswersToUserProfile(answers, user.id);
         //   const macroTargets = calculateMacroTargets(userProfile, calculations.dailyCalorieTarget);
-          
+
         //   const generator = new MealGeneratorV2({
         //     enableMLPredictions: false, // Disable ML for initial generation
         //     maxTemplatesToConsider: 10,
@@ -338,7 +404,7 @@ const Quiz: React.FC = () => {
         //   });
 
         //   const meals = await generator.generateMealPlan(userProfile, macroTargets);
-          
+
         //   // Store the generated meal plan in localStorage for immediate access
         //   localStorage.setItem("generatedMealPlan", JSON.stringify({
         //     meals,
@@ -361,7 +427,6 @@ const Quiz: React.FC = () => {
         //   );
         //   // Don't block navigation if meal generation fails
         // }
-
       } catch (err) {
         console.error("Error saving quiz result:", err);
         await logFrontendError(
@@ -386,16 +451,16 @@ const Quiz: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.3 }}
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8"
+        className="bg-background rounded-2xl shadow-lg p-8"
       >
         <div className="flex items-start justify-between mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+          <h2 className="text-2xl font-bold text-foreground">
             {currentQuestion.question}
           </h2>
           {currentQuestion.info && (
             <div className="group relative">
-              <Info className="h-5 w-5 text-gray-400 cursor-help" />
-              <div className="absolute right-0 w-64 p-3 bg-gray-800 text-white text-sm rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+              <Info className="h-5 w-5 text-foreground cursor-help" />
+              <div className="absolute right-0 w-64 p-3 bg-background text-foreground text-sm rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
                 {currentQuestion.info}
               </div>
             </div>
@@ -404,46 +469,49 @@ const Quiz: React.FC = () => {
 
         {currentQuestion.type === "select" && (
           <div className="space-y-3">
-            <select
-              className={`w-full p-4 text-lg border rounded-xl bg-white dark:bg-gray-700 dark:text-gray-200 ${
-                error
-                  ? "border-red-500 dark:border-red-400"
-                  : "border-gray-300 dark:border-gray-600"
-              }`}
+            <Select
               value={(answers[currentQuestion.id] as string) || ""}
-              onChange={(e) => handleAnswer(e.target.value)}
+              onValueChange={(val) => handleAnswer(val)}
             >
-              <option value="">Select an option</option>
-              {currentQuestion.options?.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger
+                className={`w-full ${
+                  error ? "border-red-500 dark:border-red-400" : "border-border"
+                }`}
+              >
+                <SelectValue placeholder="Select an option" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {currentQuestion.options?.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </div>
         )}
 
         {currentQuestion.type === "number" && (
           <div className="relative">
-            <input
+            <Input
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
-              className={`w-full p-4 text-lg text-center font-semibold border rounded-xl bg-white dark:bg-gray-700 dark:text-gray-200 ${
-                error
-                  ? "border-red-500 dark:border-red-400"
-                  : "border-gray-300 dark:border-gray-600"
+              className={`w-full text-center md:text-lg font-semibold ${
+                error ? "border-red-500 dark:border-red-400" : "border-border"
               }`}
               value={answers[currentQuestion.id] || ""}
               onChange={handleNumberInput}
               placeholder="Enter a number"
             />
             {currentQuestion.unit && (
-              <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">
+              <span className="absolute right-4 top-4 transform -translate-y-1/2 text-foreground/70">
                 {currentQuestion.unit}
               </span>
             )}
-            <div className="mt-2 flex justify-between text-sm text-gray-500 dark:text-gray-400">
+            <div className="mt-2 flex justify-between text-sm text-foreground/70">
               <span>Min: {currentQuestion.min}</span>
               <span>Max: {currentQuestion.max}</span>
             </div>
@@ -451,23 +519,51 @@ const Quiz: React.FC = () => {
         )}
 
         {currentQuestion.type === "radio" && (
+          <RadioGroup
+            value={answers[currentQuestion.id] as string}
+            onValueChange={(val) => handleAnswer(val)}
+          >
+            {currentQuestion.options?.map((option) => (
+              <label
+                key={option}
+                className={`flex items-center w-full p-3 rounded-xl border cursor-pointer transition-all duration-300 ${
+                  answers[currentQuestion.id] === option
+                    ? `${colorTheme.primaryBorder} ${colorTheme.primaryBg} dark:${colorTheme.primaryDark}/20 dark:${colorTheme.primaryText} shadow-md`
+                    : "border-border hover:border-border"
+                }`}
+              >
+                <RadioGroupItem
+                  value={option}
+                  className={`w-5 h-5 rounded-full border-2 flex-shrink-0 mr-3 ${
+                    answers[currentQuestion.id] === option
+                      ? `${colorTheme.primaryBorder} bg-primary`
+                      : "border-border bg-background"
+                  }`}
+                />
+                <span>{option}</span>
+              </label>
+            ))}
+          </RadioGroup>
+        )}
+
+        {/* {currentQuestion.type === "radio" && (
           <div className="space-y-3">
             {currentQuestion.options?.map((option) => (
               <button
                 key={option}
-                className={`w-full p-4 text-left rounded-xl border transition-all duration-300 ${
+                className={`w-full p-4 text-left rounded-xl border bg-input text-foreground transition-all duration-300 ${
                   answers[currentQuestion.id] === option
-                    ? `${colorTheme.primaryBorder} ${colorTheme.primaryBg} dark:${colorTheme.primaryDark}/20 text-gray-50 dark:${colorTheme.primaryText} shadow-md`
-                    : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-700 dark:text-gray-300"
+                    ? `${colorTheme.primaryBorder} ${colorTheme.primaryBg} dark:${colorTheme.primaryDark}/20 dark:${colorTheme.primaryText} shadow-md`
+                    : "border-border hover:border-border"
                 }`}
                 onClick={() => handleAnswer(option)}
               >
                 <div className="flex items-center">
                   <div
-                    className={`flex-shrink-0 w-6 h-6 rounded-full border-2 ${
+                    className={`flex-shrink-0 w-6 h-6 rounded-full bg-background border-2 ${
                       answers[currentQuestion.id] === option
-                        ? `${colorTheme.primaryBorder} bg-green-500`
-                        : "border-gray-300 dark:border-gray-600"
+                        ? `${colorTheme.primaryBorder} bg-primary`
+                        : "border-border"
                     } flex items-center justify-center mr-3`}
                   >
                     {answers[currentQuestion.id] === option && (
@@ -479,7 +575,7 @@ const Quiz: React.FC = () => {
               </button>
             ))}
           </div>
-        )}
+        )} */}
 
         {error && (
           <p className="mt-3 text-sm text-red-500 dark:text-red-400">{error}</p>
@@ -491,41 +587,30 @@ const Quiz: React.FC = () => {
   if (!user) {
     return (
       <div className="min-h-screen pt-24 pb-16 bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 text-center"
-            >
-              <LogIn
-                className={`h-16 w-16 ${colorTheme.primaryText} mx-auto mb-6`}
-              />
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
-                Sign In to Take the Quiz
-              </h2>
-              <p className="text-gray-600 dark:text-gray-300 mb-8">
-                To get your personalized diet and exercise plan, please sign in
-                or create an account. It's completely free!
-              </p>
-              <button
-                onClick={() => setShowAuthModal(true)}
-                className={`px-6 py-3 ${colorTheme.primaryBg} text-white font-semibold rounded-full ${colorTheme.primaryHover} transition-colors inline-flex items-center`}
-              >
-                Sign In to Continue
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </button>
-            </motion.div>
-          </div>
-        </div>
-        <AnimatePresence>
-          {showAuthModal && (
-            <AuthModal
-              isOpen={showAuthModal}
-              onClose={() => setShowAuthModal(false)}
+        <div className="container max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-background rounded-2xl shadow-lg p-8 text-center"
+          >
+            <LogIn
+              className={`h-16 w-16 ${colorTheme.primaryText} mx-auto mb-6`}
             />
-          )}
-        </AnimatePresence>
+            <h2 className="text-2xl font-bold text-foreground mb-4">
+              Sign In to Take the Quiz
+            </h2>
+            <p className="text-foreground mb-8">
+              To get your personalized diet and exercise plan, please sign in or
+              create an account. It's completely free!
+            </p>
+            <AuthModal
+              colorTheme={colorTheme}
+              classNames="w-full"
+              size="lg"
+              btnContent="Sign In to Continue"
+            />
+          </motion.div>
+        </div>
       </div>
     );
   }
@@ -539,7 +624,7 @@ const Quiz: React.FC = () => {
               <>
                 <div className="mb-8 text-center">
                   <motion.h1
-                    className="text-4xl font-bold text-gray-800 dark:text-white mb-4"
+                    className="text-4xl font-bold text-foreground mb-4"
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
@@ -547,7 +632,7 @@ const Quiz: React.FC = () => {
                     Create Your Personalized Plan
                   </motion.h1>
                   <motion.p
-                    className="text-lg text-gray-600 dark:text-gray-300"
+                    className="text-lg text-foreground"
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.1 }}
@@ -557,7 +642,7 @@ const Quiz: React.FC = () => {
                 </div>
 
                 <motion.div
-                  className="mb-8 bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden"
+                  className="mb-8 bg-card rounded-full h-2 overflow-hidden"
                   initial={{ opacity: 0, scaleX: 0 }}
                   animate={{ opacity: 1, scaleX: 1 }}
                   transition={{ duration: 0.5 }}
@@ -573,26 +658,25 @@ const Quiz: React.FC = () => {
                 {renderQuestion()}
 
                 <div className="flex justify-between mt-8">
-                  <button
+                  <Button
+                    variant="outline"
                     onClick={handlePrevious}
-                    className={`flex items-center px-6 py-3 rounded-xl transition-colors ${
-                      currentQuestionIndex === 0
-                        ? "opacity-0 cursor-default"
-                        : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    className={`flex items-center ${
+                      currentQuestionIndex === 0 ? "opacity-0" : ""
                     }`}
                     disabled={currentQuestionIndex === 0}
                   >
                     <ChevronLeft className="mr-2 h-5 w-5" />
                     Previous
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     onClick={handleNext}
-                    className={`flex items-center px-6 py-3 rounded-xl font-semibold transition-colors ${
+                    className={`flex items-center ${
                       answers[currentQuestion.id] === undefined ||
                       answers[currentQuestion.id] === ""
-                        ? "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-                        : `${colorTheme.primaryBg} ${colorTheme.primaryHover} text-white`
+                        ? "bg-button disabled:bg-button/30 text-foreground cursor-not-allowed"
+                        : `${colorTheme.primaryBg} ${colorTheme.primaryHover} text-white cursor-pointer`
                     }`}
                     disabled={
                       answers[currentQuestion.id] === undefined ||
@@ -610,7 +694,7 @@ const Quiz: React.FC = () => {
                         <ArrowRight className="ml-2 h-5 w-5" />
                       </>
                     )}
-                  </button>
+                  </Button>
                 </div>
               </>
             ) : (
@@ -618,17 +702,17 @@ const Quiz: React.FC = () => {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5 }}
-                className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 text-center"
+                className="bg-background rounded-2xl shadow-lg p-8 text-center"
               >
                 <div
                   className={`w-16 h-16 ${colorTheme.primaryBg}/20 dark:bg-${colorTheme.primaryDark}/20 rounded-full flex items-center justify-center mx-auto mb-6`}
                 >
                   <Check className={`h-8 w-8 ${colorTheme.primaryText}`} />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
+                <h2 className="text-2xl font-bold text-foreground mb-4">
                   Creating Your Personalized Plan
                 </h2>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">
+                <p className="text-foreground mb-6">
                   We're analyzing your responses to create a customized diet and
                   exercise plan that fits your goals and lifestyle.
                 </p>

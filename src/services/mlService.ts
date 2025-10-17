@@ -9,7 +9,7 @@ import {
     MacroTargets,
     MealFeedback,
     UserProfile
-} from '../types/mealGeneration';
+} from '@/types/mealGeneration';
 
 const ML_SERVICE_URL = process.env.REACT_APP_ML_SERVICE_URL || 'http://localhost:8000';
 

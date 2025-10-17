@@ -1,8 +1,8 @@
+import { useAuth } from "@/contexts/useAuth";
+import { supabase } from "@/lib/supabase";
+import type { ActivityFormData, ActivityLog, DashboardStats } from "@/types/dashboard";
+import { logError } from "@/utils/errorLogger";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useAuth } from "../contexts/useAuth";
-import { supabase } from "../lib/supabase";
-import { ActivityLog, ActivityFormData, DashboardStats } from "../types/dashboard";
-import { logError } from "../utils/errorLogger";
 
 export const useLogManager = () => {
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);

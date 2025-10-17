@@ -1,6 +1,6 @@
+import type { PlatformSettings } from "@/hooks/Queries/useSettings";
 import { motion } from "framer-motion";
 import React from "react";
-import { PlatformSettings } from "../../../hooks/Queries/useSettings";
 
 type HandleSettingChange = <K extends keyof PlatformSettings>(
   key: K,
@@ -20,12 +20,12 @@ const MaintenanceTab: React.FC<MaintenanceTabProps> = ({
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="space-y-6"
+      className="space-y-4"
     >
-      <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+      <div className="flex items-center justify-between p-2 bg-background rounded-lg">
         <div>
           <p className="font-medium dark:text-white">Maintenance Mode</p>
-          <p className="text-sm text-gray-500 dark:text-gray-300">
+          <p className="text-sm text-foreground/80">
             Enable maintenance mode to restrict access
           </p>
         </div>
@@ -38,12 +38,12 @@ const MaintenanceTab: React.FC<MaintenanceTabProps> = ({
             }
             className="sr-only peer"
           />
-          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
+          <div className="w-11 h-6 bg-card peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
         </label>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="block text-sm font-medium text-foreground/80 mb-1">
           Maintenance Message
         </label>
         <textarea
@@ -52,14 +52,14 @@ const MaintenanceTab: React.FC<MaintenanceTabProps> = ({
             handleSettingChange("maintenance_message", e.target.value)
           }
           rows={3}
-          className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-y max-h-40"
+          className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground resize-y max-h-40"
           placeholder="Enter maintenance message..."
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-foreground/80 mb-1">
             Start Time
           </label>
           <input
@@ -68,12 +68,12 @@ const MaintenanceTab: React.FC<MaintenanceTabProps> = ({
             onChange={(e) =>
               handleSettingChange("maintenance_start_time", e.target.value)
             }
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-foreground/80 mb-1">
             End Time
           </label>
           <input
@@ -82,7 +82,7 @@ const MaintenanceTab: React.FC<MaintenanceTabProps> = ({
             onChange={(e) =>
               handleSettingChange("maintenance_end_time", e.target.value)
             }
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground"
           />
         </div>
       </div>

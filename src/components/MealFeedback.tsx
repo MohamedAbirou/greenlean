@@ -10,10 +10,10 @@
  * - Consumption tracking
  */
 
+import { useAuth } from '@/contexts/useAuth';
+import { useMealFeedback } from '@/hooks/useMealPlanV2';
+import { MealFeedback as MealFeedbackType } from '@/types/mealGeneration';
 import React, { useState } from 'react';
-import { useAuth } from '../contexts/useAuth';
-import { useMealFeedback } from '../hooks/useMealPlanV2';
-import { MealFeedback as MealFeedbackType } from '../types/mealGeneration';
 
 interface MealFeedbackProps {
   mealId: string;

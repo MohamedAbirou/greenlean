@@ -1,17 +1,17 @@
-import { supabase } from "../lib/supabase";
+import { supabase } from "@/lib/supabase";
 import {
-  FoodHealthMapping,
-  GenerationLog,
-  HealthConditions,
-  Macros,
-  MacroTargets,
-  Meal,
-  MealGenerationConfig,
-  MealTemplate,
-  TemplateScore,
-  UserPreference,
-  UserProfile
-} from "../types/mealGeneration";
+    FoodHealthMapping,
+    GenerationLog,
+    HealthConditions,
+    Macros,
+    MacroTargets,
+    Meal,
+    MealGenerationConfig,
+    MealTemplate,
+    TemplateScore,
+    UserPreference,
+    UserProfile
+} from "@/types/mealGeneration";
 import { logError } from "./errorLogger";
 import { foods } from "./foods";
 import { mealTemplates } from "./mealTemplates";

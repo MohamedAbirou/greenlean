@@ -1,7 +1,8 @@
+
+import type { Comment } from "@/types/community";
+import { formatNumber } from "@/utils/formatters";
 import { Heart } from "lucide-react";
 import React from "react";
-import { Comment } from "../../types/community";
-import { formatNumber } from "../../utils/formatters";
 import { UserAvatar } from "../ui/UserAvatar";
 
 interface CommentItemProps {
@@ -25,22 +26,22 @@ export const CommentItem: React.FC<CommentItemProps> = ({
         size="md"
       />
       <div className="flex-grow">
-        <div className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 rounded-lg px-2 py-1">
+        <div className="flex items-center justify-between bg-background rounded-sm px-2 py-1">
           <div>
-            <p className="font-medium text-xs text-gray-800 dark:text-white">
+            <p className="font-medium text-xs text-foreground">
               {comment.user.username}
             </p>
-            <p className="text-gray-600 text-sm dark:text-gray-300">
+            <p className="text-foreground/90 text-sm">
               {comment.content}
             </p>
           </div>
           <button
             onClick={onLike}
-            className="flex items-center text-black dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400"
+            className="flex items-center text-foreground hover:text-destructive cursor-pointer"
           >
             <Heart
               className={`h-4 w-4 ${
-                comment.liked_by_user ? "fill-red-500 text-red-500" : ""
+                comment.liked_by_user ? "fill-destructive text-destructive" : ""
               }`}
             />
             <span className="ml-1 text-xs font-semibold">
@@ -51,7 +52,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
         {!isReply && (
           <button
             onClick={onReplyClick}
-            className="text-xs ml-2 text-gray-500 dark:text-gray-400"
+            className="text-xs ml-2 text-foreground/80 cursor-pointer"
           >
             Reply • {comment.replies_count || 0}
           </button>

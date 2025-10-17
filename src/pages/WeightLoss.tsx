@@ -1,9 +1,9 @@
+import { usePlatform } from '@/contexts/PlatformContext';
+import { useColorTheme } from '@/utils/colorUtils';
 import { motion } from 'framer-motion';
 import { ArrowRight, BarChart, Clock, Tag } from 'lucide-react';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { usePlatform } from '../contexts/PlatformContext';
-import { useColorTheme } from '../utils/colorUtils';
 
 interface Exercise {
   id: number;
@@ -139,11 +139,11 @@ const WeightLoss: React.FC = () => {
   const categories = ['All', 'Cardio', 'Strength', 'Flexibility'];
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen pt-24 pb-16 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">Weight Loss Programs</h1>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+          <h1 className="text-3xl font-bold text-foreground mb-4">Weight Loss Programs</h1>
+          <p className="text-lg text-foreground/80 max-w-2xl mx-auto">
             Discover effective workout routines and weight loss strategies to help you reach your fitness goals.
           </p>
         </div>
@@ -174,12 +174,12 @@ const WeightLoss: React.FC = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 dark:border-gray-700 mb-8">
+        <div className="flex border-b border-border mb-8">
           <button
             className={`py-3 px-6 font-medium border-b-2 ${
               activeTab === 'exercises' 
                 ? `${colorTheme.primaryBorder} ${colorTheme.primaryText} dark:${colorTheme.primaryText}` 
-                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                : 'border-transparent text-foreground hover:text-primary cursor-pointer'
             }`}
             onClick={() => setActiveTab('exercises')}
           >
@@ -189,7 +189,7 @@ const WeightLoss: React.FC = () => {
             className={`py-3 px-6 font-medium border-b-2 ${
               activeTab === 'tips' 
                 ? `${colorTheme.primaryBorder} ${colorTheme.primaryText} dark:${colorTheme.primaryText}` 
-                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                : 'border-transparent text-foreground hover:text-primary cursor-pointer'
             }`}
             onClick={() => setActiveTab('tips')}
           >
@@ -205,10 +205,10 @@ const WeightLoss: React.FC = () => {
               {categories.map((category) => (
                 <button
                   key={category}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  className={`px-4 py-2 rounded-full cursor-pointer text-sm font-medium transition-colors ${
                     activeCategory === category
                       ? `${colorTheme.primaryBg} text-white`
-                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      : 'bg-card text-foreground/90 hover:bg-primary'
                   }`}
                   onClick={() => setActiveCategory(category)}
                 >
@@ -222,7 +222,7 @@ const WeightLoss: React.FC = () => {
               {filteredExercises.map((exercise, index) => (
                 <motion.div
                   key={exercise.id}
-                  className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                  className="bg-card rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.1 }}
@@ -255,8 +255,8 @@ const WeightLoss: React.FC = () => {
                     </div>
                   </div>
                   <div className="p-6">
-                    <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">{exercise.title}</h3>
-                    <p className="text-gray-600 dark:text-gray-300 mb-4">{exercise.description}</p>
+                    <h3 className="text-xl font-bold text-foreground mb-2">{exercise.title}</h3>
+                    <p className="text-foreground/80 mb-4">{exercise.description}</p>
                     <Link 
                       to={`/weight-loss/${exercise.id}`} 
                         className={`inline-flex items-center ${colorTheme.primaryText} hover:${colorTheme.primaryText} font-medium`}
@@ -272,8 +272,8 @@ const WeightLoss: React.FC = () => {
 
         {/* Weight Loss Tips */}
         {activeTab === 'tips' && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Essential Weight Loss Tips</h2>
+          <div className="bg-card rounded-xl shadow-md p-3">
+            <h2 className="text-2xl font-bold text-foreground mb-6">Essential Weight Loss Tips</h2>
             
             <div className="space-y-8">
               {[
@@ -320,8 +320,8 @@ const WeightLoss: React.FC = () => {
                     {tip.icon}
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">{tip.title}</h3>
-                    <p className="text-gray-600 dark:text-gray-300">{tip.description}</p>
+                    <h3 className="text-lg font-semibold text-foreground mb-2">{tip.title}</h3>
+                    <p className="text-foreground/80">{tip.description}</p>
                   </div>
                 </motion.div>
               ))}

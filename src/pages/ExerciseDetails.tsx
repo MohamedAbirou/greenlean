@@ -1,7 +1,6 @@
+import { ArrowLeft, BarChart, Check, Clock, Tag } from 'lucide-react';
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowLeft, Clock, BarChart, Tag, Check } from 'lucide-react';
+import { Link, useParams } from 'react-router-dom';
 
 interface Exercise {
   id: number;
@@ -484,10 +483,10 @@ const ExerciseDetails: React.FC = () => {
 
   if (!exercise) {
     return (
-      <div className="min-h-screen pt-24 pb-16 bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen pt-24 pb-16 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Exercise Not Found</h1>
+            <h1 className="text-2xl font-bold text-foreground mb-4">Exercise Not Found</h1>
             <Link 
               to="/weight-loss" 
               className="text-green-500 hover:text-green-600 inline-flex items-center"
@@ -502,7 +501,7 @@ const ExerciseDetails: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen pt-24 pb-16 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <Link 
@@ -514,7 +513,7 @@ const ExerciseDetails: React.FC = () => {
         </Link>
 
         {/* Hero Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden mb-8">
+        <div className="bg-background rounded-xl shadow-md overflow-hidden mb-8">
           <div className="md:flex">
             <div className="md:w-1/2">
               <img 
@@ -524,24 +523,24 @@ const ExerciseDetails: React.FC = () => {
               />
             </div>
             <div className="p-6 md:w-1/2">
-              <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">{exercise.title}</h1>
-              <p className="text-gray-600 dark:text-gray-300 mb-6">{exercise.description}</p>
+              <h1 className="text-3xl font-bold text-foreground mb-4">{exercise.title}</h1>
+              <p className="text-secondary-foreground mb-6">{exercise.description}</p>
               
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="flex items-center">
                   <Clock className="h-5 w-5 text-green-500 mr-2" />
-                  <span className="text-gray-600 dark:text-gray-300">{exercise.duration}</span>
+                  <span className="text-secondary-foreground">{exercise.duration}</span>
                 </div>
                 <div className="flex items-center">
                   <BarChart className="h-5 w-5 text-red-500 mr-2" />
-                  <span className="text-gray-600 dark:text-gray-300">{exercise.intensity} Intensity</span>
+                  <span className="text-secondary-foreground">{exercise.intensity} Intensity</span>
                 </div>
                 <div className="flex items-center">
                   <Tag className="h-5 w-5 text-blue-500 mr-2" />
-                  <span className="text-gray-600 dark:text-gray-300">{exercise.category}</span>
+                  <span className="text-secondary-foreground">{exercise.category}</span>
                 </div>
                 <div className="flex items-center">
-                  <span className="text-gray-600 dark:text-gray-300">{exercise.calories} calories</span>
+                  <span className="text-secondary-foreground">{exercise.calories} calories</span>
                 </div>
               </div>
             </div>
@@ -549,8 +548,8 @@ const ExerciseDetails: React.FC = () => {
         </div>
 
         {/* Video Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
-          <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Video Demonstration</h2>
+        <div className="bg-background rounded-xl shadow-md p-6 mb-8">
+          <h2 className="text-xl font-bold text-foreground mb-4">Video Demonstration</h2>
           <div className="relative pb-[56.25%] h-0">
             <iframe
               src={`https://www.youtube-nocookie.com/embed/${exercise.videoId}`}
@@ -564,27 +563,27 @@ const ExerciseDetails: React.FC = () => {
 
         {/* Instructions and Tips */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-            <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Instructions</h2>
+          <div className="bg-background rounded-xl shadow-md p-6">
+            <h2 className="text-xl font-bold text-foreground mb-4">Instructions</h2>
             <ol className="space-y-3">
               {exercise.instructions.map((instruction, index) => (
                 <li key={index} className="flex items-start">
                   <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-green-100 dark:bg-green-900 text-green-500 mr-3">
                     {index + 1}
                   </span>
-                  <span className="text-gray-600 dark:text-gray-300">{instruction}</span>
+                  <span className="text-secondary-foreground">{instruction}</span>
                 </li>
               ))}
             </ol>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-            <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Tips</h2>
+          <div className="bg-background rounded-xl shadow-md p-6">
+            <h2 className="text-xl font-bold text-foreground mb-4">Tips</h2>
             <ul className="space-y-3">
               {exercise.tips.map((tip, index) => (
                 <li key={index} className="flex items-start">
                   <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-600 dark:text-gray-300">{tip}</span>
+                  <span className="text-secondary-foreground">{tip}</span>
                 </li>
               ))}
             </ul>
@@ -593,25 +592,25 @@ const ExerciseDetails: React.FC = () => {
 
         {/* Benefits and Equipment */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-            <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Benefits</h2>
+          <div className="bg-background rounded-xl shadow-md p-6">
+            <h2 className="text-xl font-bold text-foreground mb-4">Benefits</h2>
             <ul className="space-y-3">
               {exercise.benefits.map((benefit, index) => (
                 <li key={index} className="flex items-start">
                   <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-600 dark:text-gray-300">{benefit}</span>
+                  <span className="text-secondary-foreground">{benefit}</span>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-            <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Equipment Needed</h2>
+          <div className="bg-background rounded-xl shadow-md p-6">
+            <h2 className="text-xl font-bold text-foreground mb-4">Equipment Needed</h2>
             <ul className="space-y-3">
               {exercise.equipment.map((item, index) => (
                 <li key={index} className="flex items-start">
                   <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-600 dark:text-gray-300">{item}</span>
+                  <span className="text-secondary-foreground">{item}</span>
                 </li>
               ))}
             </ul>

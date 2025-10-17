@@ -26,7 +26,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
 
   return (
     <div
-      className={`${sizeClasses[size]} rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden flex-shrink-0`}
+      className={`${sizeClasses[size]} rounded-full bg-button overflow-hidden flex-shrink-0`}
     >
       {avatarUrl ? (
         <img
@@ -35,7 +35,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
           className="w-full h-full object-cover"
         />
       ) : (
-        <div className="w-full h-full flex items-center justify-center text-gray-500 dark:text-gray-400">
+        <div className="w-full h-full flex items-center justify-center bg-background text-foreground/80">
           <Users className={iconSizes[size]} />
         </div>
       )}

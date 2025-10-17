@@ -14,31 +14,31 @@ const DeleteModal: React.FC<DeleteModalProps> = ({
   error,
 }) => {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 w-full max-w-sm relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="bg-background rounded-xl shadow-lg p-3 w-full max-w-sm relative">
         <button
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+          className="absolute top-4 right-4 text-foreground hover:text-foreground/80 cursor-pointer"
           onClick={onClose}
         >
           <X className="h-6 w-6" />
         </button>
-        <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6">
+        <h2 className="text-xl font-bold text-foreground mb-6">
           Delete Activity
         </h2>
         <p className="mb-6 text-gray-700 dark:text-gray-300">
           Are you sure you want to delete this activity log?
         </p>
-        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+        {error && <p className="text-destructive-foreground text-sm mb-2">{error}</p>}
         <div className="flex gap-4">
           <button
-            className="flex-1 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg"
+            className="flex-1 py-2 bg-button text-foreground hover:bg-button/80 cursor-pointer transition-colors duration-300 rounded-lg"
             onClick={onClose}
             disabled={loading}
           >
             Cancel
           </button>
           <button
-            className="flex-1 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg"
+            className="flex-1 py-2 bg-destructive hover:bg-destructive/80 transition-colors duration-300 cursor-pointer text-white rounded-lg"
             onClick={onConfirm}
             disabled={loading}
           >

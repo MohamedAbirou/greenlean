@@ -3,7 +3,6 @@ import { AnimatePresence } from "framer-motion";
 import Cookies from "js-cookie";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
-import CookieConsent from "./components/CookieConsent";
 import { AuthProvider } from "./contexts/AuthContext";
 // Layout
 import Layout from "./components/layout/Layout";
@@ -12,6 +11,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Toaster } from "react-hot-toast";
 import AdminBootstrap from "./components/admin/AdminBootstrap";
+import CookieConsent from "./components/CookieConsent";
 import { PlatformProvider } from "./contexts/PlatformContext";
 import About from "./pages/About";
 import AdminDashboard from "./pages/AdminDashboard";

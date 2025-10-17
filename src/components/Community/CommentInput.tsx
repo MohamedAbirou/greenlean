@@ -1,5 +1,6 @@
+
+import type { Profile } from "@/types/community";
 import React, { useRef } from "react";
-import { Profile } from "../../types/community";
 import { UserAvatar } from "../ui/UserAvatar";
 import { MentionDropdown } from "./MentionDropdown";
 
@@ -49,7 +50,7 @@ export const CommentInput: React.FC<CommentInputProps> = ({
           onChange={handleChange}
           onKeyPress={handleKeyPress}
           placeholder={placeholder}
-          className="w-full px-2 py-1 bg-gray-100 dark:bg-gray-700 dark:text-gray-100 rounded-lg resize-none focus:outline-none focus:ring-2 text-sm focus:ring-green-500"
+          className="w-full px-2 py-1 bg-background text-foreground rounded-sm resize-none focus:outline-none focus:ring-2 text-sm focus:ring-primary"
           rows={1}
         />
         {showMentions && (

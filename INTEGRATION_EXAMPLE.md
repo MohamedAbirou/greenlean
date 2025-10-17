@@ -60,9 +60,9 @@ Here's a complete example showing how to integrate the system:
 ```typescript
 // src/pages/Dashboard.tsx
 import React from 'react';
-import { useMealPlanV2 } from '../hooks/useMealPlanV2';
-import EnhancedMealPlanSection from '../components/dashboard/EnhancedMealPlanSection';
-import { useAuth } from '../contexts/useAuth';
+import { useMealPlanV2 } from '@/hooks/useMealPlanV2';
+import EnhancedMealPlanSection from '@/components/dashboard/EnhancedMealPlanSection';
+import { useAuth } from '@/contexts/useAuth';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -271,7 +271,7 @@ const muscleBuildingMealPlan = [
 ### Submit User Feedback
 
 ```typescript
-import { mlService } from '../services/mlService';
+import { mlService } from '@/services/mlService';
 
 // When user rates a meal
 const handleMealRating = async (mealId: string, rating: number) => {
@@ -322,7 +322,7 @@ const getPersonalizedRecommendations = async () => {
 ### Track Model Performance
 
 ```typescript
-import { useModelPerformance } from '../hooks/useMealPlanV2';
+import { useModelPerformance } from '@/hooks/useMealPlanV2';
 
 function AdminDashboard() {
   const { performance, loading, error, refresh } = useModelPerformance();

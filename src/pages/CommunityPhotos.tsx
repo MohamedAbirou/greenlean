@@ -1,14 +1,14 @@
-import { User } from "@supabase/supabase-js";
+import { PhotoCard } from "@/components/Community/PhotoCard";
+import { PhotoCardSkeleton } from "@/components/ui/Skeletons";
+import { usePlatform } from "@/contexts/PlatformContext";
+import { useAuth } from "@/contexts/useAuth";
+import { useCommunityPhotos } from "@/hooks/useCommunityPhotos";
+import { useColorTheme } from "@/utils/colorUtils";
+import type { User } from "@supabase/supabase-js";
 import { Camera, Loader, Users } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
-import { PhotoCard } from "../components/Community/PhotoCard";
-import { PhotoCardSkeleton } from "../components/ui/Skeletons";
-import { usePlatform } from "../contexts/PlatformContext";
-import { useAuth } from "../contexts/useAuth";
-import { useCommunityPhotos } from "../hooks/useCommunityPhotos";
-import { useColorTheme } from "../utils/colorUtils";
 
 const CommunityPhotos: React.FC = () => {
   const { user, profile } = useAuth();
@@ -40,11 +40,11 @@ const CommunityPhotos: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-24 pb-16 bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen pt-24 pb-16 bg-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto">
             <div className="flex justify-between items-center mb-8">
-              <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+              <h1 className="text-2xl font-bold text-foreground">
                 Community Photos
               </h1>
               <Link
@@ -67,11 +67,10 @@ const CommunityPhotos: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-gray-50 dark:bg-gray-900">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen py-16 bg-background">
+      <div className="container max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+            <h1 className="text-2xl font-bold text-foreground">
               Community Photos
             </h1>
             <Link
@@ -85,11 +84,11 @@ const CommunityPhotos: React.FC = () => {
 
           {photos.length === 0 ? (
             <div className="text-center py-12">
-              <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
+              <Users className="h-12 w-12 text-foreground/70 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-foreground mb-2">
                 No Community Photos Yet
               </h2>
-              <p className="text-gray-600 dark:text-gray-300">
+              <p className="text-secondary-foreground">
                 Be the first to share your progress with the community!
               </p>
             </div>
@@ -102,7 +101,7 @@ const CommunityPhotos: React.FC = () => {
                   loadMore();
                 }
               }}
-              itemContent={(index, photo) => (
+              itemContent={(_, photo) => (
                 <div className="mb-8">
                   <PhotoCard
                     key={photo.id}
@@ -133,7 +132,6 @@ const CommunityPhotos: React.FC = () => {
               }}
             />
           )}
-        </div>
       </div>
     </div>
   );

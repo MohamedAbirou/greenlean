@@ -1,8 +1,8 @@
+import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
-import { Lock, Eye, EyeOff } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Eye, EyeOff, Lock } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 
 export default function ResetPassword() {
   const [password, setPassword] = useState('');

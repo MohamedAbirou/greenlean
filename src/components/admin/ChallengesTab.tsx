@@ -1,10 +1,14 @@
-import { Edit, Loader, Plus, Search, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
-import { useChallengesQuery } from "../../hooks/Queries/useChallenges";
-import { supabase } from "../../lib/supabase";
-import { createNotification } from "../../services/notificationService";
-import { Challenge } from "../../types/challenge";
-import { ColorTheme } from "../../utils/colorUtils";
+import { DataTable } from "@/components/data-table/data-table";
+import { useChallengesQuery } from "@/hooks/Queries/useChallenges";
+import { supabase } from "@/lib/supabase";
+import { challengeColumns } from "@/pages/admin-dashboard/challenges/columns";
+import { createNotification } from "@/services/notificationService";
+import type { Challenge } from "@/types/challenge";
+import type { ColorTheme } from "@/utils/colorUtils";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Loader, Plus } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 import ChallengeForm from "./ChallengeForm";
 
 interface ChallengesTabProps {
@@ -12,50 +16,74 @@ interface ChallengesTabProps {
   colorTheme: ColorTheme;
 }
 
-const ChallengesTab: React.FC<ChallengesTabProps> = ({ colorTheme, userId }) => {
+const ChallengesTab: React.FC<ChallengesTabProps> = ({
+  colorTheme,
+  userId,
+}) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [typeFilter, setTypeFilter] = useState<string>("all");
-  const [difficultyFilter, setDifficultyFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
   const [showForm, setShowForm] = useState(false);
   const [editingChallenge, setEditingChallenge] = useState<Challenge | null>(
     null
   );
 
-  const { data: challenges = [], isLoading, refetch } = useChallengesQuery();
+  const queryClient = useQueryClient();
+  const { data: challenges = [], isLoading } = useChallengesQuery();
 
-  const handleCreateChallenge = async (data: Partial<Challenge>) => {
-    try {
-      const { error, data: inserted } = await supabase.from("challenges").insert([data]).select("id").maybeSingle();
+  // debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 250);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // --- MUTATIONS ---
+  const createMutation = useMutation({
+    mutationFn: async (data: Partial<Challenge>) => {
+      const { data: inserted, error } = await supabase
+        .from("challenges")
+        .insert([data])
+        .select("*")
+        .single();
 
       if (error) throw error;
 
-      setShowForm(false);
-      refetch();
-      if (inserted && inserted.id) {
-        // Notify all participants (should check if any by design, else skip)
-        const { data: participants } = await supabase.from("challenge_participants").select("user_id").eq("challenge_id", inserted.id);
-        if (participants && participants.length > 0) {
-          for (const p of participants) {
-            await createNotification({
+      // notify participants
+      const { data: participants } = await supabase
+        .from("challenge_participants")
+        .select("user_id")
+        .eq("challenge_id", inserted.id);
+
+      if (participants?.length) {
+        await Promise.all(
+          participants.map((p) =>
+            createNotification({
               recipient_id: p.user_id,
-              sender_id: userId ?? "", // or actual admin id
+              sender_id: userId ?? "",
               type: "challenge",
               entity_id: inserted.id,
               entity_type: "challenge",
-              message: `A new challenge has been created that you participate in.`
-            });
-          }
-        }
+              message: `A new challenge "${inserted.title}" has been created.`,
+            })
+          )
+        );
       }
-    } catch (error) {
-      console.error("Error creating challenge:", error);
-    }
-  };
 
-  const handleUpdateChallenge = async (data: Partial<Challenge>) => {
-    try {
-      if (!editingChallenge?.id) return;
+      return inserted;
+    },
+    onSuccess: (inserted) => {
+      queryClient.setQueryData<Challenge[]>(["challenges"], (old = []) => [
+        ...old,
+        inserted,
+      ]);
+      setShowForm(false);
+      toast.success("Challenge created successfully!");
+    },
+    onError: (err) => toast.error(err.message || "Failed to create challenge"),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (data: Partial<Challenge>) => {
+      if (!editingChallenge?.id) throw new Error("No challenge selected");
 
       const { error } = await supabase
         .from("challenges")
@@ -64,73 +92,87 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({ colorTheme, userId }) => 
 
       if (error) throw error;
 
+      // notify participants
+      const { data: participants } = await supabase
+        .from("challenge_participants")
+        .select("user_id")
+        .eq("challenge_id", editingChallenge.id);
+
+      if (participants?.length) {
+        await Promise.all(
+          participants.map((p) =>
+            createNotification({
+              recipient_id: p.user_id,
+              sender_id: userId ?? "",
+              type: "challenge",
+              entity_id: editingChallenge.id,
+              entity_type: "challenge",
+              message: `The challenge "${editingChallenge.title}" has been updated.`,
+            })
+          )
+        );
+      }
+
+      return { id: editingChallenge.id, data };
+    },
+    onSuccess: ({ id, data }) => {
+      queryClient.setQueryData<Challenge[]>(["challenges"], (old = []) =>
+        old.map((c) => (c.id === id ? { ...c, ...data } : c))
+      );
+      toast.success("Challenge updated successfully!");
       setShowForm(false);
       setEditingChallenge(null);
-      refetch();
-      // Notify all participants
-      const { data: participants } = await supabase.from("challenge_participants").select("user_id").eq("challenge_id", editingChallenge.id);
-      if (participants && participants.length > 0) {
-        for (const p of participants) {
-          await createNotification({
-            recipient_id: p.user_id,
-            sender_id: userId ?? "",
-            type: "challenge",
-            entity_id: editingChallenge.id,
-            entity_type: "challenge",
-            message: `A challenge you participate in has been updated.`
-          });
-        }
-      }
-    } catch (error) {
-      console.error("Error updating challenge:", error);
-    }
-  };
+    },
+    onError: (err) => toast.error(err.message || "Failed to update challenge"),
+  });
 
-  const handleDeleteChallenge = async (id: string) => {
-    try {
-      // Notify all participants BEFORE delete
-      const { data: participants } = await supabase.from("challenge_participants").select("user_id").eq("challenge_id", id);
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { data: participants } = await supabase
+        .from("challenge_participants")
+        .select("user_id")
+        .eq("challenge_id", id);
+
       const { error } = await supabase.from("challenges").delete().eq("id", id);
-
       if (error) throw error;
 
-      refetch();
-      if (participants && participants.length > 0) {
-        for (const p of participants) {
-          await createNotification({
-            recipient_id: p.user_id,
-            sender_id: userId ?? "",
-            type: "challenge",
-            entity_id: id,
-            entity_type: "challenge",
-            message: `A challenge you participate in has been deleted.`
-          });
-        }
+      if (participants?.length) {
+        await Promise.all(
+          participants.map((p) =>
+            createNotification({
+              recipient_id: p.user_id,
+              sender_id: userId ?? "",
+              type: "challenge",
+              entity_id: id,
+              entity_type: "challenge",
+              message: `A challenge you participated in has been deleted.`,
+            })
+          )
+        );
       }
-    } catch (error) {
-      console.error("Error deleting challenge:", error);
-    }
-  };
 
+      return id;
+    },
+    onSuccess: (id) => {
+      queryClient.setQueryData<Challenge[]>(["challenges"], (old = []) =>
+        old.filter((c) => c.id !== id)
+      );
+      toast.success("Challenge deleted successfully!");
+    },
+    onError: (err) => toast.error(err.message || "Failed to delete challenge"),
+  });
+
+  // --- FILTERED CHALLENGES ---
   const filteredChallenges = useMemo(() => {
-    const search = searchTerm.toLowerCase();
+    const s = debouncedSearch.toLowerCase();
+    return challenges.filter(
+      (c) =>
+        c.title?.toLowerCase().includes(s) ||
+        c.description?.toLowerCase().includes(s)
+    );
+  }, [challenges, debouncedSearch]);
 
-    return challenges.filter((challenge) => {
-      const matchesSearch =
-        challenge.title.toLowerCase().includes(search) ||
-        challenge.description.toLowerCase().includes(search);
-      const matchesType = typeFilter === "all" || challenge.type === typeFilter;
-      const matchesDifficulty =
-        difficultyFilter === "all" || challenge.difficulty === difficultyFilter;
-      const matchesStatus =
-        statusFilter === "all" ||
-        (statusFilter === "active" && challenge.is_active) ||
-        (statusFilter === "inactive" && !challenge.is_active);
-
-      return matchesSearch && matchesType && matchesDifficulty && matchesStatus;
-    });
-  }, [challenges, searchTerm, typeFilter, difficultyFilter, statusFilter]);
-
+  // --- LOADING STATE ---
   if (isLoading) {
     return (
       <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
@@ -143,198 +185,47 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({ colorTheme, userId }) => 
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold dark:text-white">
+        <h2 className="text-2xl font-bold text-foreground">
           Challenge Management
         </h2>
         <button
           onClick={() => setShowForm(true)}
-          className={`px-4 py-2 ${colorTheme.primaryBg} text-white rounded-lg hover:${colorTheme.primaryBg} flex items-center`}
+          className={`px-4 py-2 ${colorTheme.primaryBg} text-white rounded-lg flex items-center`}
         >
           <Plus className="h-5 w-5 mr-2" />
           Create Challenge
         </button>
       </div>
 
-      {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search challenges..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-          />
-        </div>
-
-        <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
-          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-        >
-          <option value="all">All Types</option>
-          <option value="daily">Daily</option>
-          <option value="weekly">Weekly</option>
-          <option value="streak">Streak</option>
-          <option value="goal">Goal</option>
-        </select>
-
-        <select
-          value={difficultyFilter}
-          onChange={(e) => setDifficultyFilter(e.target.value)}
-          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-        >
-          <option value="all">All Difficulties</option>
-          <option value="beginner">Beginner</option>
-          <option value="intermediate">Intermediate</option>
-          <option value="advanced">Advanced</option>
-        </select>
-
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-        >
-          <option value="all">All Status</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
-      </div>
-
-      {/* Challenges Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
-        <table className="min-w-[800px] w-full">
-          <thead className="bg-gray-50 dark:bg-gray-700">
-            <tr>
-              <th className="px-6 py-3 text-left text-sm font-medium dark:text-white">
-                Challenge
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-medium dark:text-white">
-                Type
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-medium dark:text-white">
-                Difficulty
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-medium dark:text-white">
-                Participants
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-medium dark:text-white">
-                Completion
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-medium dark:text-white">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-medium dark:text-white">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-            {filteredChallenges.map((challenge) => (
-              <tr key={challenge.id}>
-                <td className="px-6 py-4">
-                  <div className="max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">
-                    <p className="font-medium dark:text-white">
-                      {challenge.title}
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-300">
-                      {challenge.description}
-                    </p>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <span className="capitalize text-gray-900 dark:text-white">
-                    {challenge.type}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <span
-                    className={`px-2 py-1 rounded-full text-sm font-medium ${
-                      challenge.difficulty === "beginner"
-                        ? "bg-green-100 text-green-800"
-                        : challenge.difficulty === "intermediate"
-                        ? "bg-yellow-100 text-yellow-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {challenge.difficulty}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-gray-900 dark:text-white">
-                  {challenge.participants_count}
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center">
-                    <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
-                      <div
-                        className="bg-green-500 h-2 rounded-full"
-                        style={{ width: `${challenge.completion_rate}%` }}
-                      />
-                    </div>
-                    <span className="text-sm text-gray-500 dark:text-gray-300">
-                      {Math.round(challenge.completion_rate)}%
-                    </span>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <span
-                    className={`px-2 py-1 rounded-full text-sm font-medium ${
-                      challenge.is_active
-                        ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {challenge.is_active ? "Active" : "Inactive"}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => {
-                        setEditingChallenge(challenge);
-                        setShowForm(true);
-                      }}
-                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-                    >
-                      <Edit className="h-5 w-5 text-gray-600 dark:text-gray-300" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (
-                          confirm(
-                            "Are you sure you want to delete this challenge?"
-                          )
-                        ) {
-                          handleDeleteChallenge(challenge.id);
-                        }
-                      }}
-                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-                    >
-                      <Trash2 className="h-5 w-5 text-red-500" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Challenge Form Modal */}
-      {showForm && (
+      {/* Table */}
+      <div className="bg-background rounded-xl shadow-md overflow-x-auto">
+        <DataTable
+          columns={challengeColumns({
+            onEdit: (challenge) => {
+              setEditingChallenge(challenge);
+              setShowForm(true);
+            },
+            cellClassName: "flex items-center justify-center w-1/2",
+            onDelete: (id) => deleteMutation.mutate(id),
+          })}
+          data={filteredChallenges}
+          filterKey="title"
+        />
         <ChallengeForm
+          open={showForm}
           challenge={editingChallenge}
           onSubmit={
-            editingChallenge ? handleUpdateChallenge : handleCreateChallenge
+            editingChallenge
+              ? (data) => updateMutation.mutate(data)
+              : (data) => createMutation.mutate(data)
           }
-          onClose={() => {
-            setShowForm(false);
+          onOpenChange={(open) => {
+            setShowForm(open);
             setEditingChallenge(null);
           }}
           colorTheme={colorTheme}
         />
-      )}
+      </div>
     </div>
   );
 };

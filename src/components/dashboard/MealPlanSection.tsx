@@ -1,7 +1,7 @@
+import type { HealthCalculations, Meal } from "@/types/dashboard";
 import { motion } from "framer-motion";
 import { Activity, Check } from "lucide-react";
 import React from "react";
-import { Meal, HealthCalculations } from "../../types/dashboard";
 
 interface MealPlanSectionProps {
   mealPlan: Meal[] | null;
@@ -24,78 +24,78 @@ export const MealPlanSection: React.FC<MealPlanSectionProps> = ({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
+      <h2 className="text-2xl font-bold text-foreground mb-6">
         Your Personalized Meal Plan
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6">
-          <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+        <div className="bg-background rounded-lg p-3">
+          <h3 className="text-xl font-semibold text-foreground mb-4">
             Daily Targets
           </h3>
-          <ul className="space-y-4">
+          <ul className="bg-card p-2 rounded-lg space-y-4">
             <li className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-300">Calories</span>
-              <span className="font-semibold text-gray-800 dark:text-white">
+              <span className="text-foreground">Calories</span>
+              <span className="font-semibold text-foreground">
                 {dailyCalorieTarget} kcal
               </span>
             </li>
             <li className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-300">Protein</span>
-              <span className="font-semibold text-gray-800 dark:text-white">
+              <span className="text-foreground">Protein</span>
+              <span className="font-semibold text-foreground">
                 {Math.round((dailyCalorieTarget * (macros.protein / 100)) / 4)} g
               </span>
             </li>
             <li className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-300">Carbs</span>
-              <span className="font-semibold text-gray-800 dark:text-white">
+              <span className="text-foreground">Carbs</span>
+              <span className="font-semibold text-foreground">
                 {Math.round((dailyCalorieTarget * (macros.carbs / 100)) / 4)} g
               </span>
             </li>
             <li className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-300">Fats</span>
-              <span className="font-semibold text-gray-800 dark:text-white">
+              <span className="text-foreground">Fats</span>
+              <span className="font-semibold text-foreground">
                 {Math.round((dailyCalorieTarget * (macros.fats / 100)) / 9)} g
               </span>
             </li>
           </ul>
         </div>
 
-        <div className="bg-gray-50 dark:bg-gray-700/50 text-gray-800 dark:text-white rounded-lg p-6">
+        <div className="bg-background text-foreground rounded-lg p-3">
           <h3 className="text-xl font-semibold mb-4">Meal Distribution</h3>
           {mealPlan && mealPlan.length > 0 ? (
             mealPlan.map((meal) => (
               <div
                 key={meal.name}
-                className="flex justify-between items-center mb-2"
+                className="bg-card p-2 rounded-lg flex justify-between items-center mb-2"
               >
                 <span>{meal.name}</span>
                 <span>{Math.round(meal.total.calories)} kcal</span>
               </div>
             ))
           ) : (
-            <p className="text-gray-500 dark:text-gray-400 text-sm">
+            <p className="text-foreground/70 text-sm">
               No meal distribution available
             </p>
           )}
         </div>
       </div>
 
-      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6">
-        <h3 className="text-xl font-semibold mb-6 text-gray-800 dark:text-white">
+      <div className="bg-background rounded-lg p-3">
+        <h3 className="text-xl font-semibold mb-6 text-foreground">
           Your Personalized Meal Plan
         </h3>
         {mealPlan && mealPlan.length > 0 ? (
           mealPlan.map((meal) => (
             <div
               key={meal.name}
-              className="mb-6 border-b pb-6 last:border-0 last:pb-0"
+              className="bg-card p-2 rounded-lg mb-6 border-b pb-6 last:border-0 last:pb-0"
             >
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3">
-                <h4 className="font-medium text-lg text-gray-800 dark:text-white">
+                <h4 className="font-medium text-lg text-foreground">
                   {meal.name}
                 </h4>
-                <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                <div className="flex items-center gap-4 text-sm text-foreground/70">
                   {meal.templateName && (
                     <span className="italic">"{meal.templateName}"</span>
                   )}
@@ -124,7 +124,7 @@ export const MealPlanSection: React.FC<MealPlanSectionProps> = ({
                 {meal.items.map((item, i) => (
                   <li
                     key={i}
-                    className="flex flex-col sm:flex-row sm:items-center text-gray-600 dark:text-gray-300"
+                    className="flex flex-col sm:flex-row sm:items-center text-foreground"
                   >
                     <div className="flex items-center">
                       <Check
@@ -135,15 +135,15 @@ export const MealPlanSection: React.FC<MealPlanSectionProps> = ({
                         ({item.grams}g)
                       </span>
                     </div>
-                    <div className="sm:ml-auto text-sm text-gray-500 dark:text-gray-300">
+                    <div className="sm:ml-auto text-sm text-foreground/80">
                       {item.protein}g P • {item.carbs}g C • {item.fats}g F •{" "}
                       {item.calories} kcal
                     </div>
                   </li>
                 ))}
               </ul>
-              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
-                <div className="flex justify-between text-sm font-medium text-gray-700 dark:text-gray-300">
+              <div className="mt-3 pt-3 border-t border-border">
+                <div className="flex justify-between text-sm font-medium text-foreground/90">
                   <span>Total: {Math.round(meal.total.calories)} kcal</span>
                   <span>
                     {Math.round(meal.total.protein)}g P •{" "}
@@ -156,15 +156,15 @@ export const MealPlanSection: React.FC<MealPlanSectionProps> = ({
           ))
         ) : (
           <div className="text-center py-8">
-            <p className="text-gray-600 dark:text-gray-300 mb-4">
+            <p className="text-foreground mb-4">
               No meal plan generated. This might be due to:
             </p>
-            <ul className="text-sm text-gray-500 dark:text-gray-400 space-y-1">
+            <ul className="text-sm text-foreground/70 space-y-1">
               <li>• Missing quiz answers</li>
               <li>• Invalid diet type selection</li>
               <li>• No suitable meal templates found</li>
             </ul>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
+            <p className="text-xs text-foreground/70 mt-4">
               Check the browser console for debugging information.
             </p>
           </div>

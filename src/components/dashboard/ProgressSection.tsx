@@ -1,8 +1,8 @@
+import type { ActivityFormData, ActivityLog, DashboardStats } from "@/types/dashboard";
 import { motion } from "framer-motion";
 import { Activity, Check, Edit, Flame, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import { Line } from "react-chartjs-2";
-import { ActivityFormData, ActivityLog, DashboardStats } from "../../types/dashboard";
 import ActivityModal from "../ui/modals/ActivityModal";
 import DeleteModal from "../ui/modals/DeleteModal";
 
@@ -140,11 +140,11 @@ export const ProgressSection: React.FC<ProgressSectionProps> = ({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
+      <h2 className="text-2xl font-bold text-foreground mb-6">
         Track Your Progress
       </h2>
       <div className="text-center py-6">
-        <p className="text-gray-600 dark:text-gray-300 mb-4">
+        <p className="text-foreground/80 mb-4">
           Log your daily activities to visualize your journey!
         </p>
         <button
@@ -156,34 +156,34 @@ export const ProgressSection: React.FC<ProgressSectionProps> = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 flex flex-col items-center">
+        <div className="bg-background rounded-lg p-4 flex flex-col items-center">
           <Flame className="h-6 w-6 text-red-500 mb-2" />
-          <span className="text-gray-600 dark:text-gray-300">
+          <span className="text-foreground/80">
             Calories Burned
           </span>
-          <span className="text-2xl font-bold text-gray-800 dark:text-white">
+          <span className="text-2xl font-bold text-foreground">
             {totalCalories} kcal
           </span>
         </div>
-        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 flex flex-col items-center">
+        <div className="bg-background rounded-lg p-4 flex flex-col items-center">
           <Activity className="h-6 w-6 text-purple-500 mb-2" />
-          <span className="text-gray-600 dark:text-gray-300">Steps</span>
-          <span className="text-2xl font-bold text-gray-800 dark:text-white">
+          <span className="text-foreground/80">Steps</span>
+          <span className="text-2xl font-bold text-foreground">
             {totalSteps}
           </span>
         </div>
-        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 flex flex-col items-center">
+        <div className="bg-background rounded-lg p-4 flex flex-col items-center">
           <Check className="h-6 w-6 text-green-500 mb-2" />
-          <span className="text-gray-600 dark:text-gray-300">Duration</span>
-          <span className="text-2xl font-bold text-gray-800 dark:text-white">
+          <span className="text-foreground/80">Duration</span>
+          <span className="text-2xl font-bold text-foreground">
             {totalDuration} min
           </span>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-          <h4 className="font-semibold mb-2 text-gray-800 dark:text-white">
+        <div className="bg-background rounded-lg p-4">
+          <h4 className="font-semibold mb-2 text-foreground">
             Calories Burned
           </h4>
           <Line
@@ -194,8 +194,8 @@ export const ProgressSection: React.FC<ProgressSectionProps> = ({
             }}
           />
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-          <h4 className="font-semibold mb-2 text-gray-800 dark:text-white">
+        <div className="bg-background rounded-lg p-4">
+          <h4 className="font-semibold mb-2 text-foreground">
             Steps
           </h4>
           <Line
@@ -206,8 +206,8 @@ export const ProgressSection: React.FC<ProgressSectionProps> = ({
             }}
           />
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-          <h4 className="font-semibold mb-2 text-gray-800 dark:text-white">
+        <div className="bg-background rounded-lg p-4">
+          <h4 className="font-semibold mb-2 text-foreground">
             Duration (min)
           </h4>
           <Line
@@ -221,34 +221,34 @@ export const ProgressSection: React.FC<ProgressSectionProps> = ({
       </div>
 
       <div className="mb-8">
-        <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+        <h3 className="text-xl font-semibold text-foreground mb-4">
           Recent Activity Logs
         </h3>
         {activityLogs.length === 0 ? (
-          <p className="text-gray-500 dark:text-gray-400">
+          <p className="text-foreground/60">
             No activity logs yet.
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <table className="min-w-full divide-y divide-card">
               <thead>
                 <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-2 text-left text-xs font-medium text-foreground/80 uppercase">
                     Date
                   </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-2 text-left text-xs font-medium text-foreground/80 uppercase">
                     Type
                   </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-2 text-left text-xs font-medium text-foreground/80 uppercase">
                     Duration
                   </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-2 text-left text-xs font-medium text-foreground/80 uppercase">
                     Calories
                   </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-2 text-left text-xs font-medium text-foreground/80 uppercase">
                     Steps
                   </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-2 text-left text-xs font-medium text-foreground/80 uppercase">
                     Notes
                   </th>
                   <th className="px-4 py-2"></th>
@@ -256,35 +256,35 @@ export const ProgressSection: React.FC<ProgressSectionProps> = ({
               </thead>
               <tbody>
                 {activityLogs.map((log) => (
-                  <tr key={log.id} className="bg-white dark:bg-gray-800">
-                    <td className="px-4 py-2 text-sm text-gray-700 dark:text-gray-200">
+                  <tr key={log.id} className="bg-background">
+                    <td className="px-4 truncate py-2 text-sm text-foreground">
                       {log.activity_date}
                     </td>
-                    <td className="px-4 py-2 text-sm text-gray-700 dark:text-gray-200">
+                    <td className="px-4 py-2 text-sm text-foreground">
                       {log.activity_type}
                     </td>
-                    <td className="px-4 py-2 text-sm text-gray-700 dark:text-gray-200">
+                    <td className="px-4 py-2 text-sm text-foreground">
                       {log.duration_minutes || "-"}
                     </td>
-                    <td className="px-4 py-2 text-sm text-gray-700 dark:text-gray-200">
+                    <td className="px-4 py-2 text-sm text-foreground">
                       {log.calories_burned || "-"}
                     </td>
-                    <td className="px-4 py-2 text-sm text-gray-700 dark:text-gray-200">
+                    <td className="px-4 py-2 text-sm text-foreground">
                       {log.steps || "-"}
                     </td>
-                    <td className="px-4 py-2 text-sm text-gray-700 dark:text-gray-200">
+                    <td className="px-4 py-2 text-sm text-foreground truncate">
                       {log.notes || "-"}
                     </td>
-                    <td className="px-4 py-2 flex gap-2">
+                    <td className="flex px-4 py-2 gap-2">
                       <button
                         onClick={() => openEditModal(log)}
-                        className="text-blue-500 hover:text-blue-700"
+                        className="text-blue-500 hover:text-blue-700 cursor-pointer"
                       >
                         <Edit className="h-5 w-5" />
                       </button>
                       <button
                         onClick={() => setDeleteLogId(log.id)}
-                        className="text-red-500 hover:text-red-700"
+                        className="text-red-500 hover:text-red-700 cursor-pointer"
                       >
                         <Trash2 className="h-5 w-5" />
                       </button>

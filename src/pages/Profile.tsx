@@ -1,10 +1,13 @@
-import { motion } from 'framer-motion';
-import { Camera, Loader, Mail, User } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
-import { usePlatform } from '../contexts/PlatformContext';
-import { useAuth } from "../contexts/useAuth";
-import { supabase } from '../lib/supabase';
-import { useColorTheme } from '../utils/colorUtils';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { usePlatform } from "@/contexts/PlatformContext";
+import { useAuth } from "@/contexts/useAuth";
+import { supabase } from "@/lib/supabase";
+import { useColorTheme } from "@/utils/colorUtils";
+import { motion } from "framer-motion";
+import { Camera, Loader, Mail, User } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
 
 interface Profile {
   full_name: string;
@@ -18,9 +21,12 @@ const Profile: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [fullName, setFullName] = useState('');
+  const [fullName, setFullName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const platform = usePlatform();
@@ -32,18 +38,18 @@ const Profile: React.FC = () => {
         if (!user) return;
 
         const { data, error } = await supabase
-          .from('profiles')
-          .select('full_name, email, avatar_url')
-          .eq('id', user.id)
+          .from("profiles")
+          .select("full_name, email, avatar_url")
+          .eq("id", user.id)
           .maybeSingle();
 
         if (error) throw error;
 
         setProfile(data);
-        setFullName(data?.full_name || '');
+        setFullName(data?.full_name || "");
         setAvatarUrl(data?.avatar_url);
       } catch (error) {
-        console.error('Error fetching profile:', error);
+        console.error("Error fetching profile:", error);
       } finally {
         setLoading(false);
       }
@@ -56,20 +62,25 @@ const Profile: React.FC = () => {
     fileInputRef.current?.click();
   };
 
-  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     try {
       const file = event.target.files?.[0];
       if (!file || !user) return;
 
       // Validate file type
-      if (!file.type.startsWith('image/')) {
-        setMessage({ type: 'error', text: 'Please upload an image file.' });
+      if (!file.type.startsWith("image/")) {
+        setMessage({ type: "error", text: "Please upload an image file." });
         return;
       }
 
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        setMessage({ type: 'error', text: 'Image size should be less than 5MB.' });
+        setMessage({
+          type: "error",
+          text: "Image size should be less than 5MB.",
+        });
         return;
       }
 
@@ -77,34 +88,40 @@ const Profile: React.FC = () => {
       setMessage(null);
 
       // Upload image to Supabase Storage
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}-${Math.random()}.${fileExt}`;
       const filePath = `avatars/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('avatars')
+        .from("avatars")
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("avatars").getPublicUrl(filePath);
 
       // Update profile with new avatar URL
       const { error: updateError } = await supabase
-        .from('profiles')
+        .from("profiles")
         .update({ avatar_url: publicUrl })
-        .eq('id', user.id);
+        .eq("id", user.id);
 
       if (updateError) throw updateError;
 
       setAvatarUrl(publicUrl);
-      setMessage({ type: 'success', text: 'Profile picture updated successfully!' });
+      setMessage({
+        type: "success",
+        text: "Profile picture updated successfully!",
+      });
     } catch (error) {
-      console.error('Error uploading avatar:', error);
-      setMessage({ type: 'error', text: 'Failed to update profile picture. Please try again.' });
+      console.error("Error uploading avatar:", error);
+      setMessage({
+        type: "error",
+        text: "Failed to update profile picture. Please try again.",
+      });
     } finally {
       setUploadingAvatar(false);
     }
@@ -117,124 +134,138 @@ const Profile: React.FC = () => {
 
     try {
       const { error } = await supabase
-        .from('profiles')
+        .from("profiles")
         .update({
           full_name: fullName,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', user?.id);
+        .eq("id", user?.id);
 
       if (error) throw error;
 
-      setMessage({ type: 'success', text: 'Profile updated successfully!' });
-      setProfile(prev => prev ? { ...prev, full_name: fullName } : null);
+      setMessage({ type: "success", text: "Profile updated successfully!" });
+      setProfile((prev) => (prev ? { ...prev, full_name: fullName } : null));
     } catch (error) {
-      console.error('Error updating profile:', error);
-      setMessage({ type: 'error', text: 'Failed to update profile. Please try again.' });
+      console.error("Error updating profile:", error);
+      setMessage({
+        type: "error",
+        text: "Failed to update profile. Please try again.",
+      });
     } finally {
       setUpdating(false);
     }
   };
 
   const handleDeleteAvatar = async () => {
-      if (!user || !avatarUrl) return;
-    
-      setUploadingAvatar(true);
-      setMessage(null);
-    
-      try {
-        // Extract path from public URL
-        const path = avatarUrl.split('/').slice(-2).join('/'); // e.g., avatars/filename.jpg
-    
-        // Delete file from Supabase storage
-        const { error: deleteError } = await supabase.storage
-          .from('avatars')
-          .remove([path]);
-    
-        if (deleteError) throw deleteError;
-    
-        // Update profile to remove avatar URL
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({ avatar_url: null })
-          .eq('id', user.id);
-    
-        if (updateError) throw updateError;
-    
-        setAvatarUrl(null);
-        setMessage({ type: 'success', text: 'Profile picture removed successfully!' });
-      } catch (error) {
-        console.error('Error deleting avatar:', error);
-        setMessage({ type: 'error', text: 'Failed to delete profile picture. Please try again.' });
-      } finally {
-        setUploadingAvatar(false);
-      }
-    };
+    if (!user || !avatarUrl) return;
 
+    setUploadingAvatar(true);
+    setMessage(null);
+
+    try {
+      // Extract path from public URL
+      const path = avatarUrl.split("/").slice(-2).join("/"); // e.g., avatars/filename.jpg
+
+      // Delete file from Supabase storage
+      const { error: deleteError } = await supabase.storage
+        .from("avatars")
+        .remove([path]);
+
+      if (deleteError) throw deleteError;
+
+      // Update profile to remove avatar URL
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: null })
+        .eq("id", user.id);
+
+      if (updateError) throw updateError;
+
+      setAvatarUrl(null);
+      setMessage({
+        type: "success",
+        text: "Profile picture removed successfully!",
+      });
+    } catch (error) {
+      console.error("Error deleting avatar:", error);
+      setMessage({
+        type: "error",
+        text: "Failed to delete profile picture. Please try again.",
+      });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
-        <Loader className="h-8 w-8 animate-spin text-green-500" />
+        <Loader className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen pt-24 pb-16 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden"
+            className="bg-card rounded-xl shadow-md overflow-hidden"
           >
             <div className="p-8">
               <div className="flex items-center justify-between mb-8">
-                <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Profile Settings</h1>
+                <h1 className="text-2xl font-bold text-foreground">
+                  Profile Settings
+                </h1>
               </div>
 
               {message && (
-                <div className={`mb-6 p-4 rounded-lg ${
-                  message.type === 'success' 
-                    ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300' 
-                    : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
-                }`}>
+                <div
+                  className={`mb-6 p-4 rounded-lg ${
+                    message.type === "success"
+                      ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300"
+                      : "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300"
+                  }`}
+                >
                   {message.text}
                 </div>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Profile Picture */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Profile Picture
-                  </label>
+                  <Label>Profile Picture</Label>
                   <div className="flex items-center space-x-6">
                     <div className="relative">
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        className="w-24 h-24 rounded-full bg-background flex items-center justify-center overflow-hidden relative group cursor-pointer p-0"
                         onClick={handleAvatarClick}
-                        className="w-24 h-24 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden relative group cursor-pointer"
                       >
                         {avatarUrl ? (
-                          <img 
-                            src={avatarUrl} 
-                            alt="Profile" 
+                          <img
+                            src={avatarUrl}
+                            alt="Profile"
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <User className="w-12 h-12 text-gray-400" />
+                          <User className="w-12 h-12 text-foreground/70" />
                         )}
-                        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                           {uploadingAvatar ? (
                             <Loader className="h-6 w-6 animate-spin text-white" />
                           ) : (
                             <Camera className="h-6 w-6 text-white" />
                           )}
                         </div>
-                      </button>
-                      <input
+                      </Button>
+
+                      <Input
                         ref={fileInputRef}
                         type="file"
                         accept="image/*"
@@ -242,65 +273,68 @@ const Profile: React.FC = () => {
                         className="hidden"
                       />
                     </div>
-                  
+
                     <div className="flex-1 space-y-2">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Click to upload a new profile picture.<br />
-                        Recommended: Square image, at least 400x400 pixels.<br />
+                      <p className="text-sm text-foreground/70">
+                        Click to upload a new profile picture.
+                        <br />
+                        Recommended: Square image, at least 400x400 pixels.
+                        <br />
                         Maximum size: 5MB
                       </p>
                       {avatarUrl && (
-                        <button
+                        <Button
+                          variant="link"
                           type="button"
+                          className="text-destructive hover:underline p-0"
                           onClick={handleDeleteAvatar}
-                          className="text-sm text-red-500 hover:underline"
                         >
                           Delete profile picture
-                        </button>
+                        </Button>
                       )}
                     </div>
                   </div>
                 </div>
 
+                {/* Full Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Full Name
-                  </label>
+                  <Label>Full Name</Label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                    <input
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/70" />
+                    <Input
                       type="text"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
                       placeholder="Enter your full name"
+                      className="pl-10 bg-background"
                     />
                   </div>
                 </div>
 
+                {/* Email */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Email Address
-                  </label>
+                  <Label>Email Address</Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                    <input
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/70" />
+                    <Input
                       type="email"
-                      value={profile?.email || ''}
+                      value={profile?.email || ""}
                       disabled
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                      className="pl-10 bg-background/80 text-foreground/70 cursor-not-allowed"
                     />
                   </div>
-                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                    Email cannot be changed. Contact support if you need to update your email.
+                  <p className="mt-2 text-sm text-foreground/70">
+                    Email cannot be changed. Contact support if you need to
+                    update your email.
                   </p>
                 </div>
 
+                {/* Submit */}
                 <div className="flex justify-end">
-                  <button
+                  <Button
                     type="submit"
+                    className={`${colorTheme.primaryBg} ${colorTheme.primaryHover} text-white flex items-center`}
                     disabled={updating}
-                    className={`px-6 py-2 ${colorTheme.primaryBg} text-white rounded-lg ${colorTheme.primaryHover} transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center`}
                   >
                     {updating ? (
                       <>
@@ -308,9 +342,9 @@ const Profile: React.FC = () => {
                         Updating...
                       </>
                     ) : (
-                      'Save Changes'
+                      "Save Changes"
                     )}
-                  </button>
+                  </Button>
                 </div>
               </form>
             </div>

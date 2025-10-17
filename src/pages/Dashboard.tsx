@@ -1,3 +1,12 @@
+import DailyTip from "@/components/DailyTip";
+import { ExerciseSection } from "@/components/dashboard/ExerciseSection";
+import { MealPlanSection } from "@/components/dashboard/MealPlanSection";
+import { OverviewSection } from "@/components/dashboard/OverviewSection";
+import { ProgressSection } from "@/components/dashboard/ProgressSection";
+import { usePlatform } from "@/contexts/PlatformContext";
+import { useDashboardData } from "@/hooks/useDashboardData";
+import { useLogManager } from "@/hooks/useLogManager";
+import { useColorTheme } from "@/utils/colorUtils";
 import {
   CategoryScale,
   Chart as ChartJS,
@@ -9,15 +18,6 @@ import {
 } from "chart.js";
 import { ArrowRight, Loader } from "lucide-react";
 import React, { useState } from "react";
-import DailyTip from "../components/DailyTip";
-import { ExerciseSection } from "../components/dashboard/ExerciseSection";
-import { MealPlanSection } from "../components/dashboard/MealPlanSection";
-import { OverviewSection } from "../components/dashboard/OverviewSection";
-import { ProgressSection } from "../components/dashboard/ProgressSection";
-import { usePlatform } from "../contexts/PlatformContext";
-import { useDashboardData } from "../hooks/useDashboardData";
-import { useLogManager } from "../hooks/useLogManager";
-import { useColorTheme } from "../utils/colorUtils";
 
 ChartJS.register(
   LineElement,
@@ -56,12 +56,12 @@ const Dashboard: React.FC = () => {
 
   if (!healthProfile || !healthCalculations) {
     return (
-      <div className="min-h-screen pt-24 pb-16 bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen pt-24 pb-16 bg-background">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
+          <h1 className="text-2xl font-bold text-foreground mb-4">
             No Health Profile Found
           </h1>
-          <p className="text-gray-600 dark:text-gray-300 mb-6">
+          <p className="text-secondary-foreground mb-6">
             Please take the quiz to get your personalized recommendations.
           </p>
           <a
@@ -83,13 +83,13 @@ const Dashboard: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen pt-24 pb-16 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">
+          <h1 className="text-3xl font-bold text-foreground mb-4">
             Your Personalized Dashboard
           </h1>
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className="text-foreground/80">
             Welcome to your customized health journey. Here's your personalized
             plan based on your quiz results.
           </p>
@@ -99,7 +99,7 @@ const Dashboard: React.FC = () => {
           <DailyTip colorTheme={colorTheme} />
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md mb-8">
+        <div className="bg-card rounded-xl shadow-md mb-8">
           <div className="flex flex-wrap">
             {tabs.map((tab, index) => (
               <button
@@ -109,7 +109,7 @@ const Dashboard: React.FC = () => {
                 } ${index === tabs.length - 1 ? "rounded-tr-xl" : ""} ${
                   activeTab === tab.id
                     ? colorTheme.primaryBg + " text-white"
-                    : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
+                    : "bg-card text-foreground hover:text-primary"
                 }`}
                 onClick={() => setActiveTab(tab.id)}
               >
@@ -119,7 +119,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+        <div className="bg-card rounded-xl shadow-md p-6">
           {activeTab === "overview" && (
             <OverviewSection
               healthProfile={healthProfile}
