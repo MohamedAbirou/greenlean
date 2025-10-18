@@ -455,6 +455,7 @@ const Challenges: React.FC = () => {
               id: challenge.badge.id,
               name: challenge.badge.name,
               icon: challenge.badge.icon,
+              color: challenge.badge.icon,
               earned_at: new Date().toISOString(),
             });
           }
@@ -606,7 +607,14 @@ const Challenges: React.FC = () => {
                           string,
                           React.ComponentType<LucideIcons.LucideProps>
                         > = {
-                          star: LucideIcons.Star,
+                          target: LucideIcons.Target,
+                          shoe: LucideIcons.Footprints,
+                          droplet: LucideIcons.Droplet,
+                          dumbbell: LucideIcons.Dumbbell,
+                          brain: LucideIcons.Brain,
+                          repeat: LucideIcons.Repeat,
+                          sunrise: LucideIcons.Sunrise,
+                          CircleCheck: LucideIcons.CircleCheck,
                           trophy: Trophy,
                           flame: LucideIcons.Flame,
                         };
