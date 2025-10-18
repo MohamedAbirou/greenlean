@@ -34,7 +34,7 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const queryClient = useQueryClient();
-  const { data: challenges = [], isLoading } = useChallengesQuery();
+  const { data: challenges = [], isLoading } = useChallengesQuery(userId);
   const { data: badgesData = [] } = useQuery({
     queryKey: ["badges"],
     queryFn: async () => {
