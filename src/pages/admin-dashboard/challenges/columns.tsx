@@ -1,20 +1,5 @@
-import type { ChallengeRequirements } from "@/types/challenge";
+import type { Challenge } from "@/types/challenge";
 import { Edit, Trash2 } from "lucide-react";
-
-export type Challenge = {
-  id: string;
-  title: string;
-  description: string;
-  type: "daily" | "weekly" | "streak" | "goal";
-  difficulty: "beginner" | "intermediate" | "advanced";
-  participants_count: number;
-  completion_rate: number;
-  is_active: boolean;
-  points: number;
-  requirements: ChallengeRequirements;
-  start_date: string
-  end_date: string;
-};
 
 export const challengeColumns = ({
   onEdit,

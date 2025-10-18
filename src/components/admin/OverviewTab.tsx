@@ -104,7 +104,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ colorTheme }) => {
       </div>
 
       {/* Charts */}
-      <div className="flex items-start justify-around rounded-xl shadow-md bg-card gap-4">
+      <div className="flex flex-col sm:flex-row items-start justify-around rounded-xl shadow-md bg-card gap-4">
         <ChartCard
           title="User Activity"
           canvasRef={participationChartRef}

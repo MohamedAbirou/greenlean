@@ -513,7 +513,7 @@ const ExerciseDetails: React.FC = () => {
         </Link>
 
         {/* Hero Section */}
-        <div className="bg-background rounded-xl shadow-md overflow-hidden mb-8">
+        <div className="bg-card rounded-xl shadow-md overflow-hidden mb-8">
           <div className="md:flex">
             <div className="md:w-1/2">
               <img 
@@ -548,7 +548,7 @@ const ExerciseDetails: React.FC = () => {
         </div>
 
         {/* Video Section */}
-        <div className="bg-background rounded-xl shadow-md p-6 mb-8">
+        <div className="bg-card rounded-xl shadow-md p-3 mb-8">
           <h2 className="text-xl font-bold text-foreground mb-4">Video Demonstration</h2>
           <div className="relative pb-[56.25%] h-0">
             <iframe
@@ -563,7 +563,7 @@ const ExerciseDetails: React.FC = () => {
 
         {/* Instructions and Tips */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-          <div className="bg-background rounded-xl shadow-md p-6">
+          <div className="bg-card rounded-xl shadow-md p-3">
             <h2 className="text-xl font-bold text-foreground mb-4">Instructions</h2>
             <ol className="space-y-3">
               {exercise.instructions.map((instruction, index) => (
@@ -577,7 +577,7 @@ const ExerciseDetails: React.FC = () => {
             </ol>
           </div>
 
-          <div className="bg-background rounded-xl shadow-md p-6">
+          <div className="bg-card rounded-xl shadow-md p-3">
             <h2 className="text-xl font-bold text-foreground mb-4">Tips</h2>
             <ul className="space-y-3">
               {exercise.tips.map((tip, index) => (
@@ -592,7 +592,7 @@ const ExerciseDetails: React.FC = () => {
 
         {/* Benefits and Equipment */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-background rounded-xl shadow-md p-6">
+          <div className="bg-card rounded-xl shadow-md p-3">
             <h2 className="text-xl font-bold text-foreground mb-4">Benefits</h2>
             <ul className="space-y-3">
               {exercise.benefits.map((benefit, index) => (
@@ -604,7 +604,7 @@ const ExerciseDetails: React.FC = () => {
             </ul>
           </div>
 
-          <div className="bg-background rounded-xl shadow-md p-6">
+          <div className="bg-card rounded-xl shadow-md p-3">
             <h2 className="text-xl font-bold text-foreground mb-4">Equipment Needed</h2>
             <ul className="space-y-3">
               {exercise.equipment.map((item, index) => (

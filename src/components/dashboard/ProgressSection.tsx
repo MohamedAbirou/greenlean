@@ -1,10 +1,14 @@
-import type { ActivityFormData, ActivityLog, DashboardStats } from "@/types/dashboard";
+import type {
+  ActivityFormData,
+  ActivityLog,
+  DashboardStats,
+} from "@/types/dashboard";
 import { motion } from "framer-motion";
 import { Activity, Check, Edit, Flame, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import { Line } from "react-chartjs-2";
 import ActivityModal from "../ui/modals/ActivityModal";
-import DeleteModal from "../ui/modals/DeleteModal";
+import { ConfirmDialog } from "../ui/modals/ConfirmDialog";
 
 interface ProgressSectionProps {
   activityLogs: ActivityLog[];
@@ -158,9 +162,7 @@ export const ProgressSection: React.FC<ProgressSectionProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-background rounded-lg p-4 flex flex-col items-center">
           <Flame className="h-6 w-6 text-red-500 mb-2" />
-          <span className="text-foreground/80">
-            Calories Burned
-          </span>
+          <span className="text-foreground/80">Calories Burned</span>
           <span className="text-2xl font-bold text-foreground">
             {totalCalories} kcal
           </span>
@@ -195,9 +197,7 @@ export const ProgressSection: React.FC<ProgressSectionProps> = ({
           />
         </div>
         <div className="bg-background rounded-lg p-4">
-          <h4 className="font-semibold mb-2 text-foreground">
-            Steps
-          </h4>
+          <h4 className="font-semibold mb-2 text-foreground">Steps</h4>
           <Line
             data={chartData("steps")}
             options={{
@@ -207,9 +207,7 @@ export const ProgressSection: React.FC<ProgressSectionProps> = ({
           />
         </div>
         <div className="bg-background rounded-lg p-4">
-          <h4 className="font-semibold mb-2 text-foreground">
-            Duration (min)
-          </h4>
+          <h4 className="font-semibold mb-2 text-foreground">Duration (min)</h4>
           <Line
             data={chartData("duration_minutes")}
             options={{
@@ -225,9 +223,7 @@ export const ProgressSection: React.FC<ProgressSectionProps> = ({
           Recent Activity Logs
         </h3>
         {activityLogs.length === 0 ? (
-          <p className="text-foreground/60">
-            No activity logs yet.
-          </p>
+          <p className="text-foreground/60">No activity logs yet.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-card">
@@ -297,40 +293,46 @@ export const ProgressSection: React.FC<ProgressSectionProps> = ({
         )}
       </div>
 
-      {showLogModal && (
-        <ActivityModal
-          title="Log Today's Activity"
-          formData={logForm}
-          setFormData={setLogForm}
-          onSubmit={handleLogSubmit}
-          onClose={() => setShowLogModal(false)}
-          loading={saving}
-          error={error}
-          colorTheme={colorTheme}
-        />
-      )}
+      <ActivityModal
+        open={showLogModal}
+        onOpenChange={setShowLogModal}
+        title="Log Today's Activity"
+        formData={logForm}
+        setFormData={setLogForm}
+        onSubmit={handleLogSubmit}
+        loading={saving}
+        error={error}
+        colorTheme={colorTheme}
+      />
 
-      {editLog && (
-        <ActivityModal
-          title="Edit Activity"
-          formData={editForm}
-          setFormData={setEditForm}
-          onSubmit={handleEditSubmit}
-          onClose={() => setEditLog(null)}
-          loading={saving}
-          error={error}
-          colorTheme={colorTheme}
-        />
-      )}
+      <ActivityModal
+        open={!!editLog}
+        onOpenChange={(open) => {
+          if (!open) setEditLog(null);
+        }}
+        title="Edit Activity"
+        formData={editForm}
+        setFormData={setEditForm}
+        onSubmit={handleEditSubmit}
+        loading={saving}
+        error={error}
+        colorTheme={colorTheme}
+      />
 
-      {deleteLogId && (
-        <DeleteModal
-          onConfirm={handleDelete}
-          onClose={() => setDeleteLogId(null)}
-          loading={saving}
-          error={error}
-        />
-      )}
+      <ConfirmDialog
+        open={!!deleteLogId}
+        onOpenChange={(open) => {
+          if (!open) setDeleteLogId(null);
+        }}
+        title="Delete Activity"
+        description="Are you sure you want to delete this activity log?"
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        onConfirm={handleDelete}
+        loading={saving}
+        error={error}
+        destructive
+      />
     </motion.div>
   );
 };

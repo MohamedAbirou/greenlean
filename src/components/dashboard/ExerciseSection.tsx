@@ -37,7 +37,7 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-        <div className="bg-background rounded-lg p-6">
+        <div className="bg-background rounded-lg p-3">
           <h3 className="text-xl font-semibold text-foreground mb-4">
             Workout Summary
           </h3>
@@ -65,7 +65,7 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({
           </ul>
         </div>
 
-        <div className="bg-background rounded-lg p-6">
+        <div className="bg-background rounded-lg p-3">
           <h3 className="text-xl font-semibold text-foreground mb-4">
             Weekly Goals
           </h3>
@@ -92,7 +92,7 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({
         </div>
       </div>
 
-      <div className="bg-background rounded-lg p-6">
+      <div className="bg-background rounded-lg p-3">
         <h3 className="text-xl font-semibold text-foreground mb-6">
           Weekly Schedule
         </h3>
@@ -100,7 +100,7 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({
           {weeklySchedule.map((day, index) => (
             <div
               key={index}
-              className="bg-card rounded-lg p-4 border border-border"
+              className="bg-card rounded-lg p-2 border border-border"
             >
               <h4 className="font-medium text-foreground mb-2">
                 {day.day}

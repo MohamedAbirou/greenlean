@@ -56,7 +56,7 @@ const Dashboard: React.FC = () => {
 
   if (!healthProfile || !healthCalculations) {
     return (
-      <div className="min-h-screen pt-24 pb-16 bg-background">
+      <div className="min-h-screen pt-52 pb-16 bg-background">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-2xl font-bold text-foreground mb-4">
             No Health Profile Found
@@ -119,7 +119,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-card rounded-xl shadow-md p-6">
+        <div className="bg-card rounded-xl shadow-md p-3">
           {activeTab === "overview" && (
             <OverviewSection
               healthProfile={healthProfile}

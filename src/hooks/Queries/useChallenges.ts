@@ -1,16 +1,27 @@
-import { queryKeys } from "@/lib/queryKeys";
 import { supabase } from "@/lib/supabase";
 import type { Challenge } from "@/types/challenge";
 import { useQuery } from "@tanstack/react-query";
 
-export const fetchChallenges = async (): Promise<Challenge[]> => {
-  const [challengesResp, participantsResp] = await Promise.all([
-    supabase.from("challenges").select("*"),
-    supabase.from("challenge_participants").select("challenge_id, completed"),
-  ]);
+export const fetchChallenges = async (
+  userId?: string
+): Promise<Challenge[]> => {
+  const [challengesResp, participantsResp, userProgressResp] =
+    await Promise.all([
+      supabase.from("challenges").select(`
+      *,
+      badge:badge_id ( id, name, description, icon, color )
+    `),
+      supabase.from("challenge_participants").select("challenge_id, completed"),
+      supabase
+            .from("challenge_participants")
+            .select("challenge_id, progress, completed, streak_count")
+            .eq("user_id", userId)
+        ,
+    ]);
 
   if (challengesResp.error) throw challengesResp.error;
   if (participantsResp.error) throw participantsResp.error;
+  if (userProgressResp.error) throw userProgressResp.error;
 
   const challengesWithStats = challengesResp.data.map((challenge) => {
     const participants = participantsResp.data.filter(
@@ -19,19 +30,24 @@ export const fetchChallenges = async (): Promise<Challenge[]> => {
     const total = participants.length;
     const completed = participants.filter((p) => p.completed).length;
 
+    const userProgress = userProgressResp.data?.find(
+      (p) => p.challenge_id === challenge.id
+    );
+
     return {
       ...challenge,
       participants_count: total,
       completion_rate: total ? (completed / total) * 100 : 0,
+      user_progress: userProgress || null,
     };
   });
 
   return challengesWithStats;
 };
 
-export const useChallengesQuery = () =>
+export const useChallengesQuery = (userId?: string) =>
   useQuery({
-    queryKey: queryKeys.challenges,
-    queryFn: fetchChallenges,
+    queryKey: ["challenges", userId],
+    queryFn: () => fetchChallenges(userId),
     staleTime: 5 * 60 * 1000,
   });

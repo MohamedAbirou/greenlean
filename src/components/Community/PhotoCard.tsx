@@ -67,7 +67,6 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
 
         // Notification logic (only if not liking own post)
         if (photo.user_id && userId && photo.user_id !== userId) {
-          console.log("Username: ", username);
           await createNotification({
             recipient_id: photo.user_id,
             sender_id: userId,

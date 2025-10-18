@@ -83,7 +83,6 @@ const AuthModal: React.FC<AuthModalProps> = ({
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log("Submitted");
     e.preventDefault();
     setError(null);
     setSuccess(null);
@@ -140,8 +139,6 @@ const AuthModal: React.FC<AuthModalProps> = ({
     setError(null);
     setSuccess(null);
   }
-
-  console.log(btnContent);
 
   return (
     <Dialog>

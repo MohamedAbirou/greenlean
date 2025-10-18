@@ -14,6 +14,7 @@ import { useSettingsQuery, type PlatformSettings } from "@/hooks/Queries/useSett
 import { queryKeys } from "@/lib/queryKeys";
 import type { ColorTheme } from "@/utils/colorUtils";
 import { useQueryClient } from "@tanstack/react-query";
+import { Button } from "../ui/button";
 import CustomizationTab from "./SettingsTabs/CustomizationTab";
 import LogsTab from "./SettingsTabs/LogsTab";
 import MaintenanceTab from "./SettingsTabs/MaintenanceTab";
@@ -167,13 +168,13 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ colorTheme }) => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 justify-between items-center">
         <h2 className="text-2xl font-bold text-foreground">
           Platform Settings
         </h2>
-        <button
+        <Button
           onClick={() => handleSaveSettings(activeSection)}
-          className={`px-4 py-2 ${colorTheme.primaryBg} text-white rounded-lg hover:${colorTheme.primaryHover} transition-colors flex items-center cursor-pointer`}
+          className={`w-full sm:w-fit ${colorTheme.primaryBg} text-white rounded-lg hover:${colorTheme.primaryHover} transition-colors flex items-center`}
           disabled={saving}
         >
           {saving ? (
@@ -182,7 +183,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ colorTheme }) => {
             <Save className="h-4 w-4 mr-2" />
           )}
           Save Changes
-        </button>
+        </Button>
       </div>
 
       {error && (
@@ -198,7 +199,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ colorTheme }) => {
       )}
 
       {/* Navigation */}
-      <div className="flex space-x-4 border-b border-border">
+      <div className="flex space-x-4 border-b border-border overflow-x-auto">
         {[
           { id: "customization", label: "Customization", icon: Settings },
           { id: "maintenance", label: "Maintenance", icon: Tool },

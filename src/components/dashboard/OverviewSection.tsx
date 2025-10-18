@@ -32,7 +32,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-background rounded-lg p-4 flex items-center">
+        <div className="bg-background rounded-lg p-3 flex items-center">
           <div className="rounded-full bg-blue-100 dark:bg-blue-900 p-3 mr-4">
             <Scale className="h-6 w-6 text-blue-500" />
           </div>
@@ -47,7 +47,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
           </div>
         </div>
 
-        <div className="bg-background rounded-lg p-4 flex items-center">
+        <div className="bg-background rounded-lg p-3 flex items-center">
           <div className="rounded-full bg-green-100 dark:bg-green-900 p-3 mr-4">
             <Target className="h-6 w-6 text-green-500" />
           </div>
@@ -61,7 +61,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
           </div>
         </div>
 
-        <div className="bg-background rounded-lg p-4 flex items-center">
+        <div className="bg-background rounded-lg p-3 flex items-center">
           <div className="rounded-full bg-purple-100 dark:bg-purple-900 p-3 mr-4">
             <Activity className="h-6 w-6 text-purple-500" />
           </div>
@@ -75,7 +75,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
           </div>
         </div>
 
-        <div className="bg-background rounded-lg p-4 flex items-center">
+        <div className="bg-background rounded-lg p-3 flex items-center">
           <div className="rounded-full bg-red-100 dark:bg-red-900 p-3 mr-4">
             <Flame className="h-6 w-6 text-red-500" />
           </div>
@@ -95,7 +95,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
           Recommended Macro nutrient Split
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-background rounded-lg p-4">
+          <div className="bg-background rounded-lg p-3">
             <div className="flex items-center justify-between mb-2">
               <span className="text-foreground/80">Protein</span>
               <span className="text-green-500 font-semibold">
@@ -114,7 +114,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
             </p>
           </div>
 
-          <div className="bg-background rounded-lg p-4">
+          <div className="bg-background rounded-lg p-3">
             <div className="flex items-center justify-between mb-2">
               <span className="text-foreground/80">
                 Carbohydrates
@@ -135,7 +135,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
             </p>
           </div>
 
-          <div className="bg-background rounded-lg p-4">
+          <div className="bg-background rounded-lg p-3">
             <div className="flex items-center justify-between mb-2">
               <span className="text-foreground/80">Fats</span>
               <span className="text-yellow-500 font-semibold">
@@ -157,7 +157,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="bg-background rounded-lg p-6">
+        <div className="bg-background rounded-lg p-3">
           <h3 className="text-xl font-semibold text-foreground mb-4">
             Your Goals
           </h3>
@@ -189,7 +189,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
           </ul>
         </div>
 
-        <div className="bg-background rounded-lg p-6">
+        <div className="bg-background rounded-lg p-3">
           <h3 className="text-xl font-semibold text-foreground mb-4">
             Recommendations
           </h3>

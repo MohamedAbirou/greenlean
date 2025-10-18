@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useThemeStore } from "@/store/themeStore";
 import { useColorTheme } from "@/utils/colorUtils";
 import { AnimatePresence, motion } from "framer-motion";
-import { Bell, Leaf, Menu, Moon, Sun, UserCircle, X } from "lucide-react";
+import { Leaf, Menu, Moon, Sun, UserCircle, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import AuthModal from "../auth/AuthModal";
@@ -32,8 +32,8 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
   const { user, signOut } = useAuth();
   const platform = usePlatform();
   const colorTheme = useColorTheme(platform.settings?.theme_color);
-  const { notifications, unreadCount, markAsRead } = useNotifications();
-  const [showDropdown, setShowDropdown] = useState(false);
+  const { notifications, unreadCount, markAsRead, markAllAsRead } =
+    useNotifications();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -162,38 +162,14 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
 
             {/* Desktop User Menu */}
             <div className="hidden md:flex items-center space-x-2">
-              <div className="relative inline-block">
-                <Button
-                  variant="secondary"
-                  onClick={() => setShowDropdown((d) => !d)}
-                  className="rounded-full p-2"
-                  aria-label="View notifications"
-                >
-                  <motion.span
-                    initial={{ rotate: 0 }}
-                    animate={
-                      unreadCount > 0 ? { rotate: [-10, 10, -10, 0] } : {}
-                    }
-                    transition={{ duration: 0.5 }}
-                  >
-                    <Bell size={20} />
-                  </motion.span>
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-2 inline-flex items-center justify-center px-1 min-w-[16px] h-4 text-[0.6rem] font-bold leading-none text-white bg-red-600 rounded-full animate-pulse">
-                      {unreadCount}
-                    </span>
-                  )}
-                </Button>
-                {showDropdown && (
-                  <NotificationsDropdown
-                    notifications={notifications.slice(0, 15)}
-                    onNotificationClick={(n) => {
-                      markAsRead(n.id);
-                      setShowDropdown(false);
-                    }}
-                  />
-                )}
-              </div>
+              <NotificationsDropdown
+                notifications={notifications.slice(0, 15)}
+                onNotificationClick={(n) => {
+                  markAsRead(n.id);
+                }}
+                markAllAsRead={markAllAsRead}
+                unreadCount={unreadCount}
+              />
 
               <Button
                 variant="secondary"
@@ -217,38 +193,14 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
 
             {/* Mobile Menu Buttons */}
             <div className="md:hidden flex items-center space-x-2">
-              <div className="relative inline-block">
-                <Button
-                  variant="secondary"
-                  onClick={() => setShowDropdown((d) => !d)}
-                  className="rounded-full p-2"
-                  aria-label="View notifications"
-                >
-                  <motion.span
-                    initial={{ rotate: 0 }}
-                    animate={
-                      unreadCount > 0 ? { rotate: [-10, 10, -10, 0] } : {}
-                    }
-                    transition={{ duration: 0.5 }}
-                  >
-                    <Bell size={20} />
-                  </motion.span>
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-2 inline-flex items-center justify-center px-1 min-w-[16px] h-4 text-[0.6rem] font-bold leading-none text-white bg-red-600 rounded-full animate-pulse">
-                      {unreadCount}
-                    </span>
-                  )}
-                </Button>
-                {showDropdown && (
-                  <NotificationsDropdown
-                    notifications={notifications.slice(0, 15)}
-                    onNotificationClick={(n) => {
-                      markAsRead(n.id);
-                      setShowDropdown(false);
-                    }}
-                  />
-                )}
-              </div>
+              <NotificationsDropdown
+                notifications={notifications.slice(0, 15)}
+                onNotificationClick={(n) => {
+                  markAsRead(n.id);
+                }}
+                markAllAsRead={markAllAsRead}
+                unreadCount={unreadCount}
+              />
 
               <Button
                 variant="secondary"
@@ -300,7 +252,9 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
                       {item.label}
                     </Link>
                   ))}
-                  {!user && <AuthModal colorTheme={colorTheme} classNames="w-full" />}
+                  {!user && (
+                    <AuthModal colorTheme={colorTheme} classNames="w-full" />
+                  )}
                 </nav>
               </div>
             </motion.div>

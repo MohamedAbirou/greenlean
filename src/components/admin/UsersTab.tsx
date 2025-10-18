@@ -5,10 +5,11 @@ import { queryKeys } from "@/lib/queryKeys";
 import { userColumns } from "@/pages/admin-dashboard/users/columns";
 import type { ColorTheme } from "@/utils/colorUtils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader, Search } from "lucide-react";
+import { Loader } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { DataTable } from "../data-table/data-table";
+import { ConfirmDialog } from "../ui/modals/ConfirmDialog";
 import UserForm from "./UserForm";
 
 interface UserTabProps {
@@ -16,11 +17,13 @@ interface UserTabProps {
 }
 
 const UsersTab: React.FC<UserTabProps> = ({ colorTheme }) => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
   const [showForm, setShowForm] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const queryClient = useQueryClient();
+  const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const { data: users = [], isLoading } = useUsersQuery();
   const { data: currentUser } = useCurrentUserQuery();
@@ -88,23 +91,10 @@ const UsersTab: React.FC<UserTabProps> = ({ colorTheme }) => {
       {/* Search Header */}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-foreground">User Management</h2>
-        <div className="relative">
-          <Search
-            size={20}
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground/80"
-          />
-          <input
-            type="text"
-            placeholder="Search users..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-4 py-2 border border-border rounded-lg bg-input text-foreground"
-          />
-        </div>
       </div>
 
       {/* Table */}
-      <div className="bg-background rounded-xl shadow-md overflow-x-auto">
+      <div className="bg-background shadow-md overflow-x-auto">
         <DataTable
           columns={userColumns({
             currentUserId: currentUser?.id,
@@ -112,7 +102,10 @@ const UsersTab: React.FC<UserTabProps> = ({ colorTheme }) => {
               setSelectedUser(user);
               setShowForm(true);
             },
-            onDelete: (userId) => deleteUserMutation.mutate(userId),
+            onDelete: (userId) => {
+              setDeleteUserId(userId);
+              setConfirmOpen(true);
+            },
           })}
           data={filteredUsers} // ✅ use filtered list
           filterKey="full_name"
@@ -125,6 +118,26 @@ const UsersTab: React.FC<UserTabProps> = ({ colorTheme }) => {
             if (!open) setSelectedUser(null);
           }}
           user={selectedUser}
+        />
+
+        <ConfirmDialog
+          open={confirmOpen}
+          onOpenChange={(open) => {
+            setConfirmOpen(open);
+            if (!open) setDeleteUserId(null);
+          }}
+          title="Delete User"
+          description="Are you sure you want to delete this user? This action cannot be undone."
+          confirmLabel="Delete"
+          cancelLabel="Cancel"
+          destructive
+          loading={deleteUserId ? deleteUserMutation.isPending : false}
+          onConfirm={() => {
+            if (deleteUserId) {
+              deleteUserMutation.mutate(deleteUserId);
+              setConfirmOpen(false);
+            }
+          }}
         />
       </div>
     </div>

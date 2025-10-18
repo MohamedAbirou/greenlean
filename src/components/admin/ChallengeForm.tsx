@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
-import type { Challenge } from "@/types/challenge";
+import type { Badge, Challenge } from "@/types/challenge";
 import type { ColorTheme } from "@/utils/colorUtils";
+import * as LucideIcons from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
@@ -18,14 +19,19 @@ import { Textarea } from "../ui/textarea";
 
 interface ChallengeFormProps {
   challenge?: Challenge | null;
+  badges: Badge[];
   open?: boolean; // make optional since you’re conditionally rendering it
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: Partial<Challenge>) => void;
   colorTheme: ColorTheme;
 }
 
+type ChallengeType = "daily" | "weekly" | "streak" | "goal";
+type ChallengeDifficulty = "beginner" | "intermediate" | "advanced";
+
 const ChallengeForm: React.FC<ChallengeFormProps> = ({
   challenge,
+  badges,
   open,
   onSubmit,
   onOpenChange,
@@ -39,6 +45,7 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({
     type: "daily",
     difficulty: "beginner",
     points: 0,
+    badge_id: "",
     requirements: {
       target: 0,
     },
@@ -66,6 +73,7 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({
         type: "daily",
         difficulty: "beginner",
         points: 0,
+        badge_id: "",
         requirements: { target: 0 },
         start_date: new Date().toISOString().split("T")[0],
         end_date: new Date().toISOString().split("T")[0],
@@ -73,7 +81,7 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({
       });
       setRequirementsJson(JSON.stringify({ target: 0 }, null, 2));
     }
-  }, [challenge, open]); // 👈 include `open` so it runs when modal opens
+  }, [challenge, open]);
 
   // const handleChange = (
   //   e: React.ChangeEvent<
@@ -109,12 +117,13 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const payload: Partial<Challenge> = {
+    const payload: Partial<Challenge> & { badge_id?: string } = {
       title: formData.title,
       description: formData.description,
       type: formData.type,
       difficulty: formData.difficulty,
       points: formData.points,
+      badge_id: formData.badge_id || undefined,
       requirements: formData.requirements,
       start_date: formData.start_date,
       end_date: formData.end_date,
@@ -170,7 +179,7 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({
             <Select
               value={formData.type}
               onValueChange={(value) =>
-                setFormData({ ...formData, type: value as any })
+                setFormData({ ...formData, type: value as ChallengeType })
               }
             >
               <SelectTrigger className="w-full">
@@ -190,7 +199,7 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({
             <Select
               value={formData.difficulty}
               onValueChange={(value) =>
-                setFormData({ ...formData, difficulty: value as any })
+                setFormData({ ...formData, difficulty: value as ChallengeDifficulty })
               }
             >
               <SelectTrigger className="w-full">
@@ -205,7 +214,7 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({
           </div>
         </div>
 
-        {/* Points & Target */}
+        {/* Points & Badge */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <Label htmlFor="points">Points</Label>
@@ -223,12 +232,58 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({
           </div>
 
           <div>
-            <Label>Target</Label>
-            <Input
-              type="number"
-              disabled
-              value={formData.requirements?.target ?? 0}
-            />
+            <Label>Reward Badge</Label>
+            <Select
+              value={formData.badge_id || "none"}
+              onValueChange={(value) =>
+                setFormData({
+                  ...formData,
+                  badge_id: value === "none" ? undefined : value,
+                })
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a badge reward" />
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value="none" className="text-foreground">
+                  No badge reward
+                </SelectItem>
+
+                {badges.map((badge) => {
+                  const iconName =
+                    badge.icon.charAt(0).toUpperCase() + badge.icon.slice(1);
+
+                  const IconComponent =
+                    (
+                      LucideIcons as unknown as Record<
+                        string,
+                        React.ForwardRefExoticComponent<
+                          Omit<LucideIcons.LucideProps, "ref"> &
+                            React.RefAttributes<SVGSVGElement>
+                        >
+                      >
+                    )[iconName] || LucideIcons.Star;
+                  return (
+                    <SelectItem
+                      key={badge.id}
+                      value={badge.id}
+                      className="flex items-center gap-2 px-2 py-1"
+                      style={{ color: badge.color }}
+                    >
+                      {IconComponent && (
+                        <IconComponent
+                          className="w-5 h-5"
+                          style={{ color: badge.color }}
+                        />
+                      )}
+                      <span>{badge.name}</span>
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
