@@ -24,6 +24,13 @@ interface UserRewards {
   }[];
 }
 
+function getNextExpiration(type: string) {
+  const now = new Date();
+  if (type === "daily") return new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  if (type === "weekly") return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  return null;
+}
+
 const Challenges: React.FC = () => {
   const { user } = useAuth();
 
@@ -187,6 +194,8 @@ const Challenges: React.FC = () => {
             completion_date: isCompleting ? new Date().toISOString() : null,
             streak_count: newProgress,
             last_progress_date: new Date().toISOString(),
+            streak_expires_at: getNextExpiration(challenge.type),
+            streak_warning_sent: false
           })
           .eq("challenge_id", challengeId)
           .eq("user_id", user?.id);
@@ -348,8 +357,9 @@ const Challenges: React.FC = () => {
           {/* Enhanced Header */}
           <m.div
             initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            viewport={{ once: true }}
             className="relative bg-gradient-to-br from-white via-purple-50 to-blue-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-purple-900/50 dark:to-blue-900/50 rounded-lg shadow-2xl border border-purple-200/50 dark:border-purple-700/50 p-8 overflow-hidden"
           >
             {/* Static Background Blobs - Only one animated */}
@@ -520,9 +530,10 @@ const Challenges: React.FC = () => {
           {/* Enhanced Challenges Grid */}
           <AnimatePresence mode="popLayout">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredChallenges.map((challenge) => (
+              {filteredChallenges.map((challenge, index) => (
                 <ChallengeCard
                   key={challenge.id}
+                  index={index}
                   challenge={challenge}
                   isJoining={joiningId === challenge.id}
                   isQuitting={quittingId === challenge.id}

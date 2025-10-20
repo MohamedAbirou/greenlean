@@ -84,7 +84,7 @@ const Contact: React.FC = () => {
               Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
             },
             body: JSON.stringify({
-              to: "support@diobia.com",
+              to: "abiroumohamed58@gmail.com",
               subject: formData.subject,
               html: `
             <p><strong>From:</strong> ${formData.name} (${formData.email})</p>

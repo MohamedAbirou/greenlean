@@ -11,6 +11,7 @@ interface ChallengeCardProps {
   isJoining: boolean;
   updatingProgress: boolean;
   isQuitting: boolean;
+  index: number;
   updateProgress: (challengeId: string, newProgress: number) => void;
   quitChallenge: (challengeId: string) => void;
   joinChallenge: (challengeId: string) => void;
@@ -44,6 +45,7 @@ const ChallengeCard = memo(
     challenge,
     isJoining,
     isQuitting,
+    index,
     updatingProgress,
     updateProgress,
     quitChallenge,
@@ -53,6 +55,7 @@ const ChallengeCard = memo(
       () => challengeIcons[challenge.type] || LucideIcons.Award,
       [challenge.type]
     );
+
     const BadgeIconComponent = useMemo(
       () => IconMap[challenge.badge?.icon ?? "star"] || LucideIcons.Star,
       [challenge.badge?.icon]
@@ -101,10 +104,10 @@ const ChallengeCard = memo(
 
     return (
       <m.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: index * 0.1 }}
+        viewport={{ once: true }}
         className="relative bg-white dark:bg-gray-900 rounded-md shadow-xl overflow-hidden border border-border transition-all duration-300 hover:border-purple-400/50 dark:hover:border-purple-500/50 hover:shadow-2xl group"
         style={{ transform: "translateZ(0)" }}
       >
@@ -134,6 +137,7 @@ const ChallengeCard = memo(
                     </span>
 
                     {challenge.user_progress &&
+                      !challenge.user_progress.completed &&
                       challenge.user_progress.streak_count > 0 && (
                         <span className="flex items-center font-bold text-xs px-2 py-0.5 rounded-full border-2 border-red-800/50 dark:border-red-500/50 text-red-700 dark:text-red-500 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/40 dark:to-red-900/40">
                           <LucideIcons.Flame size={17} />
@@ -165,8 +169,6 @@ const ChallengeCard = memo(
                   </div>
                 </div>
               </div>
-
-              <div className="flex items-center justify-center space-x-2"></div>
             </div>
 
             {/* Description */}
