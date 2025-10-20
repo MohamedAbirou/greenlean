@@ -104,7 +104,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent className="max-h-96 w-64" align="start">
+      <DropdownMenuContent className="max-h-96 max-w-80 w-80" align="start">
         <DropdownMenuLabel className="flex items-center justify-between p-1">
           <span className="font-semibold text-sm">Notifications</span>
           <div className="flex items-center space-x-2">
