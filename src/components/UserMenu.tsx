@@ -38,11 +38,9 @@ export function UserMenu({
   // Keyboard shortcuts
   useHotkeys('ctrl+alt+d', () => navigate('/dashboard'));
   useHotkeys('ctrl+alt+a', () => navigate('/admin'));
-  useHotkeys('ctrl+alt+p+s', () => navigate('/profile'));
+  useHotkeys('ctrl+alt+p', () => navigate('/profile'));
   useHotkeys('ctrl+alt+q', () => navigate('/quiz-history'));
-  useHotkeys('ctrl+alt+p', () => navigate('/progress-photos'));
-  useHotkeys('ctrl+alt+c+m', () => navigate('/community'));
-  useHotkeys('ctrl+alt+c+c', () => navigate('/challenges'));
+  useHotkeys('ctrl+alt+c', () => navigate('/challenges'));
   useHotkeys('ctrl+alt+l', handleSignOut);
 
   return (

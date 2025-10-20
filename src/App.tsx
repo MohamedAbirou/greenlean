@@ -17,7 +17,6 @@ import About from "./pages/About";
 import AdminDashboard from "./pages/AdminDashboard";
 import AuthCallback from "./pages/AuthCallback";
 import Challenges from "./pages/Challenges";
-import CommunityPhotos from "./pages/CommunityPhotos";
 import Contact from "./pages/Contact";
 import Dashboard from "./pages/Dashboard";
 import DietPlanDetails from "./pages/DietPlanDetails";
@@ -27,7 +26,6 @@ import FAQ from "./pages/FAQ";
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
 import Profile from "./pages/Profile";
-import ProgressPhotos from "./pages/ProgressPhotos";
 import Quiz from "./pages/Quiz";
 import QuizHistory from "./pages/QuizHistory";
 import QuizResult from "./pages/QuizResult";
@@ -42,7 +40,12 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <PlatformProvider>
-          <Router>
+          <Router
+            future={{
+              v7_startTransition: true,
+              v7_relativeSplatPath: true,
+            }}
+          >
             <AnimatePresence mode="wait">
               <Routes>
                 {/* Auth callback route outside of layout */}
@@ -90,22 +93,6 @@ function App() {
                     element={
                       <ProtectedRoute>
                         <QuizResult />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="progress-photos"
-                    element={
-                      <ProtectedRoute>
-                        <ProgressPhotos />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="community"
-                    element={
-                      <ProtectedRoute>
-                        <CommunityPhotos />
                       </ProtectedRoute>
                     }
                   />

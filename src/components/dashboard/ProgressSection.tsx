@@ -1,12 +1,14 @@
+import { activityColumns } from "@/pages/admin-dashboard/activities/columns";
 import type {
   ActivityFormData,
   ActivityLog,
   DashboardStats,
 } from "@/types/dashboard";
 import { motion } from "framer-motion";
-import { Activity, Check, Edit, Flame, Trash2 } from "lucide-react";
+import { Activity, Check, Flame } from "lucide-react";
 import React, { useState } from "react";
 import { Line } from "react-chartjs-2";
+import { DataTable } from "../data-table/data-table";
 import ActivityModal from "../ui/modals/ActivityModal";
 import { ConfirmDialog } from "../ui/modals/ConfirmDialog";
 
@@ -34,7 +36,9 @@ export const ProgressSection: React.FC<ProgressSectionProps> = ({
   error,
   colorTheme,
 }) => {
-  const [showLogModal, setShowLogModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+
   const [editLog, setEditLog] = useState<ActivityLog | null>(null);
   const [deleteLogId, setDeleteLogId] = useState<string | null>(null);
 
@@ -60,7 +64,7 @@ export const ProgressSection: React.FC<ProgressSectionProps> = ({
     e.preventDefault();
     const success = await onAddLog(logForm);
     if (success) {
-      setShowLogModal(false);
+      setShowAddModal(false);
       setLogForm({
         activity_type: "Workout",
         duration_minutes: "",
@@ -153,7 +157,7 @@ export const ProgressSection: React.FC<ProgressSectionProps> = ({
         </p>
         <button
           className={`px-6 py-3 ${colorTheme.primaryBg} hover:${colorTheme.primaryHover} text-white font-medium rounded-full transition-colors`}
-          onClick={() => setShowLogModal(true)}
+          onClick={() => setShowAddModal(true)}
         >
           Log Today's Activities
         </button>
@@ -225,77 +229,24 @@ export const ProgressSection: React.FC<ProgressSectionProps> = ({
         {activityLogs.length === 0 ? (
           <p className="text-foreground/60">No activity logs yet.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-card">
-              <thead>
-                <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-foreground/80 uppercase">
-                    Date
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-foreground/80 uppercase">
-                    Type
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-foreground/80 uppercase">
-                    Duration
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-foreground/80 uppercase">
-                    Calories
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-foreground/80 uppercase">
-                    Steps
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-foreground/80 uppercase">
-                    Notes
-                  </th>
-                  <th className="px-4 py-2"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {activityLogs.map((log) => (
-                  <tr key={log.id} className="bg-background">
-                    <td className="px-4 truncate py-2 text-sm text-foreground">
-                      {log.activity_date}
-                    </td>
-                    <td className="px-4 py-2 text-sm text-foreground">
-                      {log.activity_type}
-                    </td>
-                    <td className="px-4 py-2 text-sm text-foreground">
-                      {log.duration_minutes || "-"}
-                    </td>
-                    <td className="px-4 py-2 text-sm text-foreground">
-                      {log.calories_burned || "-"}
-                    </td>
-                    <td className="px-4 py-2 text-sm text-foreground">
-                      {log.steps || "-"}
-                    </td>
-                    <td className="px-4 py-2 text-sm text-foreground truncate">
-                      {log.notes || "-"}
-                    </td>
-                    <td className="flex px-4 py-2 gap-2">
-                      <button
-                        onClick={() => openEditModal(log)}
-                        className="text-blue-500 hover:text-blue-700 cursor-pointer"
-                      >
-                        <Edit className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => setDeleteLogId(log.id)}
-                        className="text-red-500 hover:text-red-700 cursor-pointer"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable
+            columns={activityColumns({
+              onEdit: (activity) => {
+                openEditModal(activity);
+              },
+              onDelete: (id) => {
+                setDeleteLogId(id);
+              },
+            })}
+            data={activityLogs}
+            filterKey="type"
+          />
         )}
       </div>
 
       <ActivityModal
-        open={showLogModal}
-        onOpenChange={setShowLogModal}
+        open={showAddModal}
+        onOpenChange={setShowAddModal}
         title="Log Today's Activity"
         formData={logForm}
         setFormData={setLogForm}
@@ -306,10 +257,8 @@ export const ProgressSection: React.FC<ProgressSectionProps> = ({
       />
 
       <ActivityModal
-        open={!!editLog}
-        onOpenChange={(open) => {
-          if (!open) setEditLog(null);
-        }}
+        open={showEditModal}
+        onOpenChange={setShowEditModal}
         title="Edit Activity"
         formData={editForm}
         setFormData={setEditForm}

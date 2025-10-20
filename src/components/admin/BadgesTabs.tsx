@@ -1,4 +1,3 @@
-import { DataTable } from "@/components/data-table/data-table";
 import { useBadgesQuery } from "@/hooks/Queries/useBadges";
 import { supabase } from "@/lib/supabase";
 import { badgeColumns } from "@/pages/admin-dashboard/badges/columns";
@@ -10,6 +9,7 @@ import toast from "react-hot-toast";
 import { Button } from "../ui/button";
 import { ConfirmDialog } from "../ui/modals/ConfirmDialog";
 import BadgeForm from "./BadgeForm";
+import { DataTable } from "../data-table/data-table";
 
 const BadgesTab = () => {
   const [showForm, setShowForm] = useState(false);

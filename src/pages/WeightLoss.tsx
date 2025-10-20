@@ -1,130 +1,10 @@
 import { usePlatform } from '@/contexts/PlatformContext';
+import { exercises } from '@/data/exercises';
 import { useColorTheme } from '@/utils/colorUtils';
 import { motion } from 'framer-motion';
 import { ArrowRight, BarChart, Clock, Tag } from 'lucide-react';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-
-interface Exercise {
-  id: number;
-  title: string;
-  description: string;
-  image: string;
-  duration: string;
-  intensity: 'Low' | 'Medium' | 'High';
-  category: 'Cardio' | 'Strength' | 'Flexibility';
-}
-
-const exercises: Exercise[] = [
-  {
-    id: 1,
-    title: 'HIIT Cardio Workout',
-    description: 'High-intensity interval training to maximize calorie burn in a short amount of time.',
-    image: 'https://images.pexels.com/photos/2294361/pexels-photo-2294361.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-    duration: '30 min',
-    intensity: 'High',
-    category: 'Cardio'
-  },
-  {
-    id: 2,
-    title: 'Full Body Strength Training',
-    description: 'Build muscle and increase metabolism with this comprehensive strength workout.',
-    image: 'https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-    duration: '45 min',
-    intensity: 'Medium',
-    category: 'Strength'
-  },
-  {
-    id: 3,
-    title: 'Yoga for Weight Loss',
-    description: 'A flowing yoga sequence designed to burn calories while improving flexibility and mindfulness.',
-    image: 'https://images.pexels.com/photos/4056723/pexels-photo-4056723.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-    duration: '40 min',
-    intensity: 'Low',
-    category: 'Flexibility'
-  },
-  {
-    id: 4,
-    title: 'Fat-Burning Running Plan',
-    description: 'Interval running workout designed to maximize fat burning and cardiovascular health.',
-    image: 'https://images.pexels.com/photos/2803158/pexels-photo-2803158.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-    duration: '35 min',
-    intensity: 'High',
-    category: 'Cardio'
-  },
-  {
-    id: 5,
-    title: 'Core and Abs Workout',
-    description: 'Strengthen your core muscles to improve posture, stability, and create a toned midsection.',
-    image: 'https://images.pexels.com/photos/3289711/pexels-photo-3289711.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-    duration: '25 min',
-    intensity: 'Medium',
-    category: 'Strength'
-  },
-  {
-    id: 6,
-    title: 'Low-Impact Full Body Workout',
-    description: 'Joint-friendly exercises that provide a full body workout without high-impact movements.',
-    image: 'https://images.pexels.com/photos/6922148/pexels-photo-6922148.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-    duration: '30 min',
-    intensity: 'Low',
-    category: 'Strength'
-  },
-  {
-    id: 7,
-    title: 'Pilates for Core Strength',
-    description: 'Focus on core strength and flexibility with controlled, precise movements.',
-    image: 'https://images.pexels.com/photos/4662438/pexels-photo-4662438.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-    duration: '35 min',
-    intensity: 'Medium',
-    category: 'Flexibility'
-  },
-  {
-    id: 8,
-    title: 'Bodyweight Circuit Training',
-    description: 'Effective full-body workout using only your body weight for resistance.',
-    image: 'https://images.pexels.com/photos/4162485/pexels-photo-4162485.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-    duration: '30 min',
-    intensity: 'High',
-    category: 'Strength'
-  },
-  {
-    id: 9,
-    title: 'Power Walking Routine',
-    description: 'Brisk walking workout with intervals to boost calorie burn and endurance.',
-    image: 'https://images.pexels.com/photos/4720236/pexels-photo-4720236.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-    duration: '40 min',
-    intensity: 'Low',
-    category: 'Cardio'
-  },
-  {
-    id: 10,
-    title: 'Resistance Band Workout',
-    description: 'Full-body strength training using resistance bands for progressive overload.',
-    image: 'https://images.pexels.com/photos/6453396/pexels-photo-6453396.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-    duration: '35 min',
-    intensity: 'Medium',
-    category: 'Strength'
-  },
-  {
-    id: 11,
-    title: 'Dynamic Stretching Routine',
-    description: 'Improve flexibility and mobility with dynamic stretching exercises.',
-    image: 'https://images.pexels.com/photos/4662344/pexels-photo-4662344.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-    duration: '25 min',
-    intensity: 'Low',
-    category: 'Flexibility'
-  },
-  {
-    id: 12,
-    title: 'Tabata Training',
-    description: 'High-intensity interval training with 20 seconds work and 10 seconds rest.',
-    image: 'https://images.pexels.com/photos/6456301/pexels-photo-6456301.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-    duration: '20 min',
-    intensity: 'High',
-    category: 'Cardio'
-  }
-];
 
 const WeightLoss: React.FC = () => {
   const [activeTab, setActiveTab] = useState('exercises');
@@ -133,7 +13,7 @@ const WeightLoss: React.FC = () => {
   const colorTheme = useColorTheme(platform.settings?.theme_color);
 
   const filteredExercises = activeCategory === 'All' 
-    ? exercises 
+    ? exercises
     : exercises.filter(ex => ex.category === activeCategory);
 
   const categories = ['All', 'Cardio', 'Strength', 'Flexibility'];

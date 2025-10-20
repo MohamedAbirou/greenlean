@@ -23,10 +23,6 @@ import { UserAvatar } from "./ui/UserAvatar";
 
 const FILTERS: { label: string; value: NotificationType | "all" }[] = [
   { label: "All", value: "all" },
-  { label: "Likes", value: "like" },
-  { label: "Comments", value: "comment" },
-  { label: "Replies", value: "reply" },
-  { label: "Mentions", value: "mention" },
   { label: "Challenges", value: "challenge" },
   { label: "Rewards", value: "reward" },
 ];
@@ -55,11 +51,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
 
   const goToEntity = (notification: Notification) => {
     let url = "/";
-    if (notification.entity_type === "post")
-      url = `/community#${notification.entity_id}`;
-    else if (notification.entity_type === "comment")
-      url = `/community#${notification.entity_id}`;
-    else if (
+    if (
       notification.entity_type === "challenge" ||
       notification.entity_type === "reward"
     )

@@ -89,7 +89,7 @@ export const MealPlanSection: React.FC<MealPlanSectionProps> = ({
           mealPlan.map((meal) => (
             <div
               key={meal.name}
-              className="bg-card p-2 rounded-lg mb-6 border-b pb-6 last:border-0 last:pb-0"
+              className="bg-card p-2 rounded-lg mb-3 last:mb-0"
             >
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3">
                 <h4 className="font-medium text-lg text-foreground">
@@ -142,8 +142,8 @@ export const MealPlanSection: React.FC<MealPlanSectionProps> = ({
                   </li>
                 ))}
               </ul>
-              <div className="mt-3 pt-3 border-t border-border">
-                <div className="flex justify-between text-sm font-medium text-foreground/90">
+              <hr className="bg-background h-0.5 my-3" />
+                <div className=" flex justify-between text-sm font-medium text-foreground/90">
                   <span>Total: {Math.round(meal.total.calories)} kcal</span>
                   <span>
                     {Math.round(meal.total.protein)}g P •{" "}
@@ -151,7 +151,6 @@ export const MealPlanSection: React.FC<MealPlanSectionProps> = ({
                     {Math.round(meal.total.fats)}g F
                   </span>
                 </div>
-              </div>
             </div>
           ))
         ) : (

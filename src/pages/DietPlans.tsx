@@ -7,156 +7,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { usePlatform } from "@/contexts/PlatformContext";
+import { dietPlans } from "@/data/dietPlans";
 import { useColorTheme } from "@/utils/colorUtils";
 import { motion } from "framer-motion";
 import { ArrowRight, Filter, Search } from "lucide-react";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-
-interface DietPlan {
-  id: number;
-  title: string;
-  description: string;
-  image: string;
-  category: string;
-  difficulty: "Easy" | "Medium" | "Hard";
-  duration: string;
-}
-
-const dietPlans: DietPlan[] = [
-  {
-    id: 1,
-    title: "Mediterranean Diet",
-    description:
-      "Rich in fruits, vegetables, whole grains, and healthy fats. Perfect for heart health and weight management.",
-    image:
-      "https://images.pexels.com/photos/1640774/pexels-photo-1640774.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-    category: "Weight Loss",
-    difficulty: "Medium",
-    duration: "12 weeks",
-  },
-  {
-    id: 2,
-    title: "Keto Diet Plan",
-    description:
-      "High fat, low carb approach to trigger ketosis for rapid weight loss and increased energy.",
-    image:
-      "https://images.pexels.com/photos/1640771/pexels-photo-1640771.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-    category: "Weight Loss",
-    difficulty: "Hard",
-    duration: "8 weeks",
-  },
-  {
-    id: 3,
-    title: "Plant-Based Diet",
-    description:
-      "Focus on plant foods for improved health, weight management, and reduced environmental impact.",
-    image:
-      "https://images.pexels.com/photos/1435904/pexels-photo-1435904.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-    category: "Health",
-    difficulty: "Medium",
-    duration: "12 weeks",
-  },
-  {
-    id: 4,
-    title: "Intermittent Fasting",
-    description:
-      "Alternate eating and fasting periods to improve metabolism and support weight loss.",
-    image:
-      "https://images.pexels.com/photos/5638732/pexels-photo-5638732.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-    category: "Weight Loss",
-    difficulty: "Medium",
-    duration: "10 weeks",
-  },
-  {
-    id: 5,
-    title: "DASH Diet",
-    description:
-      "Designed to lower blood pressure through balanced nutrition and reduced sodium intake.",
-    image:
-      "https://images.pexels.com/photos/4033636/pexels-photo-4033636.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-    category: "Health",
-    difficulty: "Easy",
-    duration: "16 weeks",
-  },
-  {
-    id: 6,
-    title: "Paleo Diet",
-    description:
-      "Based on foods similar to what our ancestors ate during the Paleolithic era, focusing on whole foods.",
-    image:
-      "https://images.pexels.com/photos/6546021/pexels-photo-6546021.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-    category: "Weight Loss",
-    difficulty: "Hard",
-    duration: "12 weeks",
-  },
-  {
-    id: 7,
-    title: "Flexitarian Diet",
-    description:
-      "A flexible approach to vegetarianism that emphasizes plant-based foods with occasional meat.",
-    image:
-      "https://images.pexels.com/photos/1660027/pexels-photo-1660027.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-    category: "Health",
-    difficulty: "Easy",
-    duration: "10 weeks",
-  },
-  {
-    id: 8,
-    title: "Low-Carb Diet",
-    description:
-      "Reduce carbohydrate intake while focusing on protein and healthy fats for effective weight loss.",
-    image:
-      "https://images.pexels.com/photos/1410235/pexels-photo-1410235.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-    category: "Weight Loss",
-    difficulty: "Medium",
-    duration: "8 weeks",
-  },
-  {
-    id: 9,
-    title: "Anti-Inflammatory Diet",
-    description:
-      "Combat inflammation through nutrient-rich foods and balanced nutrition.",
-    image:
-      "https://images.pexels.com/photos/1099680/pexels-photo-1099680.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-    category: "Health",
-    difficulty: "Medium",
-    duration: "12 weeks",
-  },
-  {
-    id: 10,
-    title: "High-Protein Diet",
-    description:
-      "Build and maintain muscle mass while supporting weight loss through increased protein intake.",
-    image:
-      "https://images.pexels.com/photos/1624487/pexels-photo-1624487.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-    category: "Weight Loss",
-    difficulty: "Medium",
-    duration: "10 weeks",
-  },
-  {
-    id: 11,
-    title: "Mediterranean-DASH Diet",
-    description:
-      "Combine the best of Mediterranean and DASH diets for heart health and weight management.",
-    image:
-      "https://images.pexels.com/photos/5638609/pexels-photo-5638609.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-    category: "Health",
-    difficulty: "Medium",
-    duration: "14 weeks",
-  },
-  {
-    id: 12,
-    title: "Whole30 Diet",
-    description:
-      "Reset your nutrition with 30 days of whole foods and elimination of processed ingredients.",
-    image:
-      "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-    category: "Weight Loss",
-    difficulty: "Hard",
-    duration: "4 weeks",
-  },
-];
 
 const DietPlans: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -170,7 +26,7 @@ const DietPlans: React.FC = () => {
 
   const filteredPlans = dietPlans.filter((plan) => {
     const matchesSearch =
-      plan.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      plan.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       plan.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory =
       categoryFilter === "All" || plan.category === categoryFilter;
@@ -268,7 +124,7 @@ const DietPlans: React.FC = () => {
                 <div className="h-48 relative">
                   <img
                     src={plan.image}
-                    alt={plan.title}
+                    alt={plan.name}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute top-4 right-4 bg-background py-1 px-3 rounded-full text-sm font-medium text-foreground/80">
@@ -278,7 +134,7 @@ const DietPlans: React.FC = () => {
                 <div className="p-6">
                   <div className="flex justify-between items-center mb-2">
                     <h3 className="text-xl font-bold text-foreground">
-                      {plan.title}
+                      {plan.name}
                     </h3>
                     <span
                       className={`text-sm font-medium py-1 px-3 rounded-full ${

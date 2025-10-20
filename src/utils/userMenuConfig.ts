@@ -1,13 +1,11 @@
 import type { LucideProps } from "lucide-react";
 import {
-  Camera,
   History,
   LayoutDashboard,
   LogOut,
   Settings,
   Shield,
-  Trophy,
-  Users,
+  Trophy
 } from "lucide-react";
 import type { ForwardRefExoticComponent, RefAttributes } from "react";
 
@@ -58,7 +56,7 @@ export const userMenuGroups: UserMenuGroup[] = [
         icon: Settings,
         label: "Profile Settings",
         to: "/profile",
-        shortcut: "CTRL+ALT+PS",
+        shortcut: "CTRL+ALT+P",
       },
       {
         icon: History,
@@ -67,23 +65,11 @@ export const userMenuGroups: UserMenuGroup[] = [
         shortcut: "CTRL+ALT+Q",
       },
       {
-        icon: Camera,
-        label: "Progress Photos",
-        to: "/progress-photos",
-        shortcut: "CTRL+ALT+P",
-      },
-    ],
-  },
-  {
-    label: "Community",
-    items: [
-      { icon: Users, label: "Community", to: "/community", shortcut: "CTRL+ALT+CM" },
-      {
         icon: Trophy,
         label: "Challenges",
         to: "/challenges",
         shortcut: "CTRL+ALT+CC",
-      },
+      }
     ],
   },
   {

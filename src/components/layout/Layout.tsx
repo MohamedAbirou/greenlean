@@ -9,7 +9,6 @@ const Layout: React.FC = () => {
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const isDarkMode = useThemeStore((state) => state.isDarkMode);
-  const isCommunityPage = location.pathname === '/community';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -35,7 +34,7 @@ const Layout: React.FC = () => {
 
   return (
     <div className={`flex flex-col min-h-screen ${isDarkMode ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
-      <Navbar scrolled={scrolled} isSticky={isCommunityPage} />
+      <Navbar scrolled={scrolled} />
       <main className="flex-grow">
         <motion.div
           key={location.pathname}
@@ -47,7 +46,7 @@ const Layout: React.FC = () => {
           <Outlet />
         </motion.div>
       </main>
-      {!isCommunityPage && <Footer />}
+      <Footer />
     </div>
   );
 };

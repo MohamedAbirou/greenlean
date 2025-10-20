@@ -6,9 +6,9 @@ export interface Notification {
   id: string;
   recipient_id: string;
   sender_id: string;
-  type: 'like' | 'comment' | 'reply' | 'mention' | 'challenge';
+  type: 'profile_changes' | 'role_change' | 'challenge' | 'reward';
   entity_id: string;
-  entity_type: 'post' | 'comment' | 'challenge';
+  entity_type: 'profile_changes' | 'role_change' | 'challenge' | 'reward';
   message: string;
   read: boolean;
   created_at: string;

@@ -4,18 +4,12 @@ interface CreateNotificationOptions {
   recipient_id: string;
   sender_id: string | null;
   type:
-    | "like"
-    | "comment"
-    | "reply"
     | "challenge"
-    | "mention"
     | "profile_changes"
     | "role_change"
     | "reward";
   entity_id: string;
   entity_type:
-    | "post"
-    | "comment"
     | "challenge"
     | "profile_changes"
     | "role_change"

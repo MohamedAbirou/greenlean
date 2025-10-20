@@ -1,5 +1,5 @@
-export type NotificationType = 'like' | 'comment' | 'reply' | 'mention' | 'challenge' | 'reward';
-export type NotificationEntityType = 'post' | 'comment' | 'challenge' | 'reward';
+export type NotificationType = 'profile_changes' | 'role_change' | 'challenge' | 'reward';
+export type NotificationEntityType = 'profile_changes' | 'role_change' | 'challenge' | 'reward';
 
 export interface Notification {
   id: string;
