@@ -1,14 +1,15 @@
+import { IconMap } from "@/helpers/challengeHelper";
 import type { Challenge } from "@/types/challenge";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Sparkles, Star, Trash2 } from "lucide-react";
 
 export const challengeColumns = ({
   onEdit,
   onDelete,
-  cellClassName
+  cellClassName,
 }: {
   onEdit: (challenge: Challenge) => void;
   onDelete: (challengeId: string) => void;
-  cellClassName?: string
+  cellClassName?: string;
 }) => [
   {
     accessorKey: "title",
@@ -55,11 +56,7 @@ export const challengeColumns = ({
     header: "Participants",
     cell: ({ row }: { row: { original: Challenge } }) => {
       const participants = row.original.participants_count ?? 0;
-      return (
-        <div className={cellClassName}>
-          {participants || "-"}
-        </div>
-      );
+      return <div className={cellClassName}>{participants || "-"}</div>;
     },
   },
   {
@@ -81,6 +78,51 @@ export const challengeColumns = ({
     },
   },
 
+  {
+    accessorKey: "points",
+    header: "Points",
+    cell: ({ row }: { row: { original: Challenge } }) => {
+      const c = row.original;
+      return (
+        <div
+          className={`${cellClassName} flex items-center gap-1 bg-yellow-100 dark:bg-yellow-900/40 px-2 rounded-full border-2 border-yellow-400/50 dark:border-yellow-500/50`}
+        >
+          <Sparkles className="w-6 h-6 text-yellow-500 animate-pulse" />
+          <span className="font-black text-yellow-700 dark:text-yellow-300 text-xs">
+            {c.points}
+          </span>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "badge",
+    header: "Badge",
+    cell: ({ row }: { row: { original: Challenge } }) => {
+      const c = row.original;
+      const BadgeIconComponent = IconMap[c?.badge?.icon ?? "star"] || Star;
+      return (
+        <div className={cellClassName}>
+          {c.badge ? (
+            <span
+              className="flex items-center w-fit gap-2 px-2 py-0.5 rounded-full text-xs font-bold border-2 shadow-md"
+              style={{
+                backgroundColor: `${c.badge?.color}20`,
+                borderColor: c.badge?.color,
+                color: c.badge?.color,
+                transform: "translateZ(0)",
+              }}
+            >
+              <BadgeIconComponent className="w-4 h-4" />
+              <span>{c.badge?.name}</span>
+            </span>
+          ) : (
+            <span>-</span>
+          )}
+        </div>
+      );
+    },
+  },
   {
     accessorKey: "is_active",
     header: "Status",

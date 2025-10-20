@@ -126,3 +126,12 @@
 @plugin "tailwindcss-animate";
 
 @custom-variant dark (&:is(.dark *));
+
+@keyframes flame {
+    0% { transform: scale(1) translateY(0); opacity: 1; }
+    50% { transform: scale(1.1) translateY(-2px); opacity: 0.8; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+  }
+  .animate-flame {
+    animation: flame 0.4s ease-in-out infinite alternate;
+  }

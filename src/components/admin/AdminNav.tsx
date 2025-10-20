@@ -1,5 +1,5 @@
 import type { ColorTheme } from '@/utils/colorUtils';
-import { Award, BarChart2, Settings, Trophy, Users } from 'lucide-react';
+import { Award, BarChart2, CircleStar, Settings, Trophy, Users } from 'lucide-react';
 import React from 'react';
 
 interface AdminNavProps {
@@ -12,8 +12,9 @@ const AdminNav: React.FC<AdminNavProps> = ({ activeTab, setActiveTab, colorTheme
   const tabs = [
     { id: 'overview', label: 'Overview', icon: BarChart2 },
     { id: 'challenges', label: 'Challenges', icon: Trophy },
+    { id: 'badges', label: 'Badges', icon: Award },
     { id: 'users', label: 'Users', icon: Users },
-    { id: 'rewards', label: 'Rewards', icon: Award },
+    { id: 'rewards', label: 'Rewards', icon: CircleStar },
     { id: 'settings', label: 'Settings', icon: Settings }
   ];
 

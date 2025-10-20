@@ -4,6 +4,12 @@ export interface ChallengeRequirements {
   timeframe?: string;
 }
 
+interface Participant {
+  id: string;
+  user_id: string;
+  completed: boolean;
+}
+
 export interface Challenge {
   id: string;
   title: string;
@@ -11,12 +17,13 @@ export interface Challenge {
   type: "daily" | "weekly" | "streak" | "goal";
   difficulty: "beginner" | "intermediate" | "advanced";
   points: number;
-  badge_id?: string | null;
-  badge?: Badge | null;
+  badge_id?: string;
+  badge?: Badge;
   requirements: ChallengeRequirements;
   start_date: string;
   end_date: string;
   is_active: boolean;
+  participants: Participant[];
   participants_count: number;
   completion_rate: number;
   user_progress: {
@@ -26,6 +33,7 @@ export interface Challenge {
     completed: boolean;
     streak_count: number;
   };
+  created_at: string;
 }
 
 export interface Badge {
@@ -34,4 +42,5 @@ export interface Badge {
   description: string;
   icon: string;
   color: string;
+  created_at: string;
 }

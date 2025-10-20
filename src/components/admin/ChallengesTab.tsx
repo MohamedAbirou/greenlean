@@ -1,11 +1,12 @@
 import { DataTable } from "@/components/data-table/data-table";
+import { useBadgesQuery } from "@/hooks/Queries/useBadges";
 import { useChallengesQuery } from "@/hooks/Queries/useChallenges";
 import { supabase } from "@/lib/supabase";
 import { challengeColumns } from "@/pages/admin-dashboard/challenges/columns";
 import { createNotification } from "@/services/notificationService";
 import type { Challenge } from "@/types/challenge";
 import type { ColorTheme } from "@/utils/colorUtils";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
@@ -34,15 +35,8 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const queryClient = useQueryClient();
-  const { data: challenges = [], isLoading } = useChallengesQuery(userId);
-  const { data: badgesData = [] } = useQuery({
-    queryKey: ["badges"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("badges").select("*");
-      if (error) throw error;
-      return data;
-    },
-  });
+  const { data: challenges = [], isLoading, refetch: refetchChallenges } = useChallengesQuery(userId);
+  const { data: badges = [] } = useBadgesQuery();
 
   // debounce search
   useEffect(() => {
@@ -99,96 +93,60 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({
     mutationFn: async (data: Partial<Challenge>) => {
       if (!editingChallenge?.id) throw new Error("No challenge selected");
 
-      //* Fetch participants
-      const { data: participants } = await supabase
-        .from("challenge_participants")
-        .select("*")
-        .eq("challenge_id", editingChallenge.id);
-
-      //* Update challenge
-      const { error } = await supabase
-        .from("challenges")
-        .update(data)
-        .eq("id", editingChallenge.id);
+      // 🚀 Call our Supabase RPC function that handles everything atomically
+      const { error } = await supabase.rpc("update_challenge_and_rewards", {
+        p_challenge_id: editingChallenge.id,
+        p_data: data, // send the partial challenge as JSON
+      });
 
       if (error) throw error;
 
-      //* Handle participants if target or points changed
-      if (participants?.length) {
-        await Promise.all(
-          participants.map(async (p) => {
-            const newTarget =
-              data.requirements?.target ?? editingChallenge.requirements.target;
-            const newPoints = data.points ?? editingChallenge.points;
+      // (Optional) you can return the updated data if you like
+      return { editingChallenge, data };
+    },
 
-            let completed = p.completed;
-            let awardPoints = 0;
+    onSuccess: async ({ editingChallenge, data }) => {
+      // Update local React Query cache so UI reflects changes
+      queryClient.setQueryData<Challenge[]>(["challenges"], (old = []) =>
+        old.map((c) => (c.id === editingChallenge.id ? { ...c, ...data } : c))
+      );
 
-            //* Auto-complete if new target met
-            if (!p.completed && p.progress.current >= newTarget) {
-              completed = true;
-              awardPoints = newPoints;
-
-              await supabase
-                .from("challenge_participants")
-                .update({
-                  completed,
-                  completion_date: new Date().toISOString(),
-                })
-                .eq("challenge_id", editingChallenge.id)
-                .eq("user_id", p.user_id);
-            }
-
-            //* Award points if completing now
-            if (awardPoints > 0) {
-              const { data: currentRewards } = await supabase
-                .from("user_rewards")
-                .select("points, badges")
-                .eq("user_id", p.user_id)
-                .maybeSingle();
-
-              if (currentRewards) {
-                await supabase
-                  .from("user_rewards")
-                  .update({ points: currentRewards.points + awardPoints })
-                  .eq("user_id", p.user_id);
-              }
-
-              // Notify participant
-              await createNotification({
-                recipient_id: p.user_id,
-                sender_id: userId ?? "",
-                type: "challenge",
-                entity_id: editingChallenge.id,
-                entity_type: "challenge",
-                message: `Your challenge "${editingChallenge.title}" progress has been updated and completed!`,
-              });
-            } else if (data.title || data.description || data.points) {
-              // Notify participants for other changes
-              await createNotification({
-                recipient_id: p.user_id,
-                sender_id: userId ?? "",
-                type: "challenge",
-                entity_id: editingChallenge.id,
-                entity_type: "challenge",
-                message: `The challenge "${editingChallenge.title}" has been updated.`,
-              });
-            }
-          })
+      // Optionally: fetch participants if you want to send notifications
+      const { data: participants, error: fetchErr } = await supabase
+        .from("challenge_participants")
+        .select("user_id");
+      if (fetchErr)
+        console.warn(
+          "Couldn't fetch participants for notifications:",
+          fetchErr
         );
+
+      // 🔔 Notify participants (frontend side — transaction already done)
+      if (participants?.length) {
+        for (const p of participants) {
+          await createNotification({
+            recipient_id: p.user_id,
+            sender_id: userId ?? "",
+            type: "challenge",
+            entity_id: editingChallenge.id,
+            entity_type: "challenge",
+            message: `The challenge "${
+              data.title ?? editingChallenge.title
+            }" has been updated.`,
+          });
+        }
       }
 
-      return { id: editingChallenge.id, data };
-    },
-    onSuccess: ({ id, data }) => {
-      queryClient.setQueryData<Challenge[]>(["challenges"], (old = []) =>
-        old.map((c) => (c.id === id ? { ...c, ...data } : c))
-      );
       toast.success("Challenge updated successfully!");
       setShowForm(false);
       setEditingChallenge(null);
+      refetchChallenges()
     },
-    onError: (err) => toast.error(err.message || "Failed to update challenge"),
+
+    onError: (err) => {
+      console.error(err);
+      toast.error(err.message || "Failed to update challenge");
+    },
   });
 
   const deleteMutation = useMutation({
@@ -296,9 +254,10 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({
           data={filteredChallenges}
           filterKey="title"
         />
+        
         <ChallengeForm
           open={showForm}
-          badges={badgesData}
+          badges={badges}
           challenge={editingChallenge}
           onSubmit={
             editingChallenge

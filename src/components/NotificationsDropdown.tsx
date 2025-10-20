@@ -1,6 +1,11 @@
 import type { Notification, NotificationType } from "@/types/notification";
 import { motion } from "framer-motion";
-import { Bell, EllipsisVertical } from "lucide-react";
+import {
+  Bell,
+  Binoculars,
+  BrushCleaning,
+  EllipsisVertical,
+} from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
@@ -30,6 +35,7 @@ interface NotificationsDropdownProps {
   notifications: Notification[];
   onNotificationClick: (notification: Notification) => void;
   markAllAsRead: () => void;
+  clearAll: () => void;
   unreadCount: number;
 }
 
@@ -37,6 +43,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
   notifications,
   onNotificationClick,
   markAllAsRead,
+  clearAll,
   unreadCount,
 }) => {
   const [filter, setFilter] = useState<NotificationType | "all">("all");
@@ -97,21 +104,40 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent className="w-80" align="start">
+      <DropdownMenuContent className="max-h-96 w-64" align="start">
         <DropdownMenuLabel className="flex items-center justify-between p-1">
           <span className="font-semibold text-sm">Notifications</span>
           <div className="flex items-center space-x-2">
-            <Button
-              variant="link"
-              onClick={markAllAsRead}
-              className="hover:underline h-0"
-            >
-              Mark all read
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={markAllAsRead}
+                  className="underline cursor-pointer"
+                >
+                  <Binoculars size={18} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Mark All as Read</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={clearAll}
+                  className="underline px-2 cursor-pointer"
+                >
+                  <BrushCleaning size={18} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Clear All</TooltipContent>
+            </Tooltip>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="sm" className="w-5 h-6 rounded-sm">
+                <Button variant="outline" size="sm" className="rounded-sm">
                   <EllipsisVertical size={18} />
                 </Button>
               </DropdownMenuTrigger>
@@ -138,9 +164,9 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
         ) : (
           filtered.slice(0, 15).map((n) => (
             <DropdownMenuGroup key={n.id}>
-              <button
+              <span
                 key={n.id}
-                className={`w-full flex p-1 my-1 hover:bg-primary/10 rounded-sm border-b border-border text-left focus:outline-none transition-colors cursor-pointer ${
+                className={`w-full flex p-1 my-1 space-x-1 hover:bg-primary/10 rounded-sm border-b border-border text-left focus:outline-none transition-colors cursor-pointer ${
                   !n.read
                     ? "bg-background font-semibold"
                     : "hover:bg-background/80"
@@ -157,25 +183,23 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
                 <div className="flex-1">
                   <Tooltip>
                     <TooltipTrigger>
-                      <div className="text-sm text-foreground truncate max-w-72">
+                      <div className="text-sm text-foreground truncate max-w-64">
                         {n.message}
                       </div>
                     </TooltipTrigger>
-                    <TooltipContent side="top">
-                      {n.message}
-                    </TooltipContent>
+                    <TooltipContent side="top">{n.message}</TooltipContent>
                   </Tooltip>
-                      <div className="text-xs text-foreground/80 mt-1 ms-6">
-                        {new Date(n.created_at).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </div>
+                  <div className="text-xs text-foreground/80 mt-1 ms-1">
+                    {new Date(n.created_at).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </div>
                 </div>
                 {!n.read && (
-                  <span className="w-2 h-2 bg-primary rounded-full self-center"></span>
+                  <span className="ml-2 w-2 h-2 bg-primary rounded-full self-center"></span>
                 )}
-              </button>
+              </span>
             </DropdownMenuGroup>
           ))
         )}

@@ -4,7 +4,7 @@ import { DataTable } from "@/components/data-table/data-table";
 import type { Challenge } from "@/types/challenge";
 import { challengeColumns } from "./columns";
 
-export default function UsersTable({
+export default function ChallengesTable({
   challenges,
   onEdit,
   onDelete,

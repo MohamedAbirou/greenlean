@@ -6,5 +6,6 @@ export const queryKeys = {
   currentUser: ["currentUser"] as const,
   rewards: ["rewards"] as const,
   reward: (id: string) => [...queryKeys.rewards, id] as const,
-  settings: ["settings"] as const
+  settings: ["settings"] as const,
+  badges: ["badges"] as const
 };

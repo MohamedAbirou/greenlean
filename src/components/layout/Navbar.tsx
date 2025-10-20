@@ -32,7 +32,7 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
   const { user, signOut } = useAuth();
   const platform = usePlatform();
   const colorTheme = useColorTheme(platform.settings?.theme_color);
-  const { notifications, unreadCount, markAsRead, markAllAsRead } =
+  const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll } =
     useNotifications();
 
   useEffect(() => {
@@ -168,6 +168,7 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
                   markAsRead(n.id);
                 }}
                 markAllAsRead={markAllAsRead}
+                clearAll={clearAll}
                 unreadCount={unreadCount}
               />
 
@@ -199,6 +200,7 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
                   markAsRead(n.id);
                 }}
                 markAllAsRead={markAllAsRead}
+                clearAll={clearAll}
                 unreadCount={unreadCount}
               />
 

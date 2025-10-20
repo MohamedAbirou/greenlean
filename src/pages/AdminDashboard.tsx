@@ -1,4 +1,5 @@
 import AdminNav from '@/components/admin/AdminNav';
+import BadgesTab from '@/components/admin/BadgesTabs';
 import ChallengesTab from '@/components/admin/ChallengesTab';
 import OverviewTab from '@/components/admin/OverviewTab';
 import RewardsTab from '@/components/admin/RewardsTab';
@@ -72,6 +73,8 @@ const AdminDashboard: React.FC = () => {
         return <OverviewTab colorTheme={colorTheme} />;
       case 'challenges':
         return <ChallengesTab colorTheme={colorTheme} userId={user?.id} />;
+      case 'badges':
+        return <BadgesTab />;
       case 'users':
         return <UsersTab colorTheme={colorTheme} />;
       case 'rewards':

@@ -11,7 +11,7 @@ export const fetchChallenges = async (
       *,
       badge:badge_id ( id, name, description, icon, color )
     `),
-      supabase.from("challenge_participants").select("challenge_id, completed"),
+      supabase.from("challenge_participants").select("challenge_id, user_id, completed"),
       supabase
             .from("challenge_participants")
             .select("challenge_id, progress, completed, streak_count")
@@ -36,6 +36,7 @@ export const fetchChallenges = async (
 
     return {
       ...challenge,
+      participants,
       participants_count: total,
       completion_rate: total ? (completed / total) * 100 : 0,
       user_progress: userProgress || null,

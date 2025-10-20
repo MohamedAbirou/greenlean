@@ -1,17 +1,13 @@
 import { queryKeys } from "@/lib/queryKeys";
 import { supabase } from "@/lib/supabase";
+import type { Badge } from "@/types/challenge";
 import { useQuery } from "@tanstack/react-query";
 
 export interface Reward {
   id: string;
   user_id: string;
   points: number;
-  badges: {
-    id: string;
-    name: string;
-    icon: string;
-    earned_at: string;
-  }[];
+  badges: Badge[];
   user: {
     username?: string;
     full_name: string;

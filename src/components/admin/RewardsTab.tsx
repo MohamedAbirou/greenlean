@@ -1,6 +1,7 @@
+import { IconMap } from "@/helpers/challengeHelper";
 import { useRewardsQuery, type Reward } from "@/hooks/Queries/useRewards";
 import type { ColorTheme } from "@/utils/colorUtils";
-import { Edit, Loader, Search, Star } from "lucide-react";
+import { Edit, Loader, Search, Star, StarIcon } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { Input } from "../ui/input";
 import RewardForm from "./RewardForm";
@@ -52,7 +53,10 @@ const RewardsTab: React.FC<RewardsTabProps> = ({ colorTheme }) => {
           Rewards Management
         </h2>
         <div className="relative w-full sm:w-fit">
-          <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground/80" />
+          <Search
+            size={20}
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground/80"
+          />
           <Input
             type="text"
             placeholder="Search users..."
@@ -103,16 +107,26 @@ const RewardsTab: React.FC<RewardsTabProps> = ({ colorTheme }) => {
                     Badges Earned
                   </h4>
                   <div className="flex flex-wrap gap-2">
-                    {reward.badges.map((badge) => (
-                      <div
-                        key={badge.id}
-                        className="px-3 py-1 bg-purple-50 dark:bg-purple-900/20 rounded-full"
-                      >
-                        <span className="text-sm font-medium text-purple-700 dark:text-purple-300">
-                          {badge.name}
-                        </span>
-                      </div>
-                    ))}
+                    {reward.badges.map((badge) => {
+                      const BadgeIconComponent =
+                        IconMap[badge?.icon ?? "star"] || StarIcon;
+
+                      return (
+                        <div
+                          key={badge.id}
+                          className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-bold cursor-pointer border-2 shadow-md"
+                          style={{
+                            backgroundColor: `${badge.color}20`,
+                            borderColor: badge.color,
+                            color: badge.color,
+                            transform: "translateZ(0)",
+                          }}
+                        >
+                          <BadgeIconComponent className="w-4 h-4" />
+                          <span>{badge.name}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}

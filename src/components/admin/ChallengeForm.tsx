@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Textarea } from "../ui/textarea";
+import { IconMap } from "@/helpers/challengeHelper";
 
 interface ChallengeFormProps {
   challenge?: Challenge | null;
@@ -82,19 +83,7 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({
       setRequirementsJson(JSON.stringify({ target: 0 }, null, 2));
     }
   }, [challenge, open]);
-
-  // const handleChange = (
-  //   e: React.ChangeEvent<
-  //     HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-  //   >
-  // ) => {
-  //   const { name, value } = e.target;
-  //   setFormData((prev) => ({
-  //     ...prev,
-  //     [name]: value,
-  //   }));
-  // };
-
+  
   const handleRequirementsChange = (
     e: React.ChangeEvent<HTMLTextAreaElement>
   ) => {
@@ -199,7 +188,10 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({
             <Select
               value={formData.difficulty}
               onValueChange={(value) =>
-                setFormData({ ...formData, difficulty: value as ChallengeDifficulty })
+                setFormData({
+                  ...formData,
+                  difficulty: value as ChallengeDifficulty,
+                })
               }
             >
               <SelectTrigger className="w-full">
@@ -252,19 +244,9 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({
                 </SelectItem>
 
                 {badges.map((badge) => {
-                  const iconName =
-                    badge.icon.charAt(0).toUpperCase() + badge.icon.slice(1);
 
-                  const IconComponent =
-                    (
-                      LucideIcons as unknown as Record<
-                        string,
-                        React.ForwardRefExoticComponent<
-                          Omit<LucideIcons.LucideProps, "ref"> &
-                            React.RefAttributes<SVGSVGElement>
-                        >
-                      >
-                    )[iconName] || LucideIcons.Star;
+                  const BadgeIconComponent =
+                    IconMap[badge?.icon ?? "star"] || LucideIcons.Star;
                   return (
                     <SelectItem
                       key={badge.id}
@@ -272,8 +254,8 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({
                       className="flex items-center gap-2 px-2 py-1"
                       style={{ color: badge.color }}
                     >
-                      {IconComponent && (
-                        <IconComponent
+                      {BadgeIconComponent && (
+                        <BadgeIconComponent
                           className="w-5 h-5"
                           style={{ color: badge.color }}
                         />

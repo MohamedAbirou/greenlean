@@ -1,7 +1,9 @@
+import { useBadgesQuery } from "@/hooks/Queries/useBadges";
 import type { Reward } from "@/hooks/Queries/useRewards";
 import { queryKeys } from "@/lib/queryKeys";
 import { supabase } from "@/lib/supabase";
 import { createNotification } from "@/services/notificationService";
+import type { Badge } from "@/types/challenge";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -24,44 +26,64 @@ const RewardForm: React.FC<RewardFormProps> = ({
   onOpenChange,
 }) => {
   const [points, setPoints] = useState(0);
+  const [selectedBadges, setSelectedBadges] = useState<Badge[]>([]);
+
   const queryClient = useQueryClient();
+  const { data: badges = [] } = useBadgesQuery();
 
   useEffect(() => {
-    if (reward) {
-      setPoints(reward.points);
+    if (reward?.badges) {
+      setSelectedBadges(reward.badges);
+    } else {
+      setSelectedBadges([]);
     }
   }, [reward]);
 
   const updateRewardMutation = useMutation({
-    mutationFn: async (newPoints: number): Promise<Reward> => {
-      const { data, error } = await supabase
+    mutationFn: async (payload: {
+      points: number;
+      badges: Badge[];
+    }): Promise<Reward> => {
+      const { points, badges } = payload;
+
+      const { data: updatedReward, error } = await supabase
         .from("user_rewards")
-        .update({ points: newPoints })
+        .update({ points, badges, updated_at: new Date().toISOString() })
         .eq("user_id", userId)
-        .select("*, user:profiles(username, full_name, email)")
+        .select(
+          `
+          *,
+          user:profiles(username, full_name, email)`
+        )
         .single();
 
       if (error) throw error;
+
       // Send notification to user
-      if (data) {
+      if (updatedReward) {
         await createNotification({
           recipient_id: userId || "",
           sender_id: userId || "",
-          type: "challenge",
-          entity_id: data.id,
-          entity_type: "challenge",
-          message: `Your reward points have been updated by an admin.`,
+          type: "reward",
+          entity_id: updatedReward.id,
+          entity_type: "reward",
+          message: `Your reward points and badges have been updated by an admin.`,
         });
       }
-      return data;
+      return updatedReward;
     },
 
     onSuccess: (updatedReward) => {
-      queryClient.setQueryData<Reward[]>(queryKeys.rewards, (old = []) =>
-        old.map((r) =>
-          r.user_id === updatedReward.user_id ? updatedReward : r
-        )
-      );
+      queryClient.setQueryData<Reward[]>(queryKeys.rewards, (old = []) => {
+        const exists = old.some((r) => r.id === updatedReward.id);
+        if (exists) {
+          return old.map((r) =>
+            r.id === updatedReward.id ? updatedReward : r
+          );
+        } else {
+          return [...old, updatedReward]; // add if missing
+        }
+      });
 
       toast.success("Reward updated successfully");
       onOpenChange(false);
@@ -83,7 +105,7 @@ const RewardForm: React.FC<RewardFormProps> = ({
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          updateRewardMutation.mutate(points);
+          updateRewardMutation.mutate({ points, badges: selectedBadges });
         }}
         className="space-y-4"
       >
@@ -96,6 +118,37 @@ const RewardForm: React.FC<RewardFormProps> = ({
             min="0"
             required
           />
+        </div>
+
+        <div>
+          <Label>Badges</Label>
+          <div className="flex flex-wrap gap-2 mt-2">
+            {badges.map((badge) => {
+              const selected = selectedBadges.some((b) => b.id === badge.id);
+              return (
+                <button
+                  key={badge.id}
+                  type="button"
+                  className={`px-3 py-1 rounded-full text-sm font-medium border ${
+                    selected
+                      ? "bg-primary text-white"
+                      : "bg-card text-foreground"
+                  }`}
+                  onClick={() => {
+                    if (selected) {
+                      setSelectedBadges((prev) =>
+                        prev.filter((b) => b.id !== badge.id)
+                      );
+                    } else {
+                      setSelectedBadges((prev) => [...prev, badge]);
+                    }
+                  }}
+                >
+                  {badge.name}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="flex justify-end gap-2 pt-4">
