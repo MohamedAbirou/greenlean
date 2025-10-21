@@ -1,9 +1,10 @@
 import DailyTip from "@/components/DailyTip";
-import { ExerciseSection } from "@/components/dashboard/ExerciseSection";
-import { MealPlanSection } from "@/components/dashboard/MealPlanSection";
+import { EnhancedMealPlanSection } from "@/components/dashboard/EnhancedMealPlanSection";
+import { EnhancedExerciseSection } from "@/components/dashboard/EnhancedExerciseSection";
 import { OverviewSection } from "@/components/dashboard/OverviewSection";
 import { ProgressSection } from "@/components/dashboard/ProgressSection";
 import { usePlatform } from "@/contexts/PlatformContext";
+import { useAuth } from "@/contexts/useAuth";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useLogManager } from "@/hooks/useLogManager";
 import { useColorTheme } from "@/utils/colorUtils";
@@ -32,8 +33,9 @@ const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const platform = usePlatform();
   const colorTheme = useColorTheme(platform.settings?.theme_color);
+  const { user } = useAuth();
 
-  const { healthProfile, healthCalculations, mealPlan, loading } =
+  const { healthProfile, healthCalculations, loading } =
     useDashboardData();
 
   const {
@@ -128,17 +130,22 @@ const Dashboard: React.FC = () => {
             />
           )}
 
-          {activeTab === "meal-plan" && (
-            <MealPlanSection
-              mealPlan={mealPlan}
-              healthCalculations={healthCalculations}
+          {activeTab === "meal-plan" && user && healthCalculations && (
+            <EnhancedMealPlanSection
+              userId={user.id}
+              dailyCalories={healthCalculations.dailyCalorieTarget}
+              macros={{
+                protein: healthCalculations.macros.proteinGrams || 0,
+                carbs: healthCalculations.macros.carbsGrams || 0,
+                fats: healthCalculations.macros.fatsGrams || 0,
+              }}
               colorTheme={colorTheme}
             />
           )}
 
-          {activeTab === "exercise" && (
-            <ExerciseSection
-              healthProfile={healthProfile}
+          {activeTab === "exercise" && user && (
+            <EnhancedExerciseSection
+              userId={user.id}
               colorTheme={colorTheme}
             />
           )}

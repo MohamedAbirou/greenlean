@@ -13,6 +13,7 @@ import {
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useAuth } from "@/contexts/useAuth";
 import { supabase } from "@/lib/supabase";
+import { mlService } from "@/services/mlService";
 import { useColorTheme } from "@/utils/colorUtils";
 import { logFrontendError, logInfo } from "@/utils/errorLogger";
 import { AnimatePresence, motion } from "framer-motion";
@@ -281,10 +282,9 @@ const Quiz: React.FC = () => {
       // Last question: show "Creating your plan..." UI
       setCompleted(true);
 
-      // Optional: show the animation for 1.5-2 seconds before navigating
       setTimeout(() => {
         calculateAndNavigate();
-      }, 3000); // 1.8 seconds
+      }, 2000);
     }
   };
 
@@ -389,13 +389,17 @@ const Quiz: React.FC = () => {
     // Save to database
     if (user) {
       try {
-        const { error } = await supabase.from("quiz_results").insert([
-          {
-            user_id: user.id,
-            answers,
-            calculations,
-          },
-        ]);
+        const { data: quizData, error } = await supabase
+          .from("quiz_results")
+          .insert([
+            {
+              user_id: user.id,
+              answers,
+              calculations,
+            },
+          ])
+          .select()
+          .single();
 
         if (error) {
           console.error("Error saving quiz result:", error);
@@ -406,48 +410,43 @@ const Quiz: React.FC = () => {
           await logInfo("frontend", "Quiz result saved successfully", {
             userId: user.id,
           });
+
+          try {
+            console.log("Generating AI-powered meal and workout plans...");
+
+            const completePlan = await mlService.generateCompletePlan(
+              user.id,
+              quizData.id,
+              answers,
+              calculations,
+              "openai",
+              "gpt-4o-mini"
+            );
+
+            localStorage.setItem(
+              "aiGeneratedPlans",
+              JSON.stringify({
+                mealPlan: completePlan.mealPlan,
+                workoutPlan: completePlan.workoutPlan,
+                macros: completePlan.macros,
+                generatedAt: new Date().toISOString(),
+              })
+            );
+
+            await logInfo("frontend", "AI plans generated successfully", {
+              userId: user.id,
+              mealCount: String(completePlan.mealPlan.meals.length),
+              workoutDays: String(completePlan.workoutPlan.weekly_plan.length),
+            });
+          } catch (mlError) {
+            console.error("Error generating AI plans:", mlError);
+            await logFrontendError(
+              "Failed to generate AI plans",
+              mlError instanceof Error ? mlError.message : String(mlError),
+              { userId: user.id }
+            );
+          }
         }
-
-        // Generate meal plan immediately after saving quiz results
-        // try {
-        //   const userProfile = convertQuizAnswersToUserProfile(answers, user.id);
-        //   const macroTargets = calculateMacroTargets(userProfile, calculations.dailyCalorieTarget);
-
-        //   const generator = new MealGeneratorV2({
-        //     enableMLPredictions: false, // Disable ML for initial generation
-        //     maxTemplatesToConsider: 10,
-        //     minTemplateScore: 0.2,
-        //     macroTolerance: 0.15,
-        //     healthConditionWeight: 0.3,
-        //     varietyWeight: 0.2,
-        //     userPreferenceWeight: 0.25,
-        //     macroAlignmentWeight: 0.25
-        //   });
-
-        //   const meals = await generator.generateMealPlan(userProfile, macroTargets);
-
-        //   // Store the generated meal plan in localStorage for immediate access
-        //   localStorage.setItem("generatedMealPlan", JSON.stringify({
-        //     meals,
-        //     userProfile,
-        //     macroTargets,
-        //     generatedAt: new Date().toISOString()
-        //   }));
-
-        //   await logInfo("frontend", "Meal plan generated successfully during quiz completion", {
-        //     userId: user.id,
-        //     mealCount: String(meals.length)
-        //   });
-
-        // } catch (mealError) {
-        //   console.error("Error generating meal plan during quiz completion:", mealError);
-        //   await logFrontendError(
-        //     "Failed to generate meal plan during quiz completion",
-        //     mealError instanceof Error ? mealError.message : String(mealError),
-        //     { userId: user.id }
-        //   );
-        //   // Don't block navigation if meal generation fails
-        // }
       } catch (err) {
         console.error("Error saving quiz result:", err);
         await logFrontendError(
@@ -703,8 +702,8 @@ const Quiz: React.FC = () => {
                   Creating Your Personalized Plan
                 </h2>
                 <p className="text-foreground mb-6">
-                  We're analyzing your responses to create a customized diet and
-                  exercise plan that fits your goals and lifestyle.
+                  Our AI is analyzing your responses to create a personalized meal and
+                  workout plan tailored to your goals. This may take 10-20 seconds.
                 </p>
                 <div className="flex justify-center">
                   <div
