@@ -27,7 +27,8 @@ interface UserRewards {
 function getNextExpiration(type: string) {
   const now = new Date();
   if (type === "daily") return new Date(now.getTime() + 24 * 60 * 60 * 1000);
-  if (type === "weekly") return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  if (type === "weekly")
+    return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
   return null;
 }
 
@@ -195,7 +196,7 @@ const Challenges: React.FC = () => {
             streak_count: newProgress,
             last_progress_date: new Date().toISOString(),
             streak_expires_at: getNextExpiration(challenge.type),
-            streak_warning_sent: false
+            streak_warning_sent: false,
           })
           .eq("challenge_id", challengeId)
           .eq("user_id", user?.id);

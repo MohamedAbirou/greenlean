@@ -87,9 +87,22 @@ const Contact: React.FC = () => {
               to: "abiroumohamed58@gmail.com",
               subject: formData.subject,
               html: `
-            <p><strong>From:</strong> ${formData.name} (${formData.email})</p>
-            <p>${formData.message}</p>
-          `,
+                <div style="font-family: 'Inter', sans-serif; background:#f9fafb; padding:20px;">
+                  <div style="max-width:600px; margin:auto; background:white; border-radius:12px; padding:30px; box-shadow:0 2px 10px rgba(0,0,0,0.1)">
+                    <h2 style="color:#6366f1; margin-bottom:10px;">📬 New Message from Your Contact Form</h2>
+                    <p style="font-size:14px; color:#4b5563; margin-bottom:20px;">
+                      <strong>From:</strong> ${formData.name} &lt;${formData.email}&gt;<br>
+                      <strong>Subject:</strong> ${formData.subject}
+                    </p>
+                    <div style="background:#f3f4f6; padding:20px; border-radius:8px; font-size:16px; color:#111827; line-height:1.5;">
+                      ${formData.message.replace(/\n/g, "<br>")}
+                    </div>
+                    <p style="margin-top:20px; font-size:14px; color:#6b7280;">
+                      This message was sent via your GreenLean contact form.
+                    </p>
+                  </div>
+                </div>
+              `,
             }),
           }
         );
