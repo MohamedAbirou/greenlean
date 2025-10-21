@@ -32,6 +32,7 @@ export interface Challenge {
     };
     completed: boolean;
     streak_count: number;
+    streak_expires_at: string;
   };
   created_at: string;
 }

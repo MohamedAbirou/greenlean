@@ -95,10 +95,17 @@ const Challenges: React.FC = () => {
     async (challengeId: string) => {
       setJoiningId(challengeId);
       try {
+        const challenge = (challengesData || []).find(
+          (c) => c.id === challengeId
+        );
+        if (!challenge) return;
+
         const { error } = await supabase.from("challenge_participants").insert({
           challenge_id: challengeId,
           user_id: user?.id,
           progress: { current: 0 },
+          streak_expires_at: getNextExpiration(challenge.type),
+          streak_warning_sent: false,
         });
 
         if (error) throw error;
@@ -109,7 +116,7 @@ const Challenges: React.FC = () => {
         setJoiningId(null);
       }
     },
-    [refetchChallenges, user?.id]
+    [challengesData, refetchChallenges, user?.id]
   );
 
   const quitChallenge = useCallback(
@@ -532,17 +539,19 @@ const Challenges: React.FC = () => {
           <AnimatePresence mode="popLayout">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredChallenges.map((challenge, index) => (
-                <ChallengeCard
-                  key={challenge.id}
-                  index={index}
-                  challenge={challenge}
-                  isJoining={joiningId === challenge.id}
-                  isQuitting={quittingId === challenge.id}
-                  updatingProgress={updatingId === challenge.id}
-                  updateProgress={updateProgress}
-                  quitChallenge={quitChallenge}
-                  joinChallenge={joinChallenge}
-                />
+                <>
+                  <ChallengeCard
+                    key={challenge.id}
+                    index={index}
+                    challenge={challenge}
+                    isJoining={joiningId === challenge.id}
+                    isQuitting={quittingId === challenge.id}
+                    updatingProgress={updatingId === challenge.id}
+                    updateProgress={updateProgress}
+                    quitChallenge={quitChallenge}
+                    joinChallenge={joinChallenge}
+                  />
+                </>
               ))}
             </div>
           </AnimatePresence>

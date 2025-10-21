@@ -14,7 +14,7 @@ export const fetchChallenges = async (
       supabase.from("challenge_participants").select("challenge_id, user_id, completed"),
       supabase
             .from("challenge_participants")
-            .select("challenge_id, progress, completed, streak_count")
+            .select("challenge_id, progress, completed, streak_count, streak_expires_at")
             .eq("user_id", userId)
         ,
     ]);

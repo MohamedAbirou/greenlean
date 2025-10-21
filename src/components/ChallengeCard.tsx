@@ -4,6 +4,7 @@ import { m } from "framer-motion";
 import * as LucideIcons from "lucide-react";
 import { Clock, Trophy, Users } from "lucide-react";
 import { memo, useCallback, useMemo } from "react";
+import Countdown from "./Countdown";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 interface ChallengeCardProps {
@@ -126,9 +127,16 @@ const ChallengeCard = memo(
                   <IconComponent className="h-5 w-5 text-white" />
                 </div>
                 <div className="flex flex-col md:flex-row items-start w-full md:block">
-                  <h3 className="font-bold text-foreground mb-1 truncate">
-                    {challenge.title}
-                  </h3>
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-bold text-foreground mb-1 truncate">
+                      {challenge.title}
+                    </h3>
+                    {challenge.user_progress?.streak_expires_at && (
+                      <Countdown
+                        expiry={challenge.user_progress?.streak_expires_at}
+                      />
+                    )}
+                  </div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span
                       className={`inline-block text-xs font-bold px-2 py-0.5 rounded-full border-2 ${difficultyBadge}`}
