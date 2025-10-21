@@ -114,7 +114,9 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({
       // Optionally: fetch participants if you want to send notifications
       const { data: participants, error: fetchErr } = await supabase
         .from("challenge_participants")
-        .select("user_id");
+        .select("user_id, challenge_id")
+        .eq("challenge_id", editingChallenge.id);
+
       if (fetchErr)
         console.warn(
           "Couldn't fetch participants for notifications:",

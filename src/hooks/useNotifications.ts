@@ -69,6 +69,7 @@ export function useNotifications() {
     if (!user) return;
     await supabase.from("notifications").delete().eq('recipient_id', user.id);
     setNotifications([]);
+    setUnreadCount(0);
   }
 
   return { notifications, unreadCount, fetchNotifications, markAsRead, markAllAsRead, clearAll };
