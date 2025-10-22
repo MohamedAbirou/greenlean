@@ -9,13 +9,22 @@ import anthropic
 import google.generativeai as genai
 from llamaapi import LlamaAPI
 from openai import OpenAI
+from dotenv import load_dotenv
 import json
+
+# Load environment variables from .env
+load_dotenv()
 
 # ====== Environment Keys ======
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 LLAMA_API_KEY = os.getenv("LLAMA_API_KEY", "")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+USER = os.getenv("user")
+PASSWORD = os.getenv("password")
+HOST = os.getenv("host")
+PORT = os.getenv("port")
+DBNAME = os.getenv("dbname")
 
 # Initialize clients
 if OPENAI_API_KEY:
@@ -31,9 +40,6 @@ if ANTHROPIC_API_KEY:
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Database configuration
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost:54322/postgres")
-
 # Global variables for database connection
 db_pool = None
 
@@ -44,7 +50,15 @@ async def lifespan(app: FastAPI):
     
     try:
         # Initialize database connection pool
-        db_pool = await asyncpg.create_pool(DATABASE_URL, min_size=1, max_size=10)
+        db_pool = await asyncpg.create_pool(user=USER,
+                                            password=PASSWORD,
+                                            host=HOST,
+                                            port=PORT,
+                                            database=DBNAME,
+                                            min_size=1,
+                                            max_size=10,
+                                            ssl=True
+                                            )
         logger.info("Database connection pool initialized")
         
         yield
@@ -65,7 +79,8 @@ app = FastAPI(
 
 origins = [
     "http://localhost:5173",
-    "https://nehiwycctshtttprvuwy.supabase.co",
+    "https://rsufjeprivwzzygrbvdb.supabase.co",
+    "https://greenlean.vercel.app/",
     "*"
 ]
 
