@@ -27,7 +27,6 @@ import {
 } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-// import { convertQuizAnswersToUserProfile, calculateMacroTargets, MealGeneratorV2 } from "@/utils/mealGenerationV2";
 
 interface Question {
   id: number;
@@ -44,7 +43,7 @@ interface Question {
 const questions: Question[] = [
   {
     id: 1,
-    question: "How old are you?",
+    question: "Age",
     type: "number",
     min: 12,
     max: 100,
@@ -52,23 +51,14 @@ const questions: Question[] = [
   },
   {
     id: 2,
-    question: "What is your gender?",
+    question: "Gender",
     type: "select",
     options: ["Male", "Female"],
     required: true,
   },
   {
     id: 3,
-    question: "What is your current weight?",
-    type: "number",
-    unit: "kg",
-    min: 30,
-    max: 300,
-    required: true,
-  },
-  {
-    id: 4,
-    question: "What is your height?",
+    question: "Height",
     type: "number",
     unit: "cm",
     min: 100,
@@ -76,8 +66,17 @@ const questions: Question[] = [
     required: true,
   },
   {
+    id: 4,
+    question: "Current weight",
+    type: "number",
+    unit: "kg",
+    min: 30,
+    max: 300,
+    required: true,
+  },
+  {
     id: 5,
-    question: "What is your target weight?",
+    question: "Target weight",
     type: "number",
     unit: "kg",
     min: 30,
@@ -86,7 +85,7 @@ const questions: Question[] = [
   },
   {
     id: 6,
-    question: "How active are you on a typical day?",
+    question: "Activity level",
     type: "radio",
     options: [
       "Sedentary (little or no exercise)",
@@ -100,7 +99,27 @@ const questions: Question[] = [
   },
   {
     id: 7,
-    question: "Do you follow a specific diet or have restrictions?",
+    question: "Time for exercise per day",
+    type: "select",
+    options: ["Less than 30 minutes", "30–60 minutes", "More than 1 hour"],
+    required: true,
+  },
+  {
+    id: 8,
+    question: "Preferred exercise type",
+    type: "radio",
+    options: [
+      "Cardio (running, cycling, swimming)",
+      "Strength training",
+      "High-Intensity Interval Training (HIIT)",
+      "Low-impact (yoga, pilates)",
+      "A mix (variety of workouts)",
+    ],
+    required: true,
+  },
+  {
+    id: 9,
+    question: "Dietary restrictions",
     type: "select",
     options: [
       "None",
@@ -116,20 +135,23 @@ const questions: Question[] = [
     required: true,
   },
   {
-    id: 8,
-    question: "What is your main goal?",
-    type: "radio",
+    id: 10,
+    question: "Health conditions",
+    type: "select",
     options: [
-      "Lose fat",
-      "Build muscle",
-      "Maintain weight",
-      "Improve health & wellbeing",
+      "None",
+      "Diabetes",
+      "High blood pressure",
+      "Heart disease",
+      "Thyroid issues",
+      "Other",
     ],
     required: true,
+    info: "This ensures your plan is safe and effective",
   },
   {
-    id: 9,
-    question: "How many meals do you prefer each day?",
+    id: 11,
+    question: "Number of meals per day",
     type: "select",
     options: [
       "2 (intermittent fasting)",
@@ -141,8 +163,8 @@ const questions: Question[] = [
     required: true,
   },
   {
-    id: 13,
-    question: "What is your favorite cuisine?",
+    id: 12,
+    question: "Favorite cuisine",
     type: "select",
     options: [
       "Moroccan cuisine",
@@ -163,37 +185,14 @@ const questions: Question[] = [
     required: true,
   },
   {
-    id: 10,
-    question: "Do you have any health conditions we should consider?",
-    type: "select",
-    options: [
-      "None",
-      "Diabetes",
-      "High blood pressure",
-      "Heart disease",
-      "Thyroid issues",
-      "Other",
-    ],
-    required: true,
-    info: "This ensures your plan is safe and effective",
-  },
-  {
-    id: 11,
-    question: "How much time can you usually dedicate to exercise per day?",
-    type: "select",
-    options: ["Less than 30 minutes", "30–60 minutes", "More than 1 hour"],
-    required: true,
-  },
-  {
-    id: 12,
-    question: "What type of exercise do you enjoy the most?",
+    id: 13,
+    question: "Main goa",
     type: "radio",
     options: [
-      "Cardio (running, cycling, swimming)",
-      "Strength training",
-      "High-Intensity Interval Training (HIIT)",
-      "Low-impact (yoga, pilates)",
-      "A mix (variety of workouts)",
+      "Lose fat",
+      "Build muscle",
+      "Maintain weight",
+      "Improve health & wellbeing",
     ],
     required: true,
   },
@@ -206,6 +205,7 @@ const Quiz: React.FC = () => {
   );
   const [errors, setErrors] = useState<{ [key: number]: string }>({});
   const [completed, setCompleted] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
   const platform = usePlatform();
@@ -275,16 +275,11 @@ const Quiz: React.FC = () => {
       return;
     }
 
-    // If not the last question, go to the next one
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
     } else {
-      // Last question: show "Creating your plan..." UI
-      setCompleted(true);
-
-      setTimeout(() => {
-        calculateAndNavigate();
-      }, 2000);
+      // Last question: show summary card
+      setShowSummary(true);
     }
   };
 
@@ -609,7 +604,50 @@ const Quiz: React.FC = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           <AnimatePresence mode="wait">
-            {!completed ? (
+            {showSummary ? (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.4 }}
+                className="bg-background rounded-2xl shadow-lg p-6 text-center"
+              >
+                <h2 className="text-xl font-bold text-foreground mb-3">
+                  Almost ready!
+                </h2>
+                <p className="text-foreground mb-4">
+                  Got it — you want to{" "}
+                  <span className="font-semibold">{answers[13]}</span>, eat{" "}
+                  <span className="font-semibold">
+                    {answers[11]}{" "}
+                    {answers[12] !== "other" ? `of ${answers[12]}` : ""}
+                  </span>
+                  , and train{" "}
+                  <span className="font-semibold">{answers[7]}</span>.
+                </p>
+                <p className="text-foreground/70 mb-6">
+                  Does this look correct?
+                </p>
+                <div className="flex justify-center gap-4">
+                  <Button
+                    className={`${colorTheme.primaryBg} ${colorTheme.primaryHover} text-white`}
+                    onClick={() => {
+                      setShowSummary(false);
+                      setCompleted(true); // now show spinner
+                      setTimeout(() => calculateAndNavigate(), 500); // give framer-motion a small delay
+                    }}
+                  >
+                    Yes, generate my plan
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowSummary(false)}
+                  >
+                    Edit my answers
+                  </Button>
+                </div>
+              </motion.div>
+            ) : !completed ? (
               <>
                 <div className="mb-8 text-center">
                   <motion.h1
@@ -702,8 +740,9 @@ const Quiz: React.FC = () => {
                   Creating Your Personalized Plan
                 </h2>
                 <p className="text-foreground mb-6">
-                  Our AI is analyzing your responses to create a personalized meal and
-                  workout plan tailored to your goals. This may take 10-20 seconds.
+                  Our AI is analyzing your responses to create a personalized
+                  meal and workout plan tailored to your goals. This may take
+                  10-20 seconds.
                 </p>
                 <div className="flex justify-center">
                   <div
