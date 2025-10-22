@@ -56,8 +56,7 @@ async def lifespan(app: FastAPI):
                                             port=PORT,
                                             database=DBNAME,
                                             min_size=1,
-                                            max_size=10,
-                                            ssl=True
+                                            max_size=10
                                             )
         logger.info("Database connection pool initialized")
         
