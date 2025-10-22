@@ -9,6 +9,7 @@ import anthropic
 import google.generativeai as genai
 from llamaapi import LlamaAPI
 from openai import OpenAI
+import json
 
 # ====== Environment Keys ======
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
@@ -311,7 +312,6 @@ async def generate_meal_plan(request: GeneratePlansRequest):
 
         ai_response = call_ai_model(prompt, request.ai_provider, request.model_name)
 
-        import json
         ai_response_clean = ai_response.strip()
         if ai_response_clean.startswith("```json"):
             ai_response_clean = ai_response_clean[7:]
@@ -349,10 +349,12 @@ async def generate_meal_plan(request: GeneratePlansRequest):
 
     except json.JSONDecodeError as e:
         logger.error(f"Failed to parse AI response as JSON: {str(e)}")
-        logger.error(f"AI Response: {ai_response[:500]}")
-        raise HTTPException(status_code=500, detail="Failed to parse AI-generated meal plan")
+        logger.error(f"AI Response (first 1000 chars): {ai_response[:1000] if 'ai_response' in locals() else 'No response'}")
+        raise HTTPException(status_code=500, detail=f"Failed to parse AI-generated meal plan: {str(e)}")
     except Exception as e:
         logger.error(f"Meal plan generation error: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/generate-workout-plan")
@@ -377,7 +379,6 @@ async def generate_workout_plan(request: GeneratePlansRequest):
 
         ai_response = call_ai_model(prompt, request.ai_provider, request.model_name)
 
-        import json
         ai_response_clean = ai_response.strip()
         if ai_response_clean.startswith("```json"):
             ai_response_clean = ai_response_clean[7:]
@@ -414,10 +415,12 @@ async def generate_workout_plan(request: GeneratePlansRequest):
 
     except json.JSONDecodeError as e:
         logger.error(f"Failed to parse AI response as JSON: {str(e)}")
-        logger.error(f"AI Response: {ai_response[:500]}")
-        raise HTTPException(status_code=500, detail="Failed to parse AI-generated workout plan")
+        logger.error(f"AI Response (first 1000 chars): {ai_response[:1000] if 'ai_response' in locals() else 'No response'}")
+        raise HTTPException(status_code=500, detail=f"Failed to parse AI-generated workout plan: {str(e)}")
     except Exception as e:
         logger.error(f"Workout plan generation error: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/generate-complete-plan")
