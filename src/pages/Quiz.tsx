@@ -1,243 +1,614 @@
 import AuthModal from "@/components/auth/AuthModal";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Textarea } from "@/components/ui/textarea";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useAuth } from "@/contexts/useAuth";
 import { supabase } from "@/lib/supabase";
 import { mlService } from "@/services/mlService";
 import { useColorTheme } from "@/utils/colorUtils";
 import { logFrontendError, logInfo } from "@/utils/errorLogger";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  ArrowRight,
+  Activity,
   Check,
   ChevronLeft,
   ChevronRight,
-  Info,
+  Heart,
   LogIn,
+  Target,
+  User,
+  Utensils,
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-interface Question {
-  id: number;
-  question: string;
-  type: "select" | "number" | "radio";
-  options?: string[];
-  unit?: string;
-  min?: number;
-  max?: number;
-  required?: boolean;
-  info?: string;
-}
+const COUNTRIES = [
+  "United States",
+  "United Kingdom",
+  "Canada",
+  "Australia",
+  "Germany",
+  "France",
+  "Spain",
+  "Italy",
+  "Netherlands",
+  "Belgium",
+  "Sweden",
+  "Norway",
+  "Denmark",
+  "Finland",
+  "Poland",
+  "Czech Republic",
+  "Austria",
+  "Switzerland",
+  "Portugal",
+  "Greece",
+  "Ireland",
+  "New Zealand",
+  "Japan",
+  "South Korea",
+  "Singapore",
+  "Malaysia",
+  "Thailand",
+  "India",
+  "United Arab Emirates",
+  "Saudi Arabia",
+  "Egypt",
+  "South Africa",
+  "Morocco",
+  "Brazil",
+  "Argentina",
+  "Chile",
+  "Mexico",
+  "Colombia",
+].sort();
 
-const questions: Question[] = [
+const QUIZ_PHASES = [
   {
     id: 1,
-    question: "Age",
-    type: "number",
-    min: 12,
-    max: 100,
-    required: true,
+    name: "Basic Info",
+    description: "Tell us about yourself so we can personalize your plan",
+    icon: User,
+    questions: [
+      {
+        id: "age",
+        label: "Age",
+        type: "number",
+        required: true,
+        min: 12,
+        max: 100,
+        placeholder: "25",
+      },
+      {
+        id: "gender",
+        label: "Gender",
+        type: "radio",
+        required: true,
+        options: ["Male", "Female", "Non-binary", "Prefer not to say"],
+      },
+      {
+        id: "country",
+        label: "Country/Region",
+        type: "select",
+        required: true,
+        options: COUNTRIES,
+        searchable: true,
+      },
+      {
+        id: "height",
+        label: "Height",
+        type: "height",
+        required: true,
+        units: ["cm", "ft/inch"],
+        min: 100,
+        max: 250,
+      },
+      {
+        id: "currentWeight",
+        label: "Current Weight",
+        type: "weight",
+        required: true,
+        units: ["kg", "lbs"],
+        min: 30,
+        max: 250,
+      },
+      {
+        id: "targetWeight",
+        label: "Target Weight",
+        type: "weight",
+        required: true,
+        units: ["kg", "lbs"],
+        min: 30,
+        max: 250,
+      },
+      {
+        id: "bodyType",
+        label: "Body Type",
+        type: "radio",
+        required: false,
+        options: ["Ectomorph", "Mesomorph", "Endomorph", "Not sure"],
+        skippable: false,
+      },
+      {
+        id: "bodyFat",
+        label: "Body Fat %",
+        type: "slider",
+        required: false,
+        min: 5,
+        max: 50,
+        step: 1,
+        skippable: true,
+      },
+      {
+        id: "neck",
+        label: "Neck circumference",
+        description:
+          "Please provide these measurements if you want to know your approximate body fat percentage",
+        type: "height",
+        required: false,
+        units: ["cm", "ft/inch"],
+        placeholder: "40",
+        skippable: true,
+      },
+      {
+        id: "waist",
+        label: "Waist circumference",
+        description:
+          "Please provide these measurements if you want to know your approximate body fat percentage",
+        type: "height",
+        required: false,
+        units: ["cm", "ft/inch"],
+        placeholder: "80",
+        skippable: true,
+      },
+      {
+        id: "hip",
+        label: "Hip circumference (women only)",
+        description:
+          "Please provide these measurements if you want to know your approximate body fat percentage",
+        type: "height",
+        required: false,
+        units: ["cm", "ft/inch"],
+        placeholder: "95",
+        skippable: true,
+      },
+    ],
   },
   {
     id: 2,
-    question: "Gender",
-    type: "select",
-    options: ["Male", "Female"],
-    required: true,
+    name: "Lifestyle & Activity",
+    description: "Help us understand your daily routine and exercise habits",
+    icon: Activity,
+    questions: [
+      {
+        id: "occupation_activity",
+        label: "What best describes your daily activity level?",
+        type: "select",
+        required: false,
+        options: [
+          "Sedentary (desk job or minimal movement)",
+          "Lightly active (some walking or movement during the day)",
+          "Moderately active (on feet often, e.g., retail, teaching)",
+          "Very active (physical or outdoor job)",
+          "Student",
+          "Self-employed / Freelancer",
+          "Retired",
+          "Currently not working",
+        ],
+        skippable: true,
+      },
+      {
+        id: "exerciseFrequency",
+        label: "How often do you exercise?",
+        type: "radio",
+        required: true,
+        options: [
+          "Never",
+          "1-2 times/week",
+          "3-4 times/week",
+          "5-6 times/week",
+          "Daily",
+        ],
+      },
+      {
+        id: "preferredExercise",
+        label: "Preferred Exercise Types",
+        type: "multiSelect",
+        required: true,
+        options: [
+          "Cardio",
+          "Strength training",
+          "HIIT",
+          "Yoga",
+          "Pilates",
+          "Swimming",
+          "Cycling",
+          "Running",
+          "Sports",
+          "Dance",
+          "Other",
+        ],
+      },
+      {
+        id: "trainingEnvironment",
+        label: "Training Environment",
+        type: "multiSelect",
+        required: true,
+        options: ["Gym", "Home", "Outdoor"],
+      },
+      {
+        id: "equipment",
+        label: "Available Equipment",
+        type: "multiSelect",
+        required: false,
+        options: [
+          "None",
+          "Dumbbells",
+          "Barbell",
+          "Resistance bands",
+          "Kettlebells",
+          "Pull-up bar",
+          "Bench",
+          "Cardio machine",
+          "Full gym access",
+        ],
+        skippable: true,
+      },
+      {
+        id: "injuries",
+        label: "Injuries or Limitations",
+        type: "textarea",
+        required: false,
+        placeholder: "e.g., Lower back pain, knee injury, shoulder issues...",
+        skippable: true,
+      },
+    ],
   },
   {
     id: 3,
-    question: "Height",
-    type: "number",
-    unit: "cm",
-    min: 100,
-    max: 250,
-    required: true,
+    name: "Nutrition Habits",
+    description: "Customize your meal plan to match your lifestyle",
+    icon: Utensils,
+    questions: [
+      {
+        id: "dietaryStyle",
+        label: "Dietary Style",
+        type: "select",
+        required: true,
+        options: [
+          "No restrictions",
+          "Vegetarian",
+          "Vegan",
+          "Pescatarian",
+          "Keto",
+          "Paleo",
+          "Mediterranean",
+          "Intermittent fasting",
+          "Other",
+        ],
+      },
+      {
+        id: "foodAllergies",
+        label: "Food Allergies",
+        type: "textarea",
+        required: false,
+        placeholder: "e.g., peanuts, shellfish, dairy...",
+        skippable: true,
+      },
+      {
+        id: "dislikedFoods",
+        label: "Foods You Dislike",
+        type: "textarea",
+        required: false,
+        placeholder: "e.g., mushrooms, cilantro, seafood...",
+        skippable: true,
+      },
+      {
+        id: "favoriteCuisines",
+        label: "Favorite Cuisines",
+        type: "multiSelect",
+        required: true,
+        options: [
+          "American",
+          "Italian",
+          "Mexican",
+          "Asian",
+          "Mediterranean",
+          "Indian",
+          "Middle Eastern",
+          "French",
+          "Japanese",
+          "Thai",
+          "Korean",
+          "Moroccan",
+          "Other",
+        ],
+      },
+      {
+        id: "mealsPerDay",
+        label: "Meals Per Day",
+        type: "radio",
+        required: true,
+        options: [
+          "2 (intermittent fasting)",
+          "3 (standard)",
+          "4-5 (smaller meals)",
+          "6+ (frequent eating)",
+        ],
+      },
+      {
+        id: "cookingSkill",
+        label: "Cooking Skill Level",
+        type: "radio",
+        required: true,
+        options: ["Beginner", "Intermediate", "Advanced", "Expert"],
+      },
+      {
+        id: "cookingTime",
+        label: "Time Available Per Meal",
+        type: "radio",
+        required: true,
+        options: ["< 15 min", "15-30 min", "30-60 min", "> 1 hour"],
+      },
+      {
+        id: "groceryBudget",
+        label: "Grocery Budget",
+        type: "radio",
+        required: true,
+        options: [
+          "Low (budget-friendly)",
+          "Medium (moderate)",
+          "High (premium)",
+        ],
+      },
+    ],
   },
   {
     id: 4,
-    question: "Current weight",
-    type: "number",
-    unit: "kg",
-    min: 30,
-    max: 300,
-    required: true,
+    name: "Goals & Preferences",
+    description: "Define what success looks like for you",
+    icon: Target,
+    questions: [
+      {
+        id: "mainGoal",
+        label: "Main Goal",
+        type: "select",
+        required: true,
+        options: [
+          "Weight loss",
+          "Build muscle",
+          "Body recomposition",
+          "Maintain weight",
+          "Mild weight loss",
+          "Extreme weight loss",
+          "Improve strength",
+          "Improve endurance",
+          "Improve flexibility",
+          "General health",
+        ],
+      },
+      {
+        id: "secondaryGoals",
+        label: "Secondary Goals",
+        type: "multiSelect",
+        required: false,
+        options: [
+          "Improve mobility",
+          "Reduce stress",
+          "Better sleep",
+          "More energy",
+          "Athletic performance",
+          "Injury prevention",
+          "Look better",
+        ],
+        skippable: true,
+      },
+      {
+        id: "timeFrame",
+        label: "Target Timeframe",
+        type: "radio",
+        required: true,
+        options: ["No rush", "1 month", "3 months", "6 months", "1 year+"],
+      },
+      {
+        id: "motivationLevel",
+        label: "Current Motivation Level",
+        type: "slider",
+        required: true,
+        min: 1,
+        max: 10,
+        step: 1,
+        showValue: true,
+      },
+      {
+        id: "challenges",
+        label: "Main Challenges",
+        type: "multiSelect",
+        required: false,
+        options: [
+          "Lack of time",
+          "Low motivation",
+          "Diet consistency",
+          "Injury/pain",
+          "Lack of knowledge",
+          "Stress",
+          "Travel frequently",
+          "Social situations",
+        ],
+        skippable: true,
+      },
+    ],
   },
   {
     id: 5,
-    question: "Target weight",
-    type: "number",
-    unit: "kg",
-    min: 30,
-    max: 300,
-    required: true,
-  },
-  {
-    id: 6,
-    question: "Activity level",
-    type: "radio",
-    options: [
-      "Sedentary (little or no exercise)",
-      "Lightly active (1–3 days/week of light exercise)",
-      "Moderately active (3–5 days/week of moderate exercise)",
-      "Very active (6–7 days/week of intense exercise)",
-      "Extremely active (physical job + daily training)",
+    name: "Health & Medical",
+    description: "Ensure your plan is safe and effective",
+    icon: Heart,
+    questions: [
+      {
+        id: "healthConditions",
+        label: "Health Conditions",
+        type: "multiSelect",
+        required: false,
+        options: [
+          "None",
+          "Diabetes",
+          "High blood pressure",
+          "Heart disease",
+          "Thyroid issues",
+          "PCOS",
+          "Asthma",
+          "Arthritis",
+          "Other",
+        ],
+        skippable: true,
+      },
+      {
+        id: "medications",
+        label: "Current Medications",
+        type: "textarea",
+        required: false,
+        placeholder: "List any medications you take regularly...",
+        skippable: true,
+      },
+      {
+        id: "sleepQuality",
+        label: "Sleep Quality",
+        type: "radio",
+        required: true,
+        options: [
+          "Poor (< 5 hours)",
+          "Fair (5-6 hours)",
+          "Good (6-7 hours)",
+          "Excellent (7-9 hours)",
+        ],
+      },
+      {
+        id: "stressLevel",
+        label: "Stress Level",
+        type: "slider",
+        required: true,
+        min: 1,
+        max: 10,
+        step: 1,
+        showValue: true,
+      },
+      {
+        id: "lifestyle",
+        label: "Lifestyle Habits",
+        type: "radio",
+        required: true,
+        options: [
+          "No smoking/drinking",
+          "Occasional drinking",
+          "Regular drinking",
+          "Smoker",
+          "Both",
+        ],
+      },
     ],
-    required: true,
-    info: "Your activity level helps us estimate your calorie needs",
-  },
-  {
-    id: 7,
-    question: "Time for exercise per day",
-    type: "select",
-    options: ["Less than 30 minutes", "30–60 minutes", "More than 1 hour"],
-    required: true,
-  },
-  {
-    id: 8,
-    question: "Preferred exercise type",
-    type: "radio",
-    options: [
-      "Cardio (running, cycling, swimming)",
-      "Strength training",
-      "High-Intensity Interval Training (HIIT)",
-      "Low-impact (yoga, pilates)",
-      "A mix (variety of workouts)",
-    ],
-    required: true,
-  },
-  {
-    id: 9,
-    question: "Dietary restrictions",
-    type: "select",
-    options: [
-      "None",
-      "Vegetarian",
-      "Vegan",
-      "Pescatarian",
-      "Keto",
-      "Gluten-free",
-      "Lactose intolerant",
-      "omnivore",
-      "Other",
-    ],
-    required: true,
-  },
-  {
-    id: 10,
-    question: "Health conditions",
-    type: "select",
-    options: [
-      "None",
-      "Diabetes",
-      "High blood pressure",
-      "Heart disease",
-      "Thyroid issues",
-      "Other",
-    ],
-    required: true,
-    info: "This ensures your plan is safe and effective",
-  },
-  {
-    id: 11,
-    question: "Number of meals per day",
-    type: "select",
-    options: [
-      "2 (intermittent fasting)",
-      "3 (standard)",
-      "4 meals",
-      "5 meals",
-      "6 small meals",
-    ],
-    required: true,
-  },
-  {
-    id: 12,
-    question: "Favorite cuisine",
-    type: "select",
-    options: [
-      "Moroccan cuisine",
-      "Chinese cuisine",
-      "French cuisine",
-      "Greek cuisine",
-      "Italian cuisine",
-      "Japanese cuisine",
-      "Indian cuisine",
-      "Mexican cuisine",
-      "Turkish cuisine",
-      "Thai cuisine",
-      "Korean cuisine",
-      "Middle Eastern cuisine",
-      "Spanish cuisine",
-      "other",
-    ],
-    required: true,
-  },
-  {
-    id: 13,
-    question: "Main goa",
-    type: "radio",
-    options: [
-      "Lose fat",
-      "Build muscle",
-      "Maintain weight",
-      "Improve health & wellbeing",
-    ],
-    required: true,
   },
 ];
 
+const messages = [
+  "Analyzing your answers 🔍",
+  "Balancing your macros 🧮",
+  "Selecting delicious meals 🍝",
+  "Customizing workouts 💪",
+  "Almost there… adding final touches ✨",
+];
+
 const Quiz: React.FC = () => {
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<{ [key: number]: string | number }>(
-    {}
-  );
-  const [errors, setErrors] = useState<{ [key: number]: string }>({});
-  const [completed, setCompleted] = useState(false);
+  const [currentPhase, setCurrentPhase] = useState(0);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [answers, setAnswers] = useState<{ [key: string]: any }>({});
+  const [heightUnit, setHeightUnit] = useState("cm");
+  const [weightUnit, setWeightUnit] = useState("kg");
   const [showSummary, setShowSummary] = useState(false);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [completed, setCompleted] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
   const platform = usePlatform();
   const colorTheme = useColorTheme(platform.settings?.theme_color);
 
-  const currentQuestion = questions[currentQuestionIndex];
-  const progress = (currentQuestionIndex / questions.length) * 100;
+  const [messageIndex, setMessageIndex] = useState(0);
 
-  const handleNumberInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    const numValue = value === "" ? "" : Number(value);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMessageIndex((prev) => (prev + 1) % messages.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
-    setAnswers((prev) => ({ ...prev, [currentQuestion.id]: numValue }));
+  const phase = QUIZ_PHASES[currentPhase];
+  const question = phase.questions[currentQuestion];
+  const totalQuestions = QUIZ_PHASES.reduce(
+    (sum, p) => sum + p.questions.length,
+    0
+  );
+  const answeredQuestions = Object.keys(answers).length;
+  const progress = (answeredQuestions / totalQuestions) * 100;
+
+  // Height unit switch
+  const handleHeightUnitChange = (unit: "cm" | "ft/inch") => {
+    setHeightUnit(unit);
+    handleAnswer(
+      question.id,
+      unit === "cm" ? { cm: "" } : { ft: "", inch: "" }
+    );
     setErrors((prev) => {
       const newErrors = { ...prev };
-      delete newErrors[currentQuestion.id];
+      delete newErrors[question.id];
       return newErrors;
     });
   };
 
-  const validateAnswer = (
-    questionId: number,
-    value: string | number
-  ): string | null => {
-    const question = questions.find((q) => q.id === questionId);
+  // Weight unit switch
+  const handleWeightUnitChange = (unit: "kg" | "lbs") => {
+    setWeightUnit(unit);
+
+    // Clear previous value
+    handleAnswer(question.id, {
+      [unit]: "",
+      ...(unit === "kg" ? {} : { kg: undefined }),
+      ...(unit === "lbs" ? {} : { lbs: undefined }),
+    });
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors[question.id];
+      return newErrors;
+    });
+  };
+
+  const validateAnswer = (questionId: string, value: any): string | null => {
+    const question = phase.questions.find((q) => q.id === questionId);
     if (!question) return null;
 
-    if (
-      question.required &&
-      (value === "" || value === null || value === undefined)
-    ) {
-      return "This field is required";
+    if (question.required) {
+      // special check for height/weight objects
+      if (typeof value === "object") {
+        const hasValue = Object.values(value).some(
+          (v) => v !== "" && v !== null && v !== undefined
+        );
+        if (!hasValue) return "This field is required";
+      } else if (value === "" || value === null || value === undefined) {
+        return "This field is required";
+      }
     }
 
     if (question.type === "number" && value !== "") {
@@ -252,13 +623,35 @@ const Quiz: React.FC = () => {
     return null;
   };
 
-  const handleAnswer = (value: string | number) => {
-    setAnswers((prev) => ({ ...prev, [currentQuestion.id]: value }));
+  const handleAnswer = (questionId: string, value: any) => {
+    setAnswers((prev) => ({ ...prev, [questionId]: value }));
     setErrors((prev) => {
       const newErrors = { ...prev };
-      delete newErrors[currentQuestion.id];
+      delete newErrors[questionId];
       return newErrors;
     });
+  };
+
+  const toggleMultiSelect = (questionId: string, option: string) => {
+    const current = answers[questionId] || [];
+    const newValue = current.includes(option)
+      ? current.filter((item: string) => item !== option)
+      : [...current, option];
+    handleAnswer(questionId, newValue);
+  };
+
+  const canProceed = () => {
+    if (question.required) {
+      const answer = answers[question.id];
+      if (
+        answer === undefined ||
+        answer === "" ||
+        (Array.isArray(answer) && answer.length === 0)
+      ) {
+        return false;
+      }
+    }
+    return true;
   };
 
   const handleNext = () => {
@@ -266,122 +659,49 @@ const Quiz: React.FC = () => {
       return;
     }
 
-    const error = validateAnswer(
-      currentQuestion.id,
-      answers[currentQuestion.id] || ""
-    );
+    if (!canProceed()) return;
+
+    const error = validateAnswer(question.id, answers[question.id] || "");
     if (error) {
-      setErrors((prev) => ({ ...prev, [currentQuestion.id]: error }));
+      setErrors((prev) => ({ ...prev, [question.id]: error }));
       return;
     }
 
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex((prev) => prev + 1);
+    if (currentQuestion < phase.questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+    } else if (currentPhase < QUIZ_PHASES.length - 1) {
+      setCurrentPhase(currentPhase + 1);
+      setCurrentQuestion(0);
     } else {
-      // Last question: show summary card
       setShowSummary(true);
     }
   };
 
   const handlePrevious = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
+    if (currentQuestion > 0) {
+      setCurrentQuestion(currentQuestion - 1);
+    } else if (currentPhase > 0) {
+      setCurrentPhase(currentPhase - 1);
+      setCurrentQuestion(QUIZ_PHASES[currentPhase - 1].questions.length - 1);
     }
   };
 
+  const handleSkip = () => {
+    const error = validateAnswer(question.id, answers[question.id] || "");
+    if (error) {
+      setErrors((prev) => ({ ...prev, [question.id]: error }));
+      return;
+    }
+
+    if (question.skippable) handleNext();
+  };
+
   const calculateAndNavigate = async () => {
-    const age = parseInt(answers[1] as string);
-    const gender = answers[2] as string;
-    const weight = parseFloat(answers[3] as string); // current weight in kg
-    const height = parseFloat(answers[4] as string); // height in cm
-    const goalWeight = parseFloat(answers[5] as string); // target weight in kg
-    const activityLevel = answers[6] as string;
-    const goal = answers[8] as string; // "Lose fat", "Build muscle", "Maintain weight", etc.
-
-    // --- BMI ---
-    const heightInMeters = height / 100;
-    const bmi = weight / (heightInMeters * heightInMeters);
-
-    // --- BMR ---
-    let bmr;
-    if (gender === "Male") {
-      bmr = 10 * weight + 6.25 * height - 5 * age + 5;
-    } else {
-      bmr = 10 * weight + 6.25 * height - 5 * age - 161;
-    }
-
-    // --- TDEE ---
-    let tdee;
-    if (activityLevel.includes("Sedentary")) {
-      tdee = bmr * 1.2;
-    } else if (activityLevel.includes("Lightly active")) {
-      tdee = bmr * 1.375;
-    } else if (activityLevel.includes("Moderately active")) {
-      tdee = bmr * 1.55;
-    } else if (activityLevel.includes("Very active")) {
-      tdee = bmr * 1.725;
-    } else if (activityLevel.includes("Extremely active")) {
-      tdee = bmr * 1.9;
-    } else {
-      tdee = bmr * 1.2; // Default to sedentary
-    }
-
-    // --- Goal Calories with Safety Limits ---
-    let goalCalories = tdee;
-
-    // Calculate safe minimum calories (never below BMR * 1.1 for safety)
-    const safeMinimumCalories = Math.max(
-      bmr * 1.1,
-      gender === "Male" ? 1500 : 1200
-    );
-    const safeMaximumCalories = tdee + 500; // Maximum safe surplus
-
-    if (goal === "Lose fat") {
-      // Safe deficit: 15-25% below TDEE, but never below minimum
-      const deficit = Math.min(500, tdee * 0.25);
-      goalCalories = Math.max(tdee - deficit, safeMinimumCalories);
-    } else if (goal === "Build muscle") {
-      // Moderate surplus: 10-15% above TDEE for muscle building
-      goalCalories = Math.min(tdee + 300, safeMaximumCalories);
-    } else if (goal === "Maintain weight") {
-      goalCalories = tdee; // No change
-    } else if (goal === "Improve health & wellbeing") {
-      // Slight deficit: 5-10% below TDEE
-      const deficit = Math.min(200, tdee * 0.1);
-      goalCalories = Math.max(tdee - deficit, safeMinimumCalories);
-    }
-
-    // Final safety check
-    goalCalories = Math.max(
-      safeMinimumCalories,
-      Math.min(goalCalories, safeMaximumCalories)
-    );
-    goalCalories = Math.round(goalCalories);
-
-    // --- Estimate Time to Reach Goal ---
-    const weightDiff = goalWeight - weight; // negative if losing
-    const caloriesPerKg = 7700; // ~7700 kcal = 1kg fat
-    const weeklyChange = (goalCalories - tdee) * 7; // kcal/week
-    let estimatedWeeks: number | null = null;
-
-    if (weeklyChange !== 0) {
-      estimatedWeeks = Math.abs((weightDiff * caloriesPerKg) / weeklyChange);
-    }
-
-    const calculations = {
-      bmi: Math.round(bmi * 10) / 10,
-      bmr: Math.round(bmr),
-      tdee: Math.round(tdee),
-      goalCalories: Math.round(goalCalories),
-      goalWeight,
-      estimatedWeeks: estimatedWeeks ? Math.round(estimatedWeeks) : null,
-    };
-
     // Save to localStorage
-    const healthProfile = { answers, calculations };
+    const healthProfile = { answers };
     localStorage.setItem("healthProfile", JSON.stringify(healthProfile));
 
-    // Save to database
+    // Continue with your existing save + ML generation flow
     if (user) {
       try {
         const { data: quizData, error } = await supabase
@@ -390,7 +710,6 @@ const Quiz: React.FC = () => {
             {
               user_id: user.id,
               answers,
-              calculations,
             },
           ])
           .select()
@@ -413,7 +732,6 @@ const Quiz: React.FC = () => {
               user.id,
               quizData.id,
               answers,
-              calculations,
               "openai",
               "gpt-4o-mini"
             );
@@ -457,116 +775,297 @@ const Quiz: React.FC = () => {
   };
 
   const renderQuestion = () => {
-    const error = errors[currentQuestion.id];
+    const error = errors[question.id];
+    const answer = answers[question.id];
+    const selected = answer || [];
 
-    return (
-      <motion.div
-        key={currentQuestion.id}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{ duration: 0.3 }}
-        className="bg-background rounded-2xl shadow-lg p-8"
-      >
-        <div className="flex items-start justify-between mb-8">
-          <h2 className="text-2xl font-bold text-foreground">
-            {currentQuestion.question}
-          </h2>
-          {currentQuestion.info && (
-            <div className="group relative">
-              <Info className="h-5 w-5 text-foreground cursor-help" />
-              <div className="absolute right-0 w-64 p-3 bg-background text-foreground text-sm rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
-                {currentQuestion.info}
-              </div>
+    switch (question.type) {
+      case "number":
+        return (
+          <>
+            <Input
+              type="number"
+              value={answer || ""}
+              onChange={(e) => handleAnswer(question.id, e.target.value)}
+              placeholder={question.placeholder}
+              min={question.min}
+              max={question.max}
+              step={question.step || 1}
+              className={`bg-background text-lg ${
+                error && "border-red-500 dark:border-red-400 m-0"
+              }`}
+            />
+            {error && (
+              <p className="mt-2 text-destructive/90 bg-destructive/20 rounded-md px-2 py-0.5">
+                {error}
+              </p>
+            )}
+          </>
+        );
+
+      case "height":
+        return (
+          <div className="space-y-4">
+            <div className="flex gap-2 justify-center mb-4">
+              {question.units.map((unit) => (
+                <Button
+                  key={unit}
+                  variant={heightUnit === unit ? "default" : "outline"}
+                  onClick={() =>
+                    handleHeightUnitChange(unit === "cm" ? "cm" : "ft/inch")
+                  }
+                  size="sm"
+                >
+                  {unit}
+                </Button>
+              ))}
             </div>
-          )}
-        </div>
+            {heightUnit === "cm" ? (
+              <Input
+                type="number"
+                value={answer?.cm || ""}
+                onChange={(e) =>
+                  handleAnswer(question.id, { cm: e.target.value })
+                }
+                className={`bg-background text-lg ${
+                  error && "border-red-500 dark:border-red-400"
+                }`}
+                placeholder="170"
+                required
+              />
+            ) : (
+              <div className="flex gap-2 justify-center">
+                <Input
+                  type="number"
+                  value={answer?.ft || ""}
+                  onChange={(e) =>
+                    handleAnswer(question.id, { ...answer, ft: e.target.value })
+                  }
+                  placeholder="5"
+                  className={`w-16 bg-background text-lg ${
+                    error && "border-red-500 dark:border-red-400"
+                  }`}
+                  required
+                />
+                <span className="self-center">ft</span>
+                <Input
+                  type="number"
+                  value={answer?.inch || ""}
+                  onChange={(e) =>
+                    handleAnswer(question.id, {
+                      ...answer,
+                      inch: e.target.value,
+                    })
+                  }
+                  placeholder="11"
+                  className={`w-16 bg-background text-lg ${
+                    error && "border-red-500 dark:border-red-400"
+                  }`}
+                  required
+                />
+                <span className="self-center">in</span>
+              </div>
+            )}
+            {error && (
+              <p className="mt-2 text-destructive/90 bg-destructive/20 rounded-md px-2 py-0.5">
+                {error}
+              </p>
+            )}
+            <p className="text-sm text-foreground/80 text-center">
+              {heightUnit === "cm"
+                ? "Range: 100-250 cm"
+                : "Range: 3'3\" - 8'2\""}
+            </p>
+          </div>
+        );
 
-        {currentQuestion.type === "select" && (
-          <div className="space-y-3">
+      case "weight":
+        return (
+          <div className="space-y-4">
+            <div className="flex gap-2 justify-center mb-4">
+              {question.units.map((unit) => (
+                <Button
+                  key={unit}
+                  variant={weightUnit === unit ? "default" : "outline"}
+                  onClick={() =>
+                    handleWeightUnitChange(unit === "kg" ? "kg" : "lbs")
+                  }
+                  size="sm"
+                >
+                  {unit}
+                </Button>
+              ))}
+            </div>
+            <Input
+              type="number"
+              value={answer?.[weightUnit] || ""}
+              onChange={(e) =>
+                handleAnswer(question.id, {
+                  ...answer,
+                  [weightUnit]: e.target.value,
+                })
+              }
+              placeholder={weightUnit === "kg" ? "70" : "154"}
+              className={`bg-background text-lg ${
+                error && "border-red-500 dark:border-red-400"
+              }`}
+            />
+            {error && (
+              <p className="mt-2 text-destructive/90 bg-destructive/20 rounded-md px-2 py-0.5">
+                {error}
+              </p>
+            )}
+            <p className="text-sm text-foreground/80 text-center">
+              {weightUnit === "kg" ? "Range: 30-250 kg" : "Range: 66-550 lbs"}
+            </p>
+          </div>
+        );
+
+      case "radio":
+        return (
+          <RadioGroup
+            value={answer}
+            onValueChange={(val) => handleAnswer(question.id, val)}
+          >
+            <div className="space-y-3">
+              {question.options?.map((option) => (
+                <Label
+                  key={option}
+                  className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                    answer === option
+                      ? "border-primary bg-primary/5"
+                      : "border-background hover:border-primary/50"
+                  }`}
+                >
+                  <RadioGroupItem
+                    value={option}
+                    className="mr-3 bg-background dark:bg-black/40"
+                  />
+                  <span className="flex-1">{option}</span>
+                </Label>
+              ))}
+            </div>
+          </RadioGroup>
+        );
+
+      case "select":
+        return (
+          <>
             <Select
-              value={(answers[currentQuestion.id] as string) || ""}
-              onValueChange={(val) => handleAnswer(val)}
+              value={answer}
+              onValueChange={(val) => handleAnswer(question.id, val)}
             >
               <SelectTrigger
-                className={`w-full ${
-                  error ? "border-red-500 dark:border-red-400" : "border-border"
+                className={`bg-background w-full ${
+                  error && "border-red-500 dark:border-red-400"
                 }`}
               >
                 <SelectValue placeholder="Select an option" />
               </SelectTrigger>
               <SelectContent>
-                <SelectGroup>
-                  {currentQuestion.options?.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {option}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
+                {question.options?.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
-          </div>
-        )}
-
-        {currentQuestion.type === "number" && (
-          <div className="relative">
-            <Input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              className={`w-full text-center md:text-lg font-semibold ${
-                error ? "border-red-500 dark:border-red-400" : "border-border"
-              }`}
-              value={answers[currentQuestion.id] || ""}
-              onChange={handleNumberInput}
-              placeholder="Enter a number"
-            />
-            {currentQuestion.unit && (
-              <span className="absolute right-4 top-4 transform -translate-y-1/2 text-foreground/70">
-                {currentQuestion.unit}
-              </span>
+            {error && (
+              <p className="mt-2 text-destructive/90 bg-destructive/20 rounded-md px-2 py-0.5">
+                {error}
+              </p>
             )}
-            <div className="mt-2 flex justify-between text-sm text-foreground/70">
-              <span>Min: {currentQuestion.min}</span>
-              <span>Max: {currentQuestion.max}</span>
+          </>
+        );
+
+      case "multiSelect":
+        return (
+          <div className="space-y-3">
+            {question.options?.map((option) => (
+              <Label
+                key={option}
+                className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                  selected.includes(option)
+                    ? "border-primary bg-primary/5"
+                    : "border-background hover:border-primary/50"
+                }`}
+                onClick={() => toggleMultiSelect(question.id, option)}
+              >
+                <div
+                  className={`w-5 h-5 border-2 rounded mr-3 flex items-center justify-center ${
+                    selected.includes(option)
+                      ? "bg-primary border-primary"
+                      : "border-background"
+                  }`}
+                >
+                  {selected.includes(option) && (
+                    <Check className="w-3 h-3 text-white" />
+                  )}
+                </div>
+                <span className="flex-1">{option}</span>
+              </Label>
+            ))}
+            {/* Show input if 'Other' is selected */}
+            {(answers[question.id] || []).includes("Other") && (
+              <div className="mt-3">
+                <Input
+                  type="text"
+                  placeholder="Please specify your health condition"
+                  value={answers[`${question.id}_other`] || ""}
+                  onChange={(e) =>
+                    handleAnswer(`${question.id}_other`, e.target.value)
+                  }
+                  className="bg-background text-lg"
+                />
+              </div>
+            )}
+            <p className="text-sm text-foreground/80">Select all that apply</p>
+          </div>
+        );
+
+      case "slider":
+        return (
+          <div className="space-y-6">
+            <div className="text-center">
+              <span className="text-4xl font-bold text-primary">
+                {answer || question.min}
+              </span>
+              {question.id === "bodyFat" && (
+                <span className="text-2xl text-foreground/80">%</span>
+              )}
+            </div>
+            <Slider
+              value={[answer || question.min]}
+              onValueChange={(val) => handleAnswer(question.id, val[0])}
+              min={question.min}
+              max={question.max}
+              step={question.step || 1}
+              className="w-full bg-background"
+            />
+            <div className="flex justify-between text-sm text-foreground/80">
+              <span>{question.min}</span>
+              <span>{question.max}</span>
             </div>
           </div>
-        )}
+        );
 
-        {currentQuestion.type === "radio" && (
-          <RadioGroup
-            value={answers[currentQuestion.id] as string}
-            onValueChange={(val) => handleAnswer(val)}
-          >
-            {currentQuestion.options?.map((option) => (
-              <label
-                key={option}
-                className={`flex items-center w-full p-3 rounded-xl border cursor-pointer transition-all duration-300 ${
-                  answers[currentQuestion.id] === option
-                    ? `${colorTheme.primaryBorder} ${colorTheme.primaryBg} dark:${colorTheme.primaryDark}/20 dark:${colorTheme.primaryText} shadow-md`
-                    : "border-border hover:border-border"
-                }`}
-              >
-                <RadioGroupItem
-                  value={option}
-                  className={`w-5 h-5 rounded-full border-2 flex-shrink-0 mr-3 ${
-                    answers[currentQuestion.id] === option
-                      ? `${colorTheme.primaryBorder} bg-primary`
-                      : "border-border bg-background"
-                  }`}
-                />
-                <span>{option}</span>
-              </label>
-            ))}
-          </RadioGroup>
-        )}
+      case "textarea":
+        return (
+          <Textarea
+            value={answer || ""}
+            onChange={(e) => handleAnswer(question.id, e.target.value)}
+            placeholder={question.placeholder}
+            rows={4}
+            className="resize-y"
+          />
+        );
 
-        {error && (
-          <p className="mt-3 text-sm text-red-500 dark:text-red-400">{error}</p>
-        )}
-      </motion.div>
-    );
+      default:
+        return null;
+    }
   };
+
+  const PhaseIcon = phase.icon;
 
   if (!user) {
     return (
@@ -603,6 +1102,11 @@ const Quiz: React.FC = () => {
     <div className="min-h-screen pt-24 pb-16 bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
+          <div className="bg-yellow-100 border-b border-yellow-300 text-yellow-900 text-sm text-center rounded-lg my-2 py-2">
+            ⚠️ This quiz is in <span className="font-bold">BETA</span> mode —
+            results may not be final.
+          </div>
+
           <AnimatePresence mode="wait">
             {showSummary ? (
               <motion.div
@@ -615,19 +1119,58 @@ const Quiz: React.FC = () => {
                 <h2 className="text-xl font-bold text-foreground mb-3">
                   Almost ready!
                 </h2>
+
                 <p className="text-foreground mb-4">
                   Got it — you want to{" "}
-                  <span className="font-semibold">{answers[13]}</span>, eat{" "}
+                  <span className="font-semibold">{answers.mainGoal}</span>, eat{" "}
                   <span className="font-semibold">
-                    {answers[11]}{" "}
-                    {answers[12] !== "other" ? `of ${answers[12]}` : ""}
+                    {answers.mealsPerDay}{" "}
+                    {answers.dietaryStyle && answers.dietaryStyle !== "other"
+                      ? `of ${answers.dietaryStyle}`
+                      : ""}
                   </span>
                   , and train{" "}
-                  <span className="font-semibold">{answers[7]}</span>.
+                  <span className="font-semibold">
+                    {answers.exerciseFrequency}
+                  </span>
+                  .
                 </p>
+                {/* 
+                <p className="text-foreground mb-4">
+                  Your current stats:{" "}
+                  <span className="font-semibold">
+                    {parseHeight(answers.height)[1]} /{" "}
+                    {parseWeight(answers.currentWeight)[1]}
+                  </span>
+                </p>
+
+                {answers.targetWeight && (
+                  <p className="text-foreground mb-4">
+                    Target:{" "}
+                    <span className="font-semibold">
+                      {parseWeight(answers.targetWeight)[1]} in{" "}
+                      {answers.timeFrame}
+                    </span>
+                  </p>
+                )} */}
+
+                {answers.healthConditions &&
+                  answers.healthConditions.length > 0 && (
+                    <p className="text-foreground mb-4">
+                      Health conditions:{" "}
+                      <span className="font-semibold">
+                        {answers.healthConditions.includes("Other") &&
+                        answers.healthConditions_other
+                          ? answers.healthConditions_other
+                          : answers.healthConditions.join(", ")}
+                      </span>
+                    </p>
+                  )}
+
                 <p className="text-foreground/70 mb-6">
                   Does this look correct?
                 </p>
+
                 <div className="flex justify-center gap-4">
                   <Button
                     className={`${colorTheme.primaryBg} ${colorTheme.primaryHover} text-white`}
@@ -649,79 +1192,117 @@ const Quiz: React.FC = () => {
               </motion.div>
             ) : !completed ? (
               <>
-                <div className="mb-8 text-center">
-                  <motion.h1
-                    className="text-4xl font-bold text-foreground mb-4"
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    Create Your Personalized Plan
-                  </motion.h1>
-                  <motion.p
-                    className="text-lg text-foreground"
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.1 }}
-                  >
-                    Question {currentQuestionIndex + 1} of {questions.length}
-                  </motion.p>
+                <div className="mb-8">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium">
+                      Phase {currentPhase + 1} of {QUIZ_PHASES.length}
+                    </span>
+                    <span className="text-sm text-foreground/80">
+                      {Math.round(progress)}% Complete
+                    </span>
+                  </div>
+                  <div className="h-2 bg-card rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary transition-all duration-300"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
                 </div>
 
-                <motion.div
-                  className="mb-8 bg-card rounded-full h-2 overflow-hidden"
-                  initial={{ opacity: 0, scaleX: 0 }}
-                  animate={{ opacity: 1, scaleX: 1 }}
-                  transition={{ duration: 0.5 }}
-                >
+                {/* Phase Header */}
+                <Card className="mb-6 ">
+                  <CardContent>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                        <PhaseIcon className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-foreground">
+                          {phase.name}
+                        </h2>
+                        <p className="text-foreground/80">
+                          {phase.description}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Question Card */}
+                <Card>
                   <motion.div
-                    className={`h-full ${colorTheme.primaryBg}`}
-                    initial={{ width: `${progress}%` }}
-                    animate={{ width: `${progress}%` }}
+                    key={question.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.3 }}
-                  />
-                </motion.div>
-
-                {renderQuestion()}
-
-                <div className="flex justify-between mt-8">
-                  <Button
-                    variant="outline"
-                    onClick={handlePrevious}
-                    className={`flex items-center ${
-                      currentQuestionIndex === 0 ? "opacity-0" : ""
-                    }`}
-                    disabled={currentQuestionIndex === 0}
                   >
-                    <ChevronLeft className="mr-2 h-5 w-5" />
-                    Previous
-                  </Button>
+                    <CardContent className="space-y-6">
+                      <Label className="text-xl font-semibold">
+                        {question.label}
+                        {!question.required && (
+                          <Badge variant="secondary" className="ml-2">
+                            Optional
+                          </Badge>
+                        )}
+                      </Label>
+                      <p className="italic text-sm text-foreground/70">
+                        {question?.description}
+                      </p>
 
-                  <Button
-                    onClick={handleNext}
-                    className={`flex items-center ${
-                      answers[currentQuestion.id] === undefined ||
-                      answers[currentQuestion.id] === ""
-                        ? "bg-button disabled:bg-button/30 text-foreground cursor-not-allowed"
-                        : `${colorTheme.primaryBg} ${colorTheme.primaryHover} text-white cursor-pointer`
-                    }`}
-                    disabled={
-                      answers[currentQuestion.id] === undefined ||
-                      answers[currentQuestion.id] === ""
-                    }
-                  >
-                    {currentQuestionIndex < questions.length - 1 ? (
-                      <>
-                        Next
-                        <ChevronRight className="ml-2 h-5 w-5" />
-                      </>
-                    ) : (
-                      <>
-                        Get Your Plan
-                        <ArrowRight className="ml-2 h-5 w-5" />
-                      </>
-                    )}
-                  </Button>
+                      {renderQuestion()}
+
+                      {/* Navigation */}
+                      <div className="flex justify-between">
+                        <Button
+                          variant="outline"
+                          onClick={handlePrevious}
+                          disabled={currentPhase === 0 && currentQuestion === 0}
+                        >
+                          <ChevronLeft className="w-4 h-4 mr-2" />
+                          Previous
+                        </Button>
+
+                        <div className="flex gap-2">
+                          {question.skippable && (
+                            <Button variant="ghost" onClick={handleSkip}>
+                              Skip
+                            </Button>
+                          )}
+                          <Button onClick={handleNext} disabled={!canProceed()}>
+                            {currentPhase === QUIZ_PHASES.length - 1 &&
+                            currentQuestion === phase.questions.length - 1 ? (
+                              <>
+                                Complete
+                                <Check className="w-4 h-4 ml-2" />
+                              </>
+                            ) : (
+                              <>
+                                Next
+                                <ChevronRight className="w-4 h-4 ml-2" />
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </motion.div>
+                </Card>
+
+                {/* Phase Navigation Dots */}
+                <div className="flex justify-center gap-2 mt-6">
+                  {QUIZ_PHASES.map((_, idx) => (
+                    <div
+                      key={idx}
+                      className={`h-2 rounded-full transition-all ${
+                        idx === currentPhase
+                          ? "w-8 bg-primary"
+                          : idx < currentPhase
+                          ? "w-2 bg-primary/50"
+                          : "w-2 bg-muted"
+                      }`}
+                    />
+                  ))}
                 </div>
               </>
             ) : (
@@ -739,15 +1320,17 @@ const Quiz: React.FC = () => {
                 <h2 className="text-2xl font-bold text-foreground mb-4">
                   Creating Your Personalized Plan
                 </h2>
-                <p className="text-foreground mb-6">
-                  Our AI is analyzing your responses to create a personalized
-                  meal and workout plan tailored to your goals. This may take
-                  10-20 seconds.
+
+                <p className="text-foreground mb-6 transition-opacity duration-500 ease-in-out">
+                  {messages[messageIndex]}
                 </p>
+
                 <div className="flex justify-center">
-                  <div
-                    className={`w-8 h-8 border-4 ${colorTheme.primaryBorder} border-t-transparent rounded-full animate-spin`}
-                  ></div>
+                  <DotLottieReact
+                    src="https://lottie.host/1affa7b2-7053-45b0-840a-11afc08c1746/9gcho1H4gZ.lottie"
+                    loop
+                    autoplay
+                  />
                 </div>
               </motion.div>
             )}

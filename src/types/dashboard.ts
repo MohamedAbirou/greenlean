@@ -4,6 +4,18 @@ export interface HealthProfile {
     bmi: number;
     bmr: number;
     tdee: number;
+    goalCalories: number;
+    targetWeight?: number | null;
+    estimatedWeeks?: number | null;
+    activityMultiplier?: number;
+    macros: {
+      protein_g: number;
+      carbs_g: number;
+      fats_g: number;
+      protein_pct_of_calories?: number;
+      carbs_pct_of_calories?: number;
+      fat_pct_of_calories?: number;
+    };
   };
 }
 
@@ -22,16 +34,16 @@ export interface HealthCalculations {
     status: string;
     color: string;
   };
-  dailyCalorieTarget: number;
+  dailyCalorieTarget: number; // same as calculations.goalCalories
   macros: {
-    protein: number;
+    protein: number; // percentage for UI if needed
     carbs: number;
     fats: number;
-    proteinGrams?: number;
+    proteinGrams?: number; // could use calculations.macros.protein_g
     carbsGrams?: number;
     fatsGrams?: number;
   };
-  goalAdjustment: number;
+  goalAdjustment: number; // goalCalories - tdee
 }
 
 export interface MealItem {

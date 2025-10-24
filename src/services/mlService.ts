@@ -5,32 +5,59 @@
  * for AI-powered meal and workout plan generation.
  */
 
+import { parseHeight, parseWeight, toCSV } from "@/utils/parseMetrics";
+
 const ML_SERVICE_URL =
   import.meta.env.VITE_ML_SERVICE_URL || "http://localhost:8000";
 
 export interface QuizAnswers {
+  // --- Core Profile ---
   age: number;
   gender: string;
-  weight: number;
-  height: number;
-  goal_weight: number;
-  activity_level: string;
-  diet_type: string;
-  goal: string;
-  meals_per_day: string;
-  cuisine: string;
-  health_conditions: string;
-  exercise_time: string;
-  exercise_preference: string;
+  country: string;
+  bodyType: string;
+  lifestyle: string;
+
+  // --- Weight / Height ---
+  currentWeight: number | null;
+  targetWeight: number | null;
+  height: number | null;
+  neck: number | null;
+  waist: number | null;
+
+  // --- Goals ---
+  mainGoal: string;
+  secondaryGoals: string; // CSV
+  timeFrame: string;
+
+  // --- Activity & Exercise ---
+  exerciseFrequency: string;
+  occupation_activity: string;
+  preferredExercise: string; // CSV
+  trainingEnvironment: string; // CSV
+  equipment: string; // CSV
+  exerciseTime: string;
+
+  // --- Nutrition ---
+  dietaryStyle: string;
+  mealsPerDay: string;
+  cookingSkill: string;
+  cookingTime: string;
+  groceryBudget: string;
+  dislikedFoods: string; // CSV
+  favoriteCuisines: string; // CSV
+
+  // --- Health ---
+  healthConditions: string; // CSV
+  healthConditions_other: string;
+  bodyFat: number | null;
+  medications: string;
+  stressLevel: number;
+  sleepQuality: string;
+  motivationLevel: number;
+  challenges: string; // CSV
 }
 
-export interface Calculations {
-  bmi: number;
-  bmr: number;
-  tdee: number;
-  goalCalories: number;
-  goalWeight: number;
-}
 
 export interface MealFood {
   name: string;
@@ -124,23 +151,56 @@ class MLService {
   /**
    * Convert quiz answers to ML service format
    */
-  private mapQuizAnswers(answers: Record<number, string | number>): QuizAnswers {
-    return {
-      age: Number(answers[1]),
-      gender: String(answers[2]),
-      weight: Number(answers[3]),
-      height: Number(answers[4]),
-      goal_weight: Number(answers[5]),
-      activity_level: String(answers[6]),
-      diet_type: String(answers[7]),
-      goal: String(answers[8]),
-      meals_per_day: String(answers[9]),
-      cuisine: String(answers[13]),
-      health_conditions: String(answers[10]),
-      exercise_time: String(answers[11]),
-      exercise_preference: String(answers[12]),
-    };
-  }
+ private mapQuizAnswers(answers: Record<string, any>): QuizAnswers {
+  return {
+    // --- Core Profile ---
+    age: Number(answers.age ?? 0),
+    gender: String(answers.gender ?? ""),
+    country: String(answers.country ?? ""),
+    bodyType: String(answers.bodyType ?? ""),
+    lifestyle: String(answers.lifestyle ?? ""),
+
+    // --- Weight / Height ---
+    currentWeight: parseWeight(answers.currentWeight),
+    targetWeight: parseWeight(answers.targetWeight),
+    height: parseHeight(answers.height),
+    neck: parseHeight(answers.neck),
+    waist: parseHeight(answers.waist),
+
+    // --- Goals ---
+    mainGoal: String(answers.mainGoal ?? ""),
+    secondaryGoals: toCSV(answers.secondaryGoals),
+    timeFrame: String(answers.timeFrame ?? ""),
+
+    // --- Activity & Exercise ---
+    exerciseFrequency: String(answers.exerciseFrequency ?? ""),
+    occupation_activity: String(answers.occupation_activity ?? ""),
+    preferredExercise: toCSV(answers.preferredExercise),
+    trainingEnvironment: toCSV(answers.trainingEnvironment),
+    equipment: toCSV(answers.equipment),
+    exerciseTime: String(answers.exerciseTime ?? answers.cookingTime ?? ""), // fallback
+
+    // --- Nutrition ---
+    dietaryStyle: String(answers.dietaryStyle ?? ""),
+    mealsPerDay: String(answers.mealsPerDay ?? ""),
+    cookingSkill: String(answers.cookingSkill ?? ""),
+    cookingTime: String(answers.cookingTime ?? ""),
+    groceryBudget: String(answers.groceryBudget ?? ""),
+    dislikedFoods: toCSV(answers.dislikedFoods),
+    favoriteCuisines: toCSV(answers.favoriteCuisines),
+
+    // --- Health ---
+    healthConditions: toCSV(answers.healthConditions),
+    healthConditions_other: String(answers.healthConditions_other ?? ""),
+    bodyFat: answers.bodyFat ? Number(answers.bodyFat) : null,
+    medications: String(answers.medications ?? ""),
+    stressLevel: Number(answers.stressLevel ?? 0),
+    sleepQuality: String(answers.sleepQuality ?? ""),
+    motivationLevel: Number(answers.motivationLevel ?? 0),
+    challenges: toCSV(answers.challenges),
+  };
+}
+
 
   /**
    * Generate AI meal plan
@@ -149,12 +209,10 @@ class MLService {
     userId: string,
     quizResultId: string,
     answers: Record<number, string | number>,
-    calculations: Calculations,
     aiProvider: string = "openai",
     modelName: string = "gpt-4o-mini"
   ): Promise<MealPlanResponse> {
     try {
-      const mappedAnswers = this.mapQuizAnswers(answers);
 
       const res = await fetch(`${this.baseUrl}/generate-meal-plan`, {
         method: "POST",
@@ -162,8 +220,7 @@ class MLService {
         body: JSON.stringify({
           user_id: userId,
           quiz_result_id: quizResultId,
-          answers: mappedAnswers,
-          calculations,
+          answers: answers,
           ai_provider: aiProvider,
           model_name: modelName,
         }),
@@ -189,21 +246,17 @@ class MLService {
     userId: string,
     quizResultId: string,
     answers: Record<number, string | number>,
-    calculations: Calculations,
     aiProvider: string = "openai",
     modelName: string = "gpt-4o-mini"
   ): Promise<WorkoutPlanResponse> {
     try {
-      const mappedAnswers = this.mapQuizAnswers(answers);
-
       const res = await fetch(`${this.baseUrl}/generate-workout-plan`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           user_id: userId,
           quiz_result_id: quizResultId,
-          answers: mappedAnswers,
-          calculations,
+          answers: answers,
           ai_provider: aiProvider,
           model_name: modelName,
         }),
@@ -229,7 +282,6 @@ class MLService {
     userId: string,
     quizResultId: string,
     answers: Record<number, string | number>,
-    calculations: Calculations,
     aiProvider: string = "openai",
     modelName: string = "gpt-4o-mini"
   ): Promise<{
@@ -238,16 +290,13 @@ class MLService {
     macros: { protein: number; carbs: number; fats: number };
   }> {
     try {
-      const mappedAnswers = this.mapQuizAnswers(answers);
-
       const res = await fetch(`${this.baseUrl}/generate-complete-plan`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           user_id: userId,
           quiz_result_id: quizResultId,
-          answers: mappedAnswers,
-          calculations,
+          answers: answers,
           ai_provider: aiProvider,
           model_name: modelName,
         }),

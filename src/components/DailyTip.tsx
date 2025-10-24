@@ -53,7 +53,7 @@ interface DailyTipProps {
   colorTheme: ColorTheme;
 }
 
-const DailyTip: React.FC<DailyTipProps> = ({colorTheme}) => {
+const DailyTip: React.FC<DailyTipProps> = ({ colorTheme }) => {
   const [currentTip, setCurrentTip] = useState<Tip | null>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const { user } = useAuth();
@@ -82,7 +82,7 @@ const DailyTip: React.FC<DailyTipProps> = ({colorTheme}) => {
           .eq("tip_id", todaysTip.id)
           .limit(1);
 
-          if (!savedTip) return;
+        if (!savedTip) return;
 
         // Check if current tip is bookmarked
         setIsBookmarked(savedTip?.length > 0);
@@ -147,18 +147,19 @@ const DailyTip: React.FC<DailyTipProps> = ({colorTheme}) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-card rounded-xl shadow-md p-6 relative overflow-hidden"
+      className="bg-card rounded-md shadow-md p-2 relative overflow-hidden"
     >
-      <div className={`absolute top-0 left-0 w-2 h-full ${colorTheme.primaryBg}`} />
+      <div
+        className={`absolute top-0 left-0 w-1 h-full ${colorTheme.primaryBg}`}
+      />
 
       <div className="flex items-start justify-between">
-        <div className="flex items-center space-x-3">
-          <div className={`p-2 ${colorTheme.primaryBg}/20 dark:bg-${colorTheme.primaryDark} rounded-lg`}>
-            <Lightbulb className={`h-6 w-6 ${colorTheme.primaryText}`} />
-          </div>
-          <h3 className="text-lg font-semibold text-foreground">
-            Tip of the Day
-          </h3>
+        <div>
+          <h4 className="flex items-center text-lg font-semibold text-foreground mb-1">
+            <Lightbulb className={`h-6 w-6 mr-2 ${colorTheme.primaryText}`} />
+            {currentTip.title}
+          </h4>
+          <p className="text-foreground/80 pl-8 text-sm">{currentTip.content}</p>
         </div>
 
         <div className="flex items-center space-x-2">
@@ -170,7 +171,9 @@ const DailyTip: React.FC<DailyTipProps> = ({colorTheme}) => {
             {isBookmarked ? (
               <BookmarkCheck className={`h-5 w-5 ${colorTheme.primaryText}`} />
             ) : (
-              <BookmarkPlus className={`h-5 w-5 text-gray-400 hover:${colorTheme.primaryText}`} />
+              <BookmarkPlus
+                className={`h-5 w-5 text-gray-400 hover:${colorTheme.primaryText}`}
+              />
             )}
           </button>
 
@@ -179,16 +182,11 @@ const DailyTip: React.FC<DailyTipProps> = ({colorTheme}) => {
             className="p-2 hover:bg-background rounded-lg transition-colors"
             title="Share tip"
           >
-            <Share2 className={`h-5 w-5 text-gray-400 hover:${colorTheme.primaryText}`} />
+            <Share2
+              className={`h-5 w-5 text-gray-400 hover:${colorTheme.primaryText}`}
+            />
           </button>
         </div>
-      </div>
-
-      <div className="mt-4">
-        <h4 className="text-xl font-semibold text-foreground mb-2">
-          {currentTip.title}
-        </h4>
-        <p className="text-foreground/80">{currentTip.content}</p>
       </div>
 
       {/* {showShareMenu && (

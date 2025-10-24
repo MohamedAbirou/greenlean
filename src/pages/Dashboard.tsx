@@ -1,8 +1,6 @@
-import DailyTip from "@/components/DailyTip";
+import EnhancedWorkoutSection from "@/components/dashboard/EnhancedExerciseSection";
 import { EnhancedMealPlanSection } from "@/components/dashboard/EnhancedMealPlanSection";
-import { EnhancedExerciseSection } from "@/components/dashboard/EnhancedExerciseSection";
 import { OverviewSection } from "@/components/dashboard/OverviewSection";
-import { ProgressSection } from "@/components/dashboard/ProgressSection";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useAuth } from "@/contexts/useAuth";
 import { useDashboardData } from "@/hooks/useDashboardData";
@@ -35,8 +33,7 @@ const Dashboard: React.FC = () => {
   const colorTheme = useColorTheme(platform.settings?.theme_color);
   const { user } = useAuth();
 
-  const { healthProfile, healthCalculations, loading } =
-    useDashboardData();
+  const { healthProfile, healthCalculations, loading } = useDashboardData();
 
   const {
     activityLogs,
@@ -81,34 +78,26 @@ const Dashboard: React.FC = () => {
     { id: "overview", label: "Overview" },
     { id: "meal-plan", label: "Meal Plan" },
     { id: "exercise", label: "Exercise Plan" },
-    { id: "progress", label: "Progress" },
   ];
 
   return (
     <div className="min-h-screen pt-24 pb-16 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-4">
-            Your Personalized Dashboard
-          </h1>
-          <p className="text-foreground/80">
-            Welcome to your customized health journey. Here's your personalized
-            plan based on your quiz results.
-          </p>
+        {/* <DailyTip colorTheme={colorTheme} /> */}
+
+        <div className="bg-yellow-100 border-b border-yellow-300 text-yellow-900 text-sm text-center rounded-lg py-2">
+          ⚠️ This dashboard is in <span className="font-bold">BETA</span> mode —
+          results may not be final.
         </div>
 
-        <div className="mb-8">
-          <DailyTip colorTheme={colorTheme} />
-        </div>
-
-        <div className="bg-card rounded-xl shadow-md mb-8">
-          <div className="flex flex-wrap">
+        <div className="bg-card rounded-md shadow-md my-4">
+          <div className="flex">
             {tabs.map((tab, index) => (
               <button
                 key={tab.id}
                 className={`px-4 py-3 md:px-6 text-sm md:text-base font-medium ${
-                  index === 0 ? "rounded-tl-xl" : ""
-                } ${index === tabs.length - 1 ? "rounded-tr-xl" : ""} ${
+                  index === 0 ? "rounded-l-md" : ""
+                } ${
                   activeTab === tab.id
                     ? colorTheme.primaryBg + " text-white"
                     : "bg-card text-foreground hover:text-primary"
@@ -121,48 +110,26 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-card rounded-xl shadow-md p-3">
-          {activeTab === "overview" && (
-            <OverviewSection
-              healthProfile={healthProfile}
-              healthCalculations={healthCalculations}
-              colorTheme={colorTheme}
-            />
-          )}
+        {activeTab === "overview" && (
+          <OverviewSection
+            healthProfile={healthProfile}
+            healthCalculations={healthCalculations}
+            colorTheme={colorTheme}
+          />
+        )}
 
-          {activeTab === "meal-plan" && user && healthCalculations && (
-            <EnhancedMealPlanSection
-              userId={user.id}
-              dailyCalories={healthCalculations.dailyCalorieTarget}
-              macros={{
-                protein: healthCalculations.macros.proteinGrams || 0,
-                carbs: healthCalculations.macros.carbsGrams || 0,
-                fats: healthCalculations.macros.fatsGrams || 0,
-              }}
-              colorTheme={colorTheme}
-            />
-          )}
+        {activeTab === "meal-plan" && user && healthCalculations && (
+          <EnhancedMealPlanSection
+            userId={user.id}
+            dailyCalories={healthCalculations.dailyCalorieTarget}
+            macros={healthCalculations.macros}
+            colorTheme={colorTheme}
+          />
+        )}
 
-          {activeTab === "exercise" && user && (
-            <EnhancedExerciseSection
-              userId={user.id}
-              colorTheme={colorTheme}
-            />
-          )}
-
-          {activeTab === "progress" && (
-            <ProgressSection
-              activityLogs={activityLogs}
-              dashboardStats={dashboardStats}
-              onAddLog={addLog}
-              onUpdateLog={updateLog}
-              onDeleteLog={deleteLog}
-              saving={saving}
-              error={error}
-              colorTheme={colorTheme}
-            />
-          )}
-        </div>
+        {activeTab === "exercise" && user && (
+          <EnhancedWorkoutSection userId={user.id} colorTheme={colorTheme} />
+        )}
       </div>
     </div>
   );
