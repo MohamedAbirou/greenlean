@@ -1111,7 +1111,6 @@ export const WorkoutSection: React.FC<WorkoutSectionProps> = ({
                       }
                     />
                   </div>
-                  difficulty: "", category: "", rest_seconds: 0,
                   <div>
                     <Label>Difficulty</Label>
                     <select
