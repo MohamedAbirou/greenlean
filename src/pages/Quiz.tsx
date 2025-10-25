@@ -318,27 +318,6 @@ const QUIZ_PHASES = [
         skippable: true,
       },
       {
-        id: "favoriteCuisines",
-        label: "Favorite Cuisines",
-        type: "multiSelect",
-        required: true,
-        options: [
-          "American",
-          "Italian",
-          "Mexican",
-          "Asian",
-          "Mediterranean",
-          "Indian",
-          "Middle Eastern",
-          "French",
-          "Japanese",
-          "Thai",
-          "Korean",
-          "Moroccan",
-          "Other",
-        ],
-      },
-      {
         id: "mealsPerDay",
         label: "Meals Per Day",
         type: "radio",
@@ -535,6 +514,7 @@ const messages = [
 const Quiz: React.FC = () => {
   const [currentPhase, setCurrentPhase] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [answers, setAnswers] = useState<{ [key: string]: any }>({});
   const [heightUnit, setHeightUnit] = useState("cm");
   const [weightUnit, setWeightUnit] = useState("kg");
@@ -595,6 +575,7 @@ const Quiz: React.FC = () => {
     });
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const validateAnswer = (questionId: string, value: any): string | null => {
     const question = phase.questions.find((q) => q.id === questionId);
     if (!question) return null;
@@ -623,6 +604,7 @@ const Quiz: React.FC = () => {
     return null;
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleAnswer = (questionId: string, value: any) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
     setErrors((prev) => {
@@ -807,18 +789,19 @@ const Quiz: React.FC = () => {
         return (
           <div className="space-y-4">
             <div className="flex gap-2 justify-center mb-4">
-              {question.units.map((unit) => (
-                <Button
-                  key={unit}
-                  variant={heightUnit === unit ? "default" : "outline"}
-                  onClick={() =>
-                    handleHeightUnitChange(unit === "cm" ? "cm" : "ft/inch")
-                  }
-                  size="sm"
-                >
-                  {unit}
-                </Button>
-              ))}
+              {"units" in question &&
+                question.units?.map((unit: string) => (
+                  <Button
+                    key={unit}
+                    variant={heightUnit === unit ? "default" : "outline"}
+                    onClick={() =>
+                      handleHeightUnitChange(unit === "cm" ? "cm" : "ft/inch")
+                    }
+                    size="sm"
+                  >
+                    {unit}
+                  </Button>
+                ))}
             </div>
             {heightUnit === "cm" ? (
               <Input
@@ -883,18 +866,19 @@ const Quiz: React.FC = () => {
         return (
           <div className="space-y-4">
             <div className="flex gap-2 justify-center mb-4">
-              {question.units.map((unit) => (
-                <Button
-                  key={unit}
-                  variant={weightUnit === unit ? "default" : "outline"}
-                  onClick={() =>
-                    handleWeightUnitChange(unit === "kg" ? "kg" : "lbs")
-                  }
-                  size="sm"
-                >
-                  {unit}
-                </Button>
-              ))}
+              {"units" in question &&
+                question.units?.map((unit: string) => (
+                  <Button
+                    key={unit}
+                    variant={weightUnit === unit ? "default" : "outline"}
+                    onClick={() =>
+                      handleWeightUnitChange(unit === "kg" ? "kg" : "lbs")
+                    }
+                    size="sm"
+                  >
+                    {unit}
+                  </Button>
+                ))}
             </div>
             <Input
               type="number"
@@ -1246,9 +1230,12 @@ const Quiz: React.FC = () => {
                           </Badge>
                         )}
                       </Label>
-                      <p className="italic text-sm text-foreground/70">
-                        {question?.description}
-                      </p>
+
+                      {"description" in question && question.description && (
+                        <p className="italic text-sm text-foreground/70">
+                          {question.description}
+                        </p>
+                      )}
 
                       {renderQuestion()}
 

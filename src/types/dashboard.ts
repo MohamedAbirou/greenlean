@@ -1,90 +1,236 @@
-export interface HealthProfile {
-  answers: { [key: number]: string | number };
-  calculations: {
-    bmi: number;
-    bmr: number;
-    tdee: number;
-    goalCalories: number;
-    targetWeight?: number | null;
-    estimatedWeeks?: number | null;
-    activityMultiplier?: number;
-    macros: {
-      protein_g: number;
-      carbs_g: number;
-      fats_g: number;
-      protein_pct_of_calories?: number;
-      carbs_pct_of_calories?: number;
-      fat_pct_of_calories?: number;
-    };
+// /src/types/dashboard.ts
+
+export type Nullable<T> = T | null | undefined;
+
+/**
+ * Small utility for measurements used in answers (flexible).
+ */
+export interface Measurement {
+  cm?: string | number;
+  // keep extensible for other units later
+  [other: string]: unknown;
+}
+
+/**
+ * The answers object coming from the quiz_results.answers JSON column.
+ * - Many keys exist; we type the common ones you showed and allow extras.
+ * - Keep properties optional because users may skip questions.
+ */
+export interface DashboardAnswers {
+  [key: string]: unknown;
+}
+
+/**
+ * Macros breakdown inside calculations.
+ */
+export interface DashboardMacros {
+  fat_g: number;
+  carbs_g: number;
+  protein_g: number;
+  fat_pct_of_calories?: number;
+  carbs_pct_of_calories?: number;
+  protein_pct_of_calories?: number;
+}
+
+/**
+ * Calculations object coming from quiz_results.calculations JSON.
+ */
+export interface DashboardCalculations {
+  bmi: number;
+  bmr: number;
+  tdee: number;
+  macros: DashboardMacros;
+  goalWeight: number;
+  goalCalories: number;
+  bodyFatPercentage?: number;
+}
+/**
+ * Overview that the dashboard overview tab uses.
+ */
+export interface DashboardOverview {
+  answers: DashboardAnswers;
+  calculations: DashboardCalculations;
+}
+
+/**
+ * Diet plan shape returned by ai_meal_plans table.
+ * - plan_data is left `unknown` for now — refine later when you share its structure.
+ * - created_at/generated_at are commonly ISO strings from Supabase.
+ */
+export interface DashboardDietPlan {
+  plan_data: DietPlanData;
+}
+
+interface DietPlanData {
+  meals: Meal[];
+  daily_totals: DailyTotals;
+  shopping_list: {
+    fats: string[];
+    carbs: string[];
+    proteins: string[];
+    vegetables: string[];
+    estimated_cost: string;
+    pantry_staples: string[];
+  };
+  hydration_plan: {
+    timing: string[];
+    electrolyte_needs: string;
+    daily_water_intake: string;
+  };
+  personalized_tips: string[];
+  meal_prep_strategy: {
+    storage_tips: string[];
+    batch_cooking: string[];
+    time_saving_hacks: string[];
   };
 }
 
-export interface ActivityLog {
-  id: string;
-  activity_date: string;
-  activity_type: string;
-  duration_minutes?: number;
-  calories_burned?: number;
-  steps?: number;
-  notes?: string;
-}
-
-export interface HealthCalculations {
-  bmiStatus: {
-    status: string;
-    color: string;
-  };
-  dailyCalorieTarget: number; // same as calculations.goalCalories
-  macros: {
-    protein: number; // percentage for UI if needed
-    carbs: number;
-    fats: number;
-    proteinGrams?: number; // could use calculations.macros.protein_g
-    carbsGrams?: number;
-    fatsGrams?: number;
-  };
-  goalAdjustment: number; // goalCalories - tdee
-}
-
-export interface MealItem {
-  food: string;
-  grams: number;
-  protein: number;
-  carbs: number;
+interface DailyTotals {
   fats: number;
+  carbs: number;
+  fiber: number;
+  protein: number;
+  calories: number;
+  variance: string;
+}
+
+interface Meal {
+  tags: string[];
+  tips: string[];
+  foods: FoodDetails[];
+  recipe: string;
+  meal_name: string;
+  meal_type: string;
+  difficulty: string;
+  total_fats: number;
+  meal_timing: string;
+  total_carbs: number;
+  total_fiber: number;
+  total_protein: number;
+  total_calories: number;
+  prep_time_minutes: number;
+}
+
+interface FoodDetails {
+  fats: number;
+  name: string;
+  carbs: number;
+  fiber: number;
+  grams: number;
+  portion: string;
+  protein: number;
   calories: number;
 }
 
-export interface Meal {
+/**
+ * Workout plan shape returned by ai_workout_plans table.
+ */
+interface WorkoutExercise {
   name: string;
-  items: MealItem[];
-  total: {
-    protein: number;
-    carbs: number;
-    fats: number;
-    calories: number;
+  reps: number;
+  sets: number;
+  tempo: string;
+  category: string;
+  difficulty: string;
+  progression: string;
+  alternatives: unknown;
+  instructions: string;
+  rest_seconds: number;
+  safety_notes: string;
+  muscle_groups: string[];
+  equipment_needed: string[];
+}
+
+interface WeeklySummary {
+  rest_days: number;
+  cardio_days: number;
+  strength_days: number;
+  training_split: string;
+  total_time_minutes: number;
+  total_workout_days: number;
+  progression_strategy: string;
+  estimated_weekly_calories_burned: number;
+}
+
+interface NutritionTiming {
+  hydration: string;
+  rest_days: string;
+  pre_workout: string;
+  post_workout: string;
+}
+
+interface InjuryPrevention {
+  red_flags: string;
+  mobility_work: string;
+  modification_guidelines: string;
+  pre_existing_considerations: string;
+}
+
+interface WeeklyPlan {
+  day: string;
+  focus: string;
+  warmup: {
+    activities: string[];
+    duration_minutes: number;
   };
-  templateName?: string;
-  difficulty?: string;
-  prepTime?: number;
+  cooldown: {
+    activities: string[];
+    duration_minutes: number;
+  };
+  exercises: WorkoutExercise[];
+  intensity: string;
+  optional?: boolean;
+  rpe_target: string;
+  workout_type: string;
+  if_low_energy: string;
+  if_feeling_good: string;
+  duration_minutes: number;
+  success_criteria: string;
+  training_location: string;
+  estimated_calories_burned: number;
+  weekly_summary: WeeklySummary;
 }
 
-export interface ActivityFormData {
-  activity_type: string;
-  duration_minutes: string;
-  calories_burned: string;
-  steps: string;
-  notes: string;
+interface WorkoutPlanData {
+  weekly_plan: WeeklyPlan[];
+  weekly_summary: WeeklySummary;
+  nutrition_timing: NutritionTiming;
+  injury_prevention: InjuryPrevention;
+  personalized_tips: string[];
 }
 
-export interface DashboardStats {
-  today: string;
-  todaysLogs: ActivityLog[];
-  totalCalories: number;
-  totalSteps: number;
-  totalDuration: number;
+export interface DashboardWorkoutPlan {
+  id: string;
+  user_id: string;
+  quiz_result_id?: string | null;
+  plan_data: WorkoutPlanData;
+  workout_type?: string[] | null;
+  duration_per_session?: string | null;
+  frequency_per_week?: number | null;
+  generated_at?: string | null;
+  is_active: boolean;
+  created_at?: string | null;
+  [key: string]: unknown;
 }
 
+/**
+ * The full props returned to the UI / react-query when fetching dashboard data.
+ */
+export interface DashboardProps {
+  overviewData: Nullable<DashboardOverview>;
+  dietPlanData: Nullable<DashboardDietPlan>;
+  workoutPlanData: Nullable<DashboardWorkoutPlan>;
+  bmiStatus: BmiStatus;
+}
+
+export interface BmiStatus {
+  status: string;
+  color: string;
+}
+
+/**
+ * Types for dummy diet/exercise data
+ */
 export interface DietPlan {
   id: number;
   name: string;

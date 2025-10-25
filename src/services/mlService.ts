@@ -5,8 +5,6 @@
  * for AI-powered meal and workout plan generation.
  */
 
-import { parseHeight, parseWeight, toCSV } from "@/utils/parseMetrics";
-
 const ML_SERVICE_URL =
   import.meta.env.VITE_ML_SERVICE_URL || "http://localhost:8000";
 
@@ -45,7 +43,6 @@ export interface QuizAnswers {
   cookingTime: string;
   groceryBudget: string;
   dislikedFoods: string; // CSV
-  favoriteCuisines: string; // CSV
 
   // --- Health ---
   healthConditions: string; // CSV
@@ -147,59 +144,6 @@ class MLService {
       return false;
     }
   }
-
-  /**
-   * Convert quiz answers to ML service format
-   */
- private mapQuizAnswers(answers: Record<string, any>): QuizAnswers {
-  return {
-    // --- Core Profile ---
-    age: Number(answers.age ?? 0),
-    gender: String(answers.gender ?? ""),
-    country: String(answers.country ?? ""),
-    bodyType: String(answers.bodyType ?? ""),
-    lifestyle: String(answers.lifestyle ?? ""),
-
-    // --- Weight / Height ---
-    currentWeight: parseWeight(answers.currentWeight),
-    targetWeight: parseWeight(answers.targetWeight),
-    height: parseHeight(answers.height),
-    neck: parseHeight(answers.neck),
-    waist: parseHeight(answers.waist),
-
-    // --- Goals ---
-    mainGoal: String(answers.mainGoal ?? ""),
-    secondaryGoals: toCSV(answers.secondaryGoals),
-    timeFrame: String(answers.timeFrame ?? ""),
-
-    // --- Activity & Exercise ---
-    exerciseFrequency: String(answers.exerciseFrequency ?? ""),
-    occupation_activity: String(answers.occupation_activity ?? ""),
-    preferredExercise: toCSV(answers.preferredExercise),
-    trainingEnvironment: toCSV(answers.trainingEnvironment),
-    equipment: toCSV(answers.equipment),
-    exerciseTime: String(answers.exerciseTime ?? answers.cookingTime ?? ""), // fallback
-
-    // --- Nutrition ---
-    dietaryStyle: String(answers.dietaryStyle ?? ""),
-    mealsPerDay: String(answers.mealsPerDay ?? ""),
-    cookingSkill: String(answers.cookingSkill ?? ""),
-    cookingTime: String(answers.cookingTime ?? ""),
-    groceryBudget: String(answers.groceryBudget ?? ""),
-    dislikedFoods: toCSV(answers.dislikedFoods),
-    favoriteCuisines: toCSV(answers.favoriteCuisines),
-
-    // --- Health ---
-    healthConditions: toCSV(answers.healthConditions),
-    healthConditions_other: String(answers.healthConditions_other ?? ""),
-    bodyFat: answers.bodyFat ? Number(answers.bodyFat) : null,
-    medications: String(answers.medications ?? ""),
-    stressLevel: Number(answers.stressLevel ?? 0),
-    sleepQuality: String(answers.sleepQuality ?? ""),
-    motivationLevel: Number(answers.motivationLevel ?? 0),
-    challenges: toCSV(answers.challenges),
-  };
-}
 
 
   /**

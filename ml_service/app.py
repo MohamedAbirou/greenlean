@@ -118,7 +118,6 @@ NUTRITION PREFERENCES:
 - Dietary Style: {dietary_style}
 - Food Restrictions/Dislikes: {disliked_foods}
 - Food Allergies: {foodAllergies}
-- Favorite Cuisines: {favorite_cuisines}
 - Meals per Day: {meals_per_day}
 - Cooking Skill: {cooking_skill}
 - Available Cooking Time: {cooking_time}
@@ -147,7 +146,6 @@ IMPORTANT CONSIDERATIONS:
    - Always prioritize balance, comfort, and tolerability for the individual user.
 
 2. **Cuisine & Cultural Adaptation**:
-   - Incorporate user's favorite cuisines authentically
    - Adapt recipes to local ingredient availability in {country}
    - Respect cultural food preferences and cooking methods
 
@@ -574,7 +572,6 @@ class QuizAnswers(BaseModel):
 
     # Food preferences
     dislikedFoods: Optional[str] = None
-    favoriteCuisines: List[str]
     cookingSkill: str
     cookingTime: str
 
@@ -935,7 +932,6 @@ async def generate_meal_plan(request: GeneratePlansRequest):
             dietary_style=request.answers.dietaryStyle,
             disliked_foods=request.answers.dislikedFoods,
             foodAllergies=request.answers.foodAllergies,
-            favorite_cuisines=request.answers.favoriteCuisines,
             meals_per_day=request.answers.mealsPerDay,
             challenges=request.answers.challenges,
             exercise_frequency=request.answers.exerciseFrequency,
@@ -976,7 +972,7 @@ async def generate_meal_plan(request: GeneratePlansRequest):
                     request.quiz_result_id,
                     json.dumps(meal_plan),
                     nutrition["goalCalories"],
-                    json.dumps(request.answers.favoriteCuisines),
+                    json.dumps(request.answers.preferredExercise),
                     request.answers.dietaryStyle
                 )
                 logger.info(f"Meal plan saved to database for user: {request.user_id}")

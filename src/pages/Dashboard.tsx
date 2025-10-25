@@ -1,10 +1,9 @@
-import EnhancedWorkoutSection from "@/components/dashboard/EnhancedExerciseSection";
-import { EnhancedMealPlanSection } from "@/components/dashboard/EnhancedMealPlanSection";
+import { DietPlanSection } from "@/components/dashboard/DietPlanSection";
 import { OverviewSection } from "@/components/dashboard/OverviewSection";
+import { WorkoutSection } from "@/components/dashboard/WorkoutSection";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useAuth } from "@/contexts/useAuth";
-import { useDashboardData } from "@/hooks/useDashboardData";
-import { useLogManager } from "@/hooks/useLogManager";
+import { useDashboardDataQuery } from "@/hooks/Queries/useDashboardData";
 import { useColorTheme } from "@/utils/colorUtils";
 import {
   CategoryScale,
@@ -33,19 +32,14 @@ const Dashboard: React.FC = () => {
   const colorTheme = useColorTheme(platform.settings?.theme_color);
   const { user } = useAuth();
 
-  const { healthProfile, healthCalculations, loading } = useDashboardData();
+  const { data, isLoading } = useDashboardDataQuery(user?.id);
 
-  const {
-    activityLogs,
-    dashboardStats,
-    saving,
-    error,
-    addLog,
-    updateLog,
-    deleteLog,
-  } = useLogManager();
+  const overviewData = data?.overviewData;
+  const dietPlanData = data?.dietPlanData;
+  const workoutPlanData = data?.workoutPlanData;
+  const bmiStatus = data?.bmiStatus;
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
         <Loader className={`h-8 w-8 animate-spin ${colorTheme.primaryText}`} />
@@ -53,7 +47,7 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  if (!healthProfile || !healthCalculations) {
+  if (!overviewData) {
     return (
       <div className="min-h-screen pt-52 pb-16 bg-background">
         <div className="container mx-auto px-4 text-center">
@@ -74,6 +68,8 @@ const Dashboard: React.FC = () => {
     );
   }
 
+  const { answers, calculations } = overviewData;
+
   const tabs = [
     { id: "overview", label: "Overview" },
     { id: "meal-plan", label: "Meal Plan" },
@@ -83,8 +79,6 @@ const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen pt-24 pb-16 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* <DailyTip colorTheme={colorTheme} /> */}
-
         <div className="bg-yellow-100 border-b border-yellow-300 text-yellow-900 text-sm text-center rounded-lg py-2">
           ⚠️ This dashboard is in <span className="font-bold">BETA</span> mode —
           results may not be final.
@@ -112,23 +106,28 @@ const Dashboard: React.FC = () => {
 
         {activeTab === "overview" && (
           <OverviewSection
-            healthProfile={healthProfile}
-            healthCalculations={healthCalculations}
+            answers={answers}
+            calculations={calculations}
+            bmiStatus={bmiStatus!}
             colorTheme={colorTheme}
           />
         )}
 
-        {activeTab === "meal-plan" && user && healthCalculations && (
-          <EnhancedMealPlanSection
+        {activeTab === "meal-plan" && user && (
+          <DietPlanSection
             userId={user.id}
-            dailyCalories={healthCalculations.dailyCalorieTarget}
-            macros={healthCalculations.macros}
+            dietPlan={dietPlanData!}
+            calculations={calculations}
             colorTheme={colorTheme}
           />
         )}
 
         {activeTab === "exercise" && user && (
-          <EnhancedWorkoutSection userId={user.id} colorTheme={colorTheme} />
+          <WorkoutSection
+            userId={user.id}
+            workoutPlanData={workoutPlanData!}
+            colorTheme={colorTheme}
+          />
         )}
       </div>
     </div>

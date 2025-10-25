@@ -7,5 +7,6 @@ export const queryKeys = {
   rewards: ["rewards"] as const,
   reward: (id: string) => [...queryKeys.rewards, id] as const,
   settings: ["settings"] as const,
-  badges: ["badges"] as const
+  badges: ["badges"] as const,
+  dashboard: ["dashboard"] as const
 };

@@ -1,4 +1,5 @@
-import type { HealthCalculations, HealthProfile } from "@/types/dashboard";
+import type { BmiStatus, DashboardCalculations } from "@/types/dashboard";
+import type { ColorTheme } from "@/utils/colorUtils";
 import { motion } from "framer-motion";
 import {
   Activity,
@@ -15,54 +16,46 @@ import {
 import React from "react";
 
 interface OverviewSectionProps {
-  healthProfile: HealthProfile;
-  healthCalculations: HealthCalculations;
-  colorTheme: {
-    primaryBg: string;
-    primaryHover: string;
-    primaryText: string;
-  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  answers: Record<string, any>;
+  calculations: DashboardCalculations;
+  bmiStatus: BmiStatus;
+  colorTheme: ColorTheme;
 }
 
 function getWeight(weightObj: { kg?: string | number; lbs?: string | number }) {
-  if (weightObj.kg !== undefined) {
-    return {
-      value:
-        typeof weightObj.kg === "string"
-          ? parseFloat(weightObj.kg)
-          : weightObj.kg,
-      unit: "kg",
-    };
-  } else if (weightObj.lbs !== undefined) {
-    return {
-      value:
-        typeof weightObj.lbs === "string"
-          ? parseFloat(weightObj.lbs)
-          : weightObj.lbs,
-      unit: "lbs",
-    };
+  if (weightObj?.kg !== undefined) {
+    const value =
+      typeof weightObj.kg === "string"
+        ? parseFloat(weightObj.kg)
+        : weightObj.kg;
+    return { value, unit: "kg" };
+  } else if (weightObj?.lbs !== undefined) {
+    const value =
+      typeof weightObj.lbs === "string"
+        ? parseFloat(weightObj.lbs)
+        : weightObj.lbs;
+    return { value, unit: "lbs" };
   }
-  return { value: null, unit: null };
+  return { value: 0, unit: "kg" };
 }
 
 export const OverviewSection: React.FC<OverviewSectionProps> = ({
-  healthProfile,
-  healthCalculations,
+  answers,
+  calculations,
+  bmiStatus,
   colorTheme,
 }) => {
-  const { answers, calculations } = healthProfile;
-  const { bmiStatus, dailyCalorieTarget, macros } = healthCalculations;
-
-  // Calculate progress percentage
   const currentWeight = getWeight(answers.currentWeight);
   const targetWeight = getWeight(answers.targetWeight);
+
   const startingWeight = currentWeight.value;
   const goalWeight = targetWeight.value;
   const totalWeightChange = Math.abs(startingWeight - goalWeight);
-  const currentProgress = Math.abs(startingWeight - startingWeight);
-  const progressPercentage = (currentProgress / totalWeightChange) * 100;
+  const currentProgress = 0;
+  const progressPercentage =
+    totalWeightChange > 0 ? (currentProgress / totalWeightChange) * 100 : 0;
 
-  // Determine BMI status color
   const getBMIColor = (status: string) => {
     if (status.toLowerCase().includes("normal")) return "text-green-500";
     if (status.toLowerCase().includes("underweight")) return "text-blue-500";
@@ -85,7 +78,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
     {
       icon: Target,
       label: "Daily Target",
-      value: `${dailyCalorieTarget}`,
+      value: `${Math.round(calculations.goalCalories ?? 0)}`,
       subtitle: "calories",
       color: "green",
       bgGradient: "from-green-500/10 to-green-600/10",
@@ -117,24 +110,24 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
   const macroData = [
     {
       name: "Protein",
-      percentage: macros.protein_pct_of_calories,
-      grams: macros.protein_g,
+      percentage: calculations.macros.protein_pct_of_calories,
+      grams: calculations.macros.protein_g,
       color: "bg-green-500",
       lightColor: "bg-green-100 dark:bg-green-900/30",
       icon: "🥩",
     },
     {
       name: "Carbs",
-      percentage: macros.carbs_pct_of_calories,
-      grams: macros.carbs_g,
+      percentage: calculations.macros.carbs_pct_of_calories,
+      grams: calculations.macros.carbs_g,
       color: "bg-blue-500",
       lightColor: "bg-blue-100 dark:bg-blue-900/30",
       icon: "🍞",
     },
     {
       name: "Fats",
-      percentage: macros.fat_pct_of_calories,
-      grams: macros.fat_g,
+      percentage: calculations.macros.fat_pct_of_calories,
+      grams: calculations.macros.fat_g,
       color: "bg-yellow-500",
       lightColor: "bg-yellow-100 dark:bg-yellow-900/30",
       icon: "🥑",
