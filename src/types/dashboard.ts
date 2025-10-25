@@ -61,7 +61,7 @@ export interface DashboardDietPlan {
   plan_data: DietPlanData;
 }
 
-interface DietPlanData {
+export interface DietPlanData {
   meals: Meal[];
   daily_totals: DailyTotals;
   shopping_list: {
@@ -125,7 +125,7 @@ interface FoodDetails {
 /**
  * Workout plan shape returned by ai_workout_plans table.
  */
-interface WorkoutExercise {
+export interface WorkoutExercise {
   name: string;
   reps: number;
   sets: number;
@@ -141,32 +141,39 @@ interface WorkoutExercise {
   equipment_needed: string[];
 }
 
-interface WeeklySummary {
-  rest_days: number;
-  cardio_days: number;
-  strength_days: number;
-  training_split: string;
-  total_time_minutes: number;
+export interface WeeklySummary {
   total_workout_days: number;
-  progression_strategy: string;
-  estimated_weekly_calories_burned: number;
+  total_time_minutes: number;
+  total_exercises: number;
+  difficulty_level: string;
+  rest_days?: number;
+  cardio_days?: number;
+  strength_days?: number;
+  training_split?: string;
+  progression_strategy?: string;
+  estimated_weekly_calories_burned?: number;
 }
 
-interface NutritionTiming {
+export interface NutritionTiming {
   hydration: string;
   rest_days: string;
   pre_workout: string;
   post_workout: string;
+  pre_workout_timing: string;
+  timing_guidelines: string[];
+  hydration_tips: string;
 }
 
-interface InjuryPrevention {
+export interface InjuryPrevention {
   red_flags: string;
   mobility_work: string;
   modification_guidelines: string;
   pre_existing_considerations: string;
+  warm_up_routine: string[];
+  safety_guidelines: string;
 }
 
-interface WeeklyPlan {
+export interface WeeklyPlan {
   day: string;
   focus: string;
   warmup: {
@@ -187,16 +194,21 @@ interface WeeklyPlan {
   duration_minutes: number;
   success_criteria: string;
   training_location: string;
+  calories_burned: number;
+  difficulty: string;
   estimated_calories_burned: number;
-  weekly_summary: WeeklySummary;
 }
 
-interface WorkoutPlanData {
+export interface WorkoutPlanData {
   weekly_plan: WeeklyPlan[];
   weekly_summary: WeeklySummary;
   nutrition_timing: NutritionTiming;
   injury_prevention: InjuryPrevention;
   personalized_tips: string[];
+  periodization_plan: PeriodizationPlan;
+  progression_tracking: ProgressionTracking;
+  lifestyle_integration: LifestyleIntegration;
+  exercise_library_by_location: ExerciseLibrary;
 }
 
 export interface DashboardWorkoutPlan {
@@ -289,8 +301,8 @@ export interface Exercise {
   description: string;
   image: string;
   duration: string;
-  intensity: 'Low' | 'Medium' | 'High';
-  category: 'Cardio' | 'Strength' | 'Flexibility';
+  intensity: "Low" | "Medium" | "High";
+  category: "Cardio" | "Strength" | "Flexibility";
   videoId: string;
   benefits: string[];
   instructions: string[];
@@ -298,3 +310,35 @@ export interface Exercise {
   equipment: string[];
   calories: string;
 }
+
+// Add these types to your existing @/types/dashboard.ts file
+
+export interface PeriodizationPlan {
+  week_1_2?: string;
+  week_3_4?: string;
+  week_5_6?: string;
+  week_7?: string;
+  week_8_plus?: string;
+  [key: string]: string | undefined;
+}
+
+export interface ProgressionTracking {
+  what_to_track?: string[];
+  when_to_progress?: string;
+  how_much_to_add?: string;
+  plateau_breakers?: string[];
+}
+
+export interface LifestyleIntegration {
+  work_schedule_tips?: string;
+  busy_day_workouts?: string;
+  travel_workouts?: string;
+  social_considerations?: string;
+}
+
+export interface ExerciseLibrary {
+  gym_exercises: string[];
+  home_exercises: string[];
+  outdoor_exercises: string[];
+}
+

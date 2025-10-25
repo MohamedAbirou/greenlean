@@ -5,26 +5,8 @@ import { usePlatform } from "@/contexts/PlatformContext";
 import { useAuth } from "@/contexts/useAuth";
 import { useDashboardDataQuery } from "@/hooks/Queries/useDashboardData";
 import { useColorTheme } from "@/utils/colorUtils";
-import {
-  CategoryScale,
-  Chart as ChartJS,
-  Legend,
-  LinearScale,
-  LineElement,
-  PointElement,
-  Tooltip,
-} from "chart.js";
 import { ArrowRight, Loader } from "lucide-react";
 import React, { useState } from "react";
-
-ChartJS.register(
-  LineElement,
-  PointElement,
-  CategoryScale,
-  LinearScale,
-  Tooltip,
-  Legend
-);
 
 const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -118,7 +100,6 @@ const Dashboard: React.FC = () => {
             userId={user.id}
             dietPlan={dietPlanData!}
             calculations={calculations}
-            colorTheme={colorTheme}
           />
         )}
 
@@ -126,7 +107,6 @@ const Dashboard: React.FC = () => {
           <WorkoutSection
             userId={user.id}
             workoutPlanData={workoutPlanData!}
-            colorTheme={colorTheme}
           />
         )}
       </div>

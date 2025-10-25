@@ -127,7 +127,7 @@ const ChallengeCard = memo(
                   <IconComponent className="h-5 w-5 text-white" />
                 </div>
                 <div className="flex flex-col md:flex-row items-start w-full md:block">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between w-full">
                     <h3 className="font-bold text-foreground mb-1 truncate">
                       {challenge.title}
                     </h3>

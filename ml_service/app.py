@@ -443,6 +443,8 @@ Return ONLY valid JSON with this exact structure (no markdown, no extra text):
     "cardio_days": 2,
     "rest_days": 2,
     "total_time_minutes": 300,
+    "total_exercises": 15,
+    "difficulty_level": hard,
     "estimated_weekly_calories_burned": 2100,
     "training_split": "Upper/Lower/Full Body + Conditioning",
     "progression_strategy": "Linear progression with deload every 4th week"
