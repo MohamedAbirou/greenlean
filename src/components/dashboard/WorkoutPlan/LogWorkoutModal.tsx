@@ -26,6 +26,9 @@ interface WorkoutLog {
   workout_type: string;
   exercises: ExerciseLog[];
   notes: string;
+  duration_minutes?: number;
+  calories_burned?: number;
+  completed?: boolean;
 }
 
 interface LogWorkoutModalProps {
@@ -79,6 +82,55 @@ export const LogWorkoutModal: React.FC<LogWorkoutModalProps> = ({
               <SelectItem value="Other">Other</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label>Duration (minutes)*</Label>
+            <Input
+              type="number"
+              value={workoutLog.duration_minutes || ""}
+              onChange={(e) =>
+                onWorkoutLogChange({
+                  ...workoutLog,
+                  duration_minutes: Number(e.target.value)
+                })
+              }
+              placeholder="e.g., 45"
+            />
+          </div>
+          <div>
+            <Label>Calories Burned*</Label>
+            <Input
+              type="number"
+              value={workoutLog.calories_burned || ""}
+              onChange={(e) =>
+                onWorkoutLogChange({
+                  ...workoutLog,
+                  calories_burned: Number(e.target.value)
+                })
+              }
+              placeholder="e.g., 300"
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="completed"
+            checked={workoutLog.completed ?? false}
+            onChange={(e) =>
+              onWorkoutLogChange({
+                ...workoutLog,
+                completed: e.target.checked
+              })
+            }
+            className="w-4 h-4 rounded border-gray-300"
+          />
+          <Label htmlFor="completed" className="cursor-pointer">
+            Mark as completed
+          </Label>
         </div>
 
         <div className="border rounded-lg p-4 space-y-3">
