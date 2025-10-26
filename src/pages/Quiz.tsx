@@ -20,6 +20,7 @@ import { supabase } from "@/lib/supabase";
 import { mlService } from "@/services/mlService";
 import { useColorTheme } from "@/utils/colorUtils";
 import { logFrontendError, logInfo } from "@/utils/errorLogger";
+import { prepareAnswersForBackend } from "@/utils/unitConversion";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -560,17 +561,40 @@ const Quiz: React.FC = () => {
           if (data.age) prefilledAnswers.age = data.age;
           if (data.gender) prefilledAnswers.gender = data.gender;
           if (data.country) prefilledAnswers.country = data.country;
+
           if (data.height_cm) {
-            prefilledAnswers.height = { cm: data.height_cm.toString() };
+            if (data.unit_system === "imperial") {
+              const totalInches = data.height_cm / 2.54;
+              const feet = Math.floor(totalInches / 12);
+              const inches = Math.round(totalInches % 12);
+              prefilledAnswers.height = { ft: feet.toString(), inch: inches.toString() };
+            } else {
+              prefilledAnswers.height = { cm: data.height_cm.toString() };
+            }
           }
+
           if (data.weight_kg) {
-            prefilledAnswers.currentWeight = { kg: data.weight_kg.toString() };
+            if (data.unit_system === "imperial") {
+              const lbs = data.weight_kg * 2.20462;
+              prefilledAnswers.currentWeight = { lbs: lbs.toFixed(1) };
+            } else {
+              prefilledAnswers.currentWeight = { kg: data.weight_kg.toString() };
+            }
           }
+
           if (data.occupation_activity) {
             prefilledAnswers.occupation_activity = data.occupation_activity;
           }
 
           setAnswers(prefilledAnswers);
+
+          if (data.unit_system === "imperial") {
+            setHeightUnit("ft/inch");
+            setWeightUnit("lbs");
+          } else {
+            setHeightUnit("cm");
+            setWeightUnit("kg");
+          }
         }
       } catch (error) {
         console.error("Error fetching profile:", error);
@@ -695,8 +719,36 @@ const Quiz: React.FC = () => {
       "occupation_activity",
     ];
 
-    return skipFields.includes(questionId) && answers[questionId] !== undefined;
+    return skipFields.includes(questionId);
   };
+
+  useEffect(() => {
+    if (loadingProfile || !profileData?.onboarding_completed) return;
+
+    let currentQ = currentQuestion;
+    let currentP = currentPhase;
+
+    while (currentP < QUIZ_PHASES.length) {
+      if (currentQ < QUIZ_PHASES[currentP].questions.length) {
+        const q = QUIZ_PHASES[currentP].questions[currentQ];
+        if (!shouldSkipQuestion(q.id)) {
+          if (currentP !== currentPhase || currentQ !== currentQuestion) {
+            setCurrentPhase(currentP);
+            setCurrentQuestion(currentQ);
+          }
+          return;
+        }
+        currentQ++;
+      } else {
+        currentP++;
+        currentQ = 0;
+      }
+    }
+
+    if (currentP >= QUIZ_PHASES.length) {
+      setShowSummary(true);
+    }
+  }, [currentPhase, currentQuestion, loadingProfile, profileData]);
 
   const handleNext = () => {
     if (!user) {
@@ -752,11 +804,13 @@ const Quiz: React.FC = () => {
   };
 
   const calculateAndNavigate = async () => {
-    // Save to localStorage
-    const healthProfile = { answers };
+    const userUnitSystem = profileData?.unit_system || "metric";
+
+    const preparedAnswers = prepareAnswersForBackend(answers, userUnitSystem);
+
+    const healthProfile = { answers: preparedAnswers };
     localStorage.setItem("healthProfile", JSON.stringify(healthProfile));
 
-    // Continue with your existing save + ML generation flow
     if (user) {
       try {
         const { data: quizData, error } = await supabase
@@ -764,7 +818,7 @@ const Quiz: React.FC = () => {
           .insert([
             {
               user_id: user.id,
-              answers,
+              answers: preparedAnswers,
             },
           ])
           .select()
@@ -786,7 +840,7 @@ const Quiz: React.FC = () => {
             const completePlan = await mlService.generateCompletePlan(
               user.id,
               quizData.id,
-              answers,
+              preparedAnswers,
               "openai",
               "gpt-4o-mini"
             );
@@ -861,21 +915,23 @@ const Quiz: React.FC = () => {
       case "height":
         return (
           <div className="space-y-4">
-            <div className="flex gap-2 justify-center mb-4">
-              {"units" in question &&
-                question.units?.map((unit: string) => (
-                  <Button
-                    key={unit}
-                    variant={heightUnit === unit ? "default" : "outline"}
-                    onClick={() =>
-                      handleHeightUnitChange(unit === "cm" ? "cm" : "ft/inch")
-                    }
-                    size="sm"
-                  >
-                    {unit}
-                  </Button>
-                ))}
-            </div>
+            {!profileData?.onboarding_completed && (
+              <div className="flex gap-2 justify-center mb-4">
+                {"units" in question &&
+                  question.units?.map((unit: string) => (
+                    <Button
+                      key={unit}
+                      variant={heightUnit === unit ? "default" : "outline"}
+                      onClick={() =>
+                        handleHeightUnitChange(unit === "cm" ? "cm" : "ft/inch")
+                      }
+                      size="sm"
+                    >
+                      {unit}
+                    </Button>
+                  ))}
+              </div>
+            )}
             {heightUnit === "cm" ? (
               <Input
                 type="number"
@@ -938,21 +994,23 @@ const Quiz: React.FC = () => {
       case "weight":
         return (
           <div className="space-y-4">
-            <div className="flex gap-2 justify-center mb-4">
-              {"units" in question &&
-                question.units?.map((unit: string) => (
-                  <Button
-                    key={unit}
-                    variant={weightUnit === unit ? "default" : "outline"}
-                    onClick={() =>
-                      handleWeightUnitChange(unit === "kg" ? "kg" : "lbs")
-                    }
-                    size="sm"
-                  >
-                    {unit}
-                  </Button>
-                ))}
-            </div>
+            {!profileData?.onboarding_completed && (
+              <div className="flex gap-2 justify-center mb-4">
+                {"units" in question &&
+                  question.units?.map((unit: string) => (
+                    <Button
+                      key={unit}
+                      variant={weightUnit === unit ? "default" : "outline"}
+                      onClick={() =>
+                        handleWeightUnitChange(unit === "kg" ? "kg" : "lbs")
+                      }
+                      size="sm"
+                    >
+                      {unit}
+                    </Button>
+                  ))}
+              </div>
+            )}
             <Input
               type="number"
               value={answer?.[weightUnit] || ""}
