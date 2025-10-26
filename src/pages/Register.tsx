@@ -166,24 +166,6 @@ const Register: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
-        options: {
-          data: {
-            full_name: data.fullName,
-            username: data.username.toLowerCase(),
-          },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-
-      if (signUpError) throw signUpError;
-
-      if (!signUpData.user) {
-        throw new Error("Failed to create user account");
-      }
-
       const heightInCm =
         data.heightUnit === "cm"
           ? parseFloat(data.heightValue)
@@ -200,11 +182,7 @@ const Register: React.FC = () => {
       const age = calculateAge(new Date(data.dateOfBirth));
       const unitSystem = getUnitSystemForCountry(data.country);
 
-      const { error: profileError } = await supabase.from("profiles").upsert({
-        id: signUpData.user.id,
-        email: data.email,
-        full_name: data.fullName,
-        username: data.username.toLowerCase(),
+      const registrationData = {
         age,
         date_of_birth: data.dateOfBirth,
         gender: data.gender,
@@ -213,28 +191,50 @@ const Register: React.FC = () => {
         weight_kg: weightInKg,
         occupation_activity: data.occupationActivity,
         unit_system: unitSystem,
-        onboarding_completed: true,
+      };
+
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            full_name: data.fullName,
+            username: data.username.toLowerCase(),
+            registration_data: registrationData,
+          },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
 
-      if (profileError) {
-        console.error("Profile creation error:", profileError);
-        throw new Error("Failed to create profile");
+      if (signUpError) throw signUpError;
+
+      if (!signUpData.user) {
+        throw new Error("Failed to create user account");
       }
+
+      localStorage.setItem(
+        "pendingRegistrationData",
+        JSON.stringify({
+          userId: signUpData.user.id,
+          email: data.email,
+          ...registrationData,
+        })
+      );
 
       localStorage.removeItem("registrationProgress");
 
       toast.success(
-        "Account created successfully! Please check your email to confirm your account.",
-        { duration: 6000 }
+        "Account created successfully! Please check your email and click the confirmation link to complete your registration.",
+        { duration: 8000 }
       );
 
       setTimeout(() => {
-        navigate("/quiz");
+        navigate("/");
       }, 2000);
     } catch (error) {
       console.error("Registration error:", error);
       if (error instanceof Error) {
-        if (error.message.includes("already registered")) {
+        if (error.message.includes("already registered") || error.message.includes("already been registered")) {
           toast.error("This email is already registered. Please sign in instead.");
         } else {
           toast.error(error.message || "Failed to create account. Please try again.");
