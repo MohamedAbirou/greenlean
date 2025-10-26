@@ -30,25 +30,9 @@ const UsersTab: React.FC<UserTabProps> = ({ colorTheme }) => {
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify({
-            target_user: userId,
-            caller_id: currentUser?.id,
-          }),
-        }
+      await import("@/features/admin").then((module) =>
+        module.AdminService.deleteUser(userId, currentUser?.id ?? "")
       );
-
-      const data = await res.json(); // parse JSON body
-
-      if (!res.ok) throw new Error(data?.error || "Failed to delete user!");
-
       return userId;
     },
     onSuccess: (userId) => {

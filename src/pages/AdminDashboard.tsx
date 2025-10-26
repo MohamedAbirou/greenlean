@@ -7,41 +7,17 @@ import SettingsTab from '@/components/admin/SettingsTab';
 import UsersTab from '@/components/admin/UsersTab';
 import { usePlatform } from '@/contexts/PlatformContext';
 import { useAuth } from "@/contexts/useAuth";
-import { supabase } from '@/lib/supabase';
+import { useAdminStatus } from '@/features/admin';
 import { useColorTheme } from '@/utils/colorUtils';
 import { Loader, Settings } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const { user } = useAuth();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const { isAdmin, isLoading: loading } = useAdminStatus(user?.id);
   const platform = usePlatform();
   const colorTheme = useColorTheme(platform.settings?.theme_color);
-
-  useEffect(() => {
-    checkAdminStatus();
-  }, [user]);
-
-  const checkAdminStatus = async () => {
-    try {
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('admin_users')
-        .select('id')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (error) throw error;
-      setIsAdmin(!!data);
-    } catch (error) {
-      console.error('Error checking admin status:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return (

@@ -3,26 +3,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useAuth } from "@/contexts/useAuth";
-import { supabase } from "@/lib/supabase";
+import { useProfile } from "@/features/profile";
 import { useColorTheme } from "@/utils/colorUtils";
 import { motion } from "framer-motion";
 import { Camera, Loader, Mail, User } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 
-interface Profile {
-  full_name: string;
-  email?: string;
-  avatar_url: string | null;
-}
-
 const Profile: React.FC = () => {
   const { user } = useAuth();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const {
+    profile,
+    isLoading: loading,
+    updateProfile,
+    uploadAvatar,
+    deleteAvatar,
+    isUpdating: updating,
+    isUploadingAvatar: uploadingAvatar,
+  } = useProfile(user?.id);
+
   const [fullName, setFullName] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
@@ -33,30 +32,10 @@ const Profile: React.FC = () => {
   const colorTheme = useColorTheme(platform.settings?.theme_color);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        if (!user) return;
-
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("full_name, email, avatar_url")
-          .eq("id", user.id)
-          .maybeSingle();
-
-        if (error) throw error;
-
-        setProfile(data);
-        setFullName(data?.full_name || "");
-        setAvatarUrl(data?.avatar_url);
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfile();
-  }, [user]);
+    if (profile) {
+      setFullName(profile.full_name || "");
+    }
+  }, [profile]);
 
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
@@ -69,119 +48,44 @@ const Profile: React.FC = () => {
       const file = event.target.files?.[0];
       if (!file || !user) return;
 
-      // Validate file type
-      if (!file.type.startsWith("image/")) {
-        setMessage({ type: "error", text: "Please upload an image file." });
-        return;
-      }
-
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        setMessage({
-          type: "error",
-          text: "Image size should be less than 5MB.",
-        });
-        return;
-      }
-
-      setUploadingAvatar(true);
       setMessage(null);
-
-      // Upload image to Supabase Storage
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${user.id}-${Math.random()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("avatars").getPublicUrl(filePath);
-
-      // Update profile with new avatar URL
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update({ avatar_url: publicUrl })
-        .eq("id", user.id);
-
-      if (updateError) throw updateError;
-
-      setAvatarUrl(publicUrl);
+      await uploadAvatar(file);
       setMessage({
         type: "success",
         text: "Profile picture updated successfully!",
       });
     } catch (error) {
-      console.error("Error uploading avatar:", error);
+      const err = error as Error;
       setMessage({
         type: "error",
-        text: "Failed to update profile picture. Please try again.",
+        text: err.message || "Failed to update profile picture. Please try again.",
       });
-    } finally {
-      setUploadingAvatar(false);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setUpdating(true);
     setMessage(null);
 
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          full_name: fullName,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", user?.id);
-
-      if (error) throw error;
-
+      await updateProfile({ full_name: fullName });
       setMessage({ type: "success", text: "Profile updated successfully!" });
-      setProfile((prev) => (prev ? { ...prev, full_name: fullName } : null));
     } catch (error) {
       console.error("Error updating profile:", error);
       setMessage({
         type: "error",
         text: "Failed to update profile. Please try again.",
       });
-    } finally {
-      setUpdating(false);
     }
   };
 
   const handleDeleteAvatar = async () => {
-    if (!user || !avatarUrl) return;
+    if (!user || !profile?.avatar_url) return;
 
-    setUploadingAvatar(true);
     setMessage(null);
 
     try {
-      // Extract path from public URL
-      const path = avatarUrl.split("/").slice(-2).join("/"); // e.g., avatars/filename.jpg
-
-      // Delete file from Supabase storage
-      const { error: deleteError } = await supabase.storage
-        .from("avatars")
-        .remove([path]);
-
-      if (deleteError) throw deleteError;
-
-      // Update profile to remove avatar URL
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update({ avatar_url: null })
-        .eq("id", user.id);
-
-      if (updateError) throw updateError;
-
-      setAvatarUrl(null);
+      await deleteAvatar(profile.avatar_url);
       setMessage({
         type: "success",
         text: "Profile picture removed successfully!",
@@ -192,8 +96,6 @@ const Profile: React.FC = () => {
         type: "error",
         text: "Failed to delete profile picture. Please try again.",
       });
-    } finally {
-      setUploadingAvatar(false);
     }
   };
 
@@ -246,9 +148,9 @@ const Profile: React.FC = () => {
                         className="w-24 h-24 rounded-full bg-background flex items-center justify-center overflow-hidden relative group cursor-pointer p-0"
                         onClick={handleAvatarClick}
                       >
-                        {avatarUrl ? (
+                        {profile?.avatar_url ? (
                           <img
-                            src={avatarUrl}
+                            src={profile.avatar_url}
                             alt="Profile"
                             className="w-full h-full object-cover"
                           />
@@ -282,7 +184,7 @@ const Profile: React.FC = () => {
                         <br />
                         Maximum size: 5MB
                       </p>
-                      {avatarUrl && (
+                      {profile?.avatar_url && (
                         <Button
                           variant="link"
                           type="button"

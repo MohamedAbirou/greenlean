@@ -1,6 +1,7 @@
 import { DataTable } from "@/components/data-table/data-table";
 import { useBadgesQuery } from "@/hooks/Queries/useBadges";
 import { useChallengesQuery } from "@/hooks/Queries/useChallenges";
+import { AdminService } from "@/features/admin";
 import { supabase } from "@/lib/supabase";
 import { challengeColumns } from "@/pages/admin-dashboard/challenges/columns";
 import { createNotification } from "@/services/notificationService";
@@ -47,36 +48,7 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({
   //* --- MUTATIONS ---
   const createMutation = useMutation({
     mutationFn: async (data: Partial<Challenge>) => {
-      const { data: inserted, error } = await supabase
-        .from("challenges")
-        .insert([data])
-        .select("*")
-        .single();
-
-      if (error) throw error;
-
-      //* notify participants
-      const { data: participants } = await supabase
-        .from("challenge_participants")
-        .select("user_id")
-        .eq("challenge_id", inserted.id);
-
-      if (participants?.length) {
-        await Promise.all(
-          participants.map((p) =>
-            createNotification({
-              recipient_id: p.user_id,
-              sender_id: userId ?? "",
-              type: "challenge",
-              entity_id: inserted.id,
-              entity_type: "challenge",
-              message: `A new challenge "${inserted.title}" has been created.`,
-            })
-          )
-        );
-      }
-
-      return inserted;
+      return AdminService.createChallenge(data, userId ?? "");
     },
     onSuccess: (inserted) => {
       queryClient.setQueryData<Challenge[]>(["challenges"], (old = []) => [
@@ -92,14 +64,7 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({
   const updateMutation = useMutation({
     mutationFn: async (data: Partial<Challenge>) => {
       if (!editingChallenge?.id) throw new Error("No challenge selected");
-
-      // 🚀 Call our Supabase RPC function that handles everything atomically
-      const { error } = await supabase.rpc("update_challenge_and_rewards", {
-        p_challenge_id: editingChallenge.id,
-        p_data: data, // send the partial challenge as JSON
-      });
-
-      if (error) throw error;
+      await AdminService.updateChallenge(editingChallenge.id, data);
 
       // (Optional) you can return the updated data if you like
       return { editingChallenge, data };
