@@ -414,28 +414,17 @@ const messages = [
 
 const Quiz: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const platform = usePlatform();
   const colorTheme = useColorTheme(platform.settings?.theme_color);
 
-  const loadQuizProgress = () => {
-    if (!user) return null;
-    try {
-      const saved = localStorage.getItem(`quizProgress_${user.id}`);
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
-  };
-
-  const savedProgress = loadQuizProgress();
-
-  const [currentPhase, setCurrentPhase] = useState(savedProgress?.currentPhase || 0);
-  const [currentQuestion, setCurrentQuestion] = useState(savedProgress?.currentQuestion || 0);
+  const [currentPhase, setCurrentPhase] = useState(0);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [answers, setAnswers] = useState<{ [key: string]: any }>(savedProgress?.answers || {});
-  const [heightUnit, setHeightUnit] = useState(savedProgress?.heightUnit || "cm");
-  const [weightUnit, setWeightUnit] = useState(savedProgress?.weightUnit || "kg");
+  const [answers, setAnswers] = useState<{ [key: string]: any }>({});
+  const [heightUnit, setHeightUnit] = useState("cm");
+  const [weightUnit, setWeightUnit] = useState("kg");
+  const [progressRestored, setProgressRestored] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [completed, setCompleted] = useState(false);
@@ -443,6 +432,28 @@ const Quiz: React.FC = () => {
   const [loadingProfile, setLoadingProfile] = useState(true);
 
   const [messageIndex, setMessageIndex] = useState(0);
+
+  const isAuthLoading = loading || loadingProfile;
+  const isAuthenticated = !!user;
+
+  useEffect(() => {
+    if (!user) return;
+
+    try {
+      const saved = localStorage.getItem(`quizProgress_${user.id}`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setCurrentPhase(parsed.currentPhase || 0);
+        setCurrentQuestion(parsed.currentQuestion || 0);
+        setAnswers(parsed.answers || {});
+        setHeightUnit(parsed.heightUnit || "cm");
+        setWeightUnit(parsed.weightUnit || "kg");
+        setProgressRestored(true);
+      }
+    } catch (err) {
+      console.error("Failed to load saved quiz progress", err);
+    }
+  }, [user]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -452,7 +463,7 @@ const Quiz: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!user || loadingProfile) return;
+    if (!user || !progressRestored || loadingProfile) return;
 
     const quizProgress = {
       currentPhase,
@@ -463,8 +474,20 @@ const Quiz: React.FC = () => {
       timestamp: Date.now(),
     };
 
-    localStorage.setItem(`quizProgress_${user.id}`, JSON.stringify(quizProgress));
-  }, [currentPhase, currentQuestion, answers, heightUnit, weightUnit, user, loadingProfile]);
+    localStorage.setItem(
+      `quizProgress_${user.id}`,
+      JSON.stringify(quizProgress)
+    );
+  }, [
+    currentPhase,
+    currentQuestion,
+    answers,
+    heightUnit,
+    weightUnit,
+    user,
+    loadingProfile,
+    progressRestored,
+  ]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -472,6 +495,8 @@ const Quiz: React.FC = () => {
         setLoadingProfile(false);
         return;
       }
+
+      setLoadingProfile(true);
 
       try {
         const { data, error } = await supabase
@@ -506,9 +531,23 @@ const Quiz: React.FC = () => {
   const phase = QUIZ_PHASES[currentPhase];
   const question = phase.questions[currentQuestion];
 
-  const totalPhases = QUIZ_PHASES.length;
-  const progress = ((currentPhase + 1) / totalPhases) * 100;
+  // total number of questions across all phases
+  const totalQuestions = QUIZ_PHASES.reduce(
+    (sum, p) => sum + p.questions.length,
+    0
+  );
 
+  // number of questions before current phase
+  const questionsBeforeCurrentPhase = QUIZ_PHASES.slice(0, currentPhase).reduce(
+    (sum, p) => sum + p.questions.length,
+    0
+  );
+
+  // number of questions answered (completed before current one)
+  const answeredCount = questionsBeforeCurrentPhase + currentQuestion + 1;
+
+  // progress percentage
+  const progress = (answeredCount / totalQuestions) * 100;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const validateAnswer = (questionId: string, value: any): string | null => {
@@ -570,7 +609,6 @@ const Quiz: React.FC = () => {
     }
     return true;
   };
-
 
   const handleNext = () => {
     if (!user) {
@@ -963,7 +1001,18 @@ const Quiz: React.FC = () => {
 
   const PhaseIcon = phase.icon;
 
-  if (!user) {
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen pt-24 pb-16 bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-foreground">Loading your profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen pt-24 pb-16 bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
         <div className="container max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -989,17 +1038,6 @@ const Quiz: React.FC = () => {
               btnContent="Sign In to Continue"
             />
           </motion.div>
-        </div>
-      </div>
-    );
-  }
-
-  if (loadingProfile) {
-    return (
-      <div className="min-h-screen pt-24 pb-16 bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-foreground">Loading your profile...</p>
         </div>
       </div>
     );
@@ -1102,7 +1140,7 @@ const Quiz: React.FC = () => {
                 <div className="mb-8">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-medium">
-                      Phase {currentPhase + 1} of {totalPhases}
+                      Phase {currentPhase + 1} of {QUIZ_PHASES.length}
                     </span>
                     <span className="text-sm text-foreground/80">
                       {Math.round(progress)}% Complete
@@ -1114,7 +1152,7 @@ const Quiz: React.FC = () => {
                       style={{ width: `${progress}%` }}
                     />
                   </div>
-                  {savedProgress && (
+                  {progressRestored && (
                     <p className="text-xs text-muted-foreground mt-1">
                       Progress saved - you can continue where you left off
                     </p>
