@@ -37,47 +37,6 @@ import {
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const COUNTRIES = [
-  "United States",
-  "United Kingdom",
-  "Canada",
-  "Australia",
-  "Germany",
-  "France",
-  "Spain",
-  "Italy",
-  "Netherlands",
-  "Belgium",
-  "Sweden",
-  "Norway",
-  "Denmark",
-  "Finland",
-  "Poland",
-  "Czech Republic",
-  "Austria",
-  "Switzerland",
-  "Portugal",
-  "Greece",
-  "Ireland",
-  "New Zealand",
-  "Japan",
-  "South Korea",
-  "Singapore",
-  "Malaysia",
-  "Thailand",
-  "India",
-  "United Arab Emirates",
-  "Saudi Arabia",
-  "Egypt",
-  "South Africa",
-  "Morocco",
-  "Brazil",
-  "Argentina",
-  "Chile",
-  "Mexico",
-  "Colombia",
-].sort();
-
 const QUIZ_PHASES = [
   {
     id: 1,
@@ -85,48 +44,6 @@ const QUIZ_PHASES = [
     description: "Tell us about yourself so we can personalize your plan",
     icon: User,
     questions: [
-      {
-        id: "age",
-        label: "Age",
-        type: "number",
-        required: true,
-        min: 12,
-        max: 100,
-        placeholder: "25",
-      },
-      {
-        id: "gender",
-        label: "Gender",
-        type: "radio",
-        required: true,
-        options: ["Male", "Female", "Non-binary", "Prefer not to say"],
-      },
-      {
-        id: "country",
-        label: "Country/Region",
-        type: "select",
-        required: true,
-        options: COUNTRIES,
-        searchable: true,
-      },
-      {
-        id: "height",
-        label: "Height",
-        type: "height",
-        required: true,
-        units: ["cm", "ft/inch"],
-        min: 100,
-        max: 250,
-      },
-      {
-        id: "currentWeight",
-        label: "Current Weight",
-        type: "weight",
-        required: true,
-        units: ["kg", "lbs"],
-        min: 30,
-        max: 250,
-      },
       {
         id: "targetWeight",
         label: "Target Weight",
@@ -195,23 +112,6 @@ const QUIZ_PHASES = [
     description: "Help us understand your daily routine and exercise habits",
     icon: Activity,
     questions: [
-      {
-        id: "occupation_activity",
-        label: "What best describes your daily activity level?",
-        type: "select",
-        required: false,
-        options: [
-          "Sedentary (desk job or minimal movement)",
-          "Lightly active (some walking or movement during the day)",
-          "Moderately active (on feet often, e.g., retail, teaching)",
-          "Very active (physical or outdoor job)",
-          "Student",
-          "Self-employed / Freelancer",
-          "Retired",
-          "Currently not working",
-        ],
-        skippable: true,
-      },
       {
         id: "exerciseFrequency",
         label: "How often do you exercise?",
@@ -584,49 +484,13 @@ const Quiz: React.FC = () => {
 
         if (data && data.onboarding_completed) {
           setProfileData(data);
-          const prefilledAnswers: { [key: string]: any } = {};
 
-          if (data.age) prefilledAnswers.age = data.age;
-          if (data.gender) prefilledAnswers.gender = data.gender;
-          if (data.country) prefilledAnswers.country = data.country;
-
-          if (data.height_cm) {
-            if (data.unit_system === "imperial") {
-              const totalInches = data.height_cm / 2.54;
-              const feet = Math.floor(totalInches / 12);
-              const inches = Math.round(totalInches % 12);
-              prefilledAnswers.height = { ft: feet.toString(), inch: inches.toString() };
-            } else {
-              prefilledAnswers.height = { cm: data.height_cm.toString() };
-            }
-          }
-
-          if (data.weight_kg) {
-            if (data.unit_system === "imperial") {
-              const lbs = data.weight_kg * 2.20462;
-              prefilledAnswers.currentWeight = { lbs: lbs.toFixed(1) };
-            } else {
-              prefilledAnswers.currentWeight = { kg: data.weight_kg.toString() };
-            }
-          }
-
-          if (data.occupation_activity) {
-            prefilledAnswers.occupation_activity = data.occupation_activity;
-          }
-
-          setAnswers(prev => ({
-            ...prefilledAnswers,
-            ...prev,
-          }));
-
-          if (!savedProgress) {
-            if (data.unit_system === "imperial") {
-              setHeightUnit("ft/inch");
-              setWeightUnit("lbs");
-            } else {
-              setHeightUnit("cm");
-              setWeightUnit("kg");
-            }
+          if (data.unit_system === "imperial") {
+            setHeightUnit("ft/inch");
+            setWeightUnit("lbs");
+          } else {
+            setHeightUnit("cm");
+            setWeightUnit("kg");
           }
         }
       } catch (error) {
@@ -642,72 +506,9 @@ const Quiz: React.FC = () => {
   const phase = QUIZ_PHASES[currentPhase];
   const question = phase.questions[currentQuestion];
 
-  const getQuestionStats = () => {
-    const skippedFields = profileData?.onboarding_completed
-      ? ["age", "gender", "country", "height", "currentWeight", "occupation_activity"]
-      : [];
+  const totalPhases = QUIZ_PHASES.length;
+  const progress = ((currentPhase + 1) / totalPhases) * 100;
 
-    let totalQuestionsCount = 0;
-    let currentQuestionIndex = 0;
-    let reachedCurrent = false;
-
-    for (let p = 0; p < QUIZ_PHASES.length; p++) {
-      for (let q = 0; q < QUIZ_PHASES[p].questions.length; q++) {
-        const questionItem = QUIZ_PHASES[p].questions[q];
-        const isSkipped = skippedFields.includes(questionItem.id);
-
-        if (!isSkipped) {
-          totalQuestionsCount++;
-        }
-
-        if (p === currentPhase && q === currentQuestion) {
-          reachedCurrent = true;
-        }
-
-        if (!reachedCurrent && !isSkipped) {
-          currentQuestionIndex++;
-        }
-      }
-    }
-
-    return { totalQuestionsCount, currentQuestionIndex };
-  };
-
-  const { totalQuestionsCount, currentQuestionIndex } = getQuestionStats();
-  const progress = totalQuestionsCount > 0
-    ? (currentQuestionIndex / totalQuestionsCount) * 100
-    : 0;
-
-  // Height unit switch
-  const handleHeightUnitChange = (unit: "cm" | "ft/inch") => {
-    setHeightUnit(unit);
-    handleAnswer(
-      question.id,
-      unit === "cm" ? { cm: "" } : { ft: "", inch: "" }
-    );
-    setErrors((prev) => {
-      const newErrors = { ...prev };
-      delete newErrors[question.id];
-      return newErrors;
-    });
-  };
-
-  // Weight unit switch
-  const handleWeightUnitChange = (unit: "kg" | "lbs") => {
-    setWeightUnit(unit);
-
-    // Clear previous value
-    handleAnswer(question.id, {
-      [unit]: "",
-      ...(unit === "kg" ? {} : { kg: undefined }),
-      ...(unit === "lbs" ? {} : { lbs: undefined }),
-    });
-    setErrors((prev) => {
-      const newErrors = { ...prev };
-      delete newErrors[question.id];
-      return newErrors;
-    });
-  };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const validateAnswer = (questionId: string, value: any): string | null => {
@@ -770,48 +571,6 @@ const Quiz: React.FC = () => {
     return true;
   };
 
-  const shouldSkipQuestion = (questionId: string): boolean => {
-    if (!profileData || !profileData.onboarding_completed) return false;
-
-    const skipFields = [
-      "age",
-      "gender",
-      "country",
-      "height",
-      "currentWeight",
-      "occupation_activity",
-    ];
-
-    return skipFields.includes(questionId);
-  };
-
-  useEffect(() => {
-    if (loadingProfile || !profileData?.onboarding_completed) return;
-
-    let currentQ = currentQuestion;
-    let currentP = currentPhase;
-
-    while (currentP < QUIZ_PHASES.length) {
-      if (currentQ < QUIZ_PHASES[currentP].questions.length) {
-        const q = QUIZ_PHASES[currentP].questions[currentQ];
-        if (!shouldSkipQuestion(q.id)) {
-          if (currentP !== currentPhase || currentQ !== currentQuestion) {
-            setCurrentPhase(currentP);
-            setCurrentQuestion(currentQ);
-          }
-          return;
-        }
-        currentQ++;
-      } else {
-        currentP++;
-        currentQ = 0;
-      }
-    }
-
-    if (currentP >= QUIZ_PHASES.length) {
-      setShowSummary(true);
-    }
-  }, [currentPhase, currentQuestion, loadingProfile, profileData]);
 
   const handleNext = () => {
     if (!user) {
@@ -826,25 +585,14 @@ const Quiz: React.FC = () => {
       return;
     }
 
-    let nextQuestion = currentQuestion + 1;
-    let nextPhase = currentPhase;
-
-    while (nextPhase < QUIZ_PHASES.length) {
-      if (nextQuestion < QUIZ_PHASES[nextPhase].questions.length) {
-        const nextQ = QUIZ_PHASES[nextPhase].questions[nextQuestion];
-        if (!shouldSkipQuestion(nextQ.id)) {
-          setCurrentQuestion(nextQuestion);
-          setCurrentPhase(nextPhase);
-          return;
-        }
-        nextQuestion++;
-      } else {
-        nextPhase++;
-        nextQuestion = 0;
-      }
+    if (currentQuestion < phase.questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+    } else if (currentPhase < QUIZ_PHASES.length - 1) {
+      setCurrentPhase(currentPhase + 1);
+      setCurrentQuestion(0);
+    } else {
+      setShowSummary(true);
     }
-
-    setShowSummary(true);
   };
 
   const handlePrevious = () => {
@@ -982,23 +730,6 @@ const Quiz: React.FC = () => {
       case "height":
         return (
           <div className="space-y-4">
-            {!profileData?.onboarding_completed && (
-              <div className="flex gap-2 justify-center mb-4">
-                {"units" in question &&
-                  question.units?.map((unit: string) => (
-                    <Button
-                      key={unit}
-                      variant={heightUnit === unit ? "default" : "outline"}
-                      onClick={() =>
-                        handleHeightUnitChange(unit === "cm" ? "cm" : "ft/inch")
-                      }
-                      size="sm"
-                    >
-                      {unit}
-                    </Button>
-                  ))}
-              </div>
-            )}
             {heightUnit === "cm" ? (
               <Input
                 type="number"
@@ -1061,23 +792,6 @@ const Quiz: React.FC = () => {
       case "weight":
         return (
           <div className="space-y-4">
-            {!profileData?.onboarding_completed && (
-              <div className="flex gap-2 justify-center mb-4">
-                {"units" in question &&
-                  question.units?.map((unit: string) => (
-                    <Button
-                      key={unit}
-                      variant={weightUnit === unit ? "default" : "outline"}
-                      onClick={() =>
-                        handleWeightUnitChange(unit === "kg" ? "kg" : "lbs")
-                      }
-                      size="sm"
-                    >
-                      {unit}
-                    </Button>
-                  ))}
-              </div>
-            )}
             <Input
               type="number"
               value={answer?.[weightUnit] || ""}
@@ -1295,13 +1009,6 @@ const Quiz: React.FC = () => {
     <div className="min-h-screen pt-24 pb-16 bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
-          {profileData?.onboarding_completed && (
-            <div className="bg-primary/10 border border-primary/20 text-foreground text-sm text-center rounded-lg my-2 py-3 px-4">
-              <p className="font-medium">
-                Welcome back! We've pre-filled some questions with your profile information.
-              </p>
-            </div>
-          )}
           <div className="bg-yellow-100 border-b border-yellow-300 text-yellow-900 text-sm text-center rounded-lg my-2 py-2">
             ⚠️ This quiz is in <span className="font-bold">BETA</span> mode —
             results may not be final.
@@ -1395,7 +1102,7 @@ const Quiz: React.FC = () => {
                 <div className="mb-8">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-medium">
-                      Question {currentQuestionIndex + 1} of {totalQuestionsCount}
+                      Phase {currentPhase + 1} of {totalPhases}
                     </span>
                     <span className="text-sm text-foreground/80">
                       {Math.round(progress)}% Complete
@@ -1407,7 +1114,7 @@ const Quiz: React.FC = () => {
                       style={{ width: `${progress}%` }}
                     />
                   </div>
-                  {profileData?.onboarding_completed && savedProgress && (
+                  {savedProgress && (
                     <p className="text-xs text-muted-foreground mt-1">
                       Progress saved - you can continue where you left off
                     </p>
