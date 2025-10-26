@@ -1,0 +1,226 @@
+/**
+ * GreenLean Global Styles
+ * Main stylesheet importing design system tokens
+ */
+
+@import "tailwindcss";
+@import "./theme/colors.css";
+@import "./theme/typography.css";
+@import "./theme/spacing.css";
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Remove default margins */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p {
+    @apply m-0;
+  }
+
+  /* Focus visible styles */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* Selection styles */
+  ::selection {
+    background-color: oklch(0.73 0.21 148 / 0.3);
+    color: var(--foreground);
+  }
+}
+
+@layer components {
+  /* ========================================
+     BUTTON VARIANTS
+     ======================================== */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3;
+    @apply bg-primary text-primary-foreground font-semibold;
+    @apply shadow-md hover:shadow-lg transition-all duration-200;
+    @apply hover:scale-105 active:scale-95;
+    @apply disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-primary-glow {
+    @apply btn-primary;
+    box-shadow: var(--shadow-green);
+  }
+
+  .btn-primary-glow:hover {
+    box-shadow: var(--shadow-green-lg);
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3;
+    @apply bg-secondary text-secondary-foreground font-semibold;
+    @apply border-2 border-border hover:border-primary;
+    @apply transition-all duration-200;
+    @apply disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3;
+    @apply bg-transparent text-foreground font-semibold;
+    @apply border-2 border-primary hover:bg-primary hover:text-primary-foreground;
+    @apply transition-all duration-200;
+    @apply disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2;
+    @apply bg-transparent text-foreground font-medium;
+    @apply hover:bg-accent hover:text-accent-foreground;
+    @apply transition-all duration-200;
+    @apply disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  /* ========================================
+     CARD VARIANTS
+     ======================================== */
+  .card {
+    @apply rounded-xl bg-card text-card-foreground;
+    @apply border border-border;
+    @apply shadow-md;
+  }
+
+  .card-elevated {
+    @apply card shadow-lg hover:shadow-xl transition-shadow duration-200;
+  }
+
+  .card-interactive {
+    @apply card-elevated cursor-pointer;
+    @apply hover:scale-[1.02] active:scale-[0.98];
+    @apply transition-transform duration-200;
+  }
+
+  /* ========================================
+     GRADIENT BACKGROUNDS
+     ======================================== */
+  .bg-gradient-green {
+    background: linear-gradient(135deg, var(--green-500), var(--green-600));
+  }
+
+  .bg-gradient-green-light {
+    background: linear-gradient(135deg, var(--green-400), var(--green-500));
+  }
+
+  .bg-gradient-blue {
+    background: linear-gradient(135deg, var(--blue-accent), var(--purple-accent));
+  }
+
+  .bg-gradient-warm {
+    background: linear-gradient(135deg, var(--orange-accent), var(--green-500));
+  }
+
+  /* ========================================
+     UTILITY CLASSES
+     ======================================== */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Custom scrollbar */
+  .scrollbar-custom::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-track {
+    background: var(--muted);
+    border-radius: var(--radius-full);
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: var(--radius-full);
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+    background: var(--green-600);
+  }
+
+  /* Glass morphism effect */
+  .glass {
+    @apply bg-background/80 backdrop-blur-md border border-border/50;
+  }
+
+  .glass-card {
+    @apply glass rounded-xl shadow-lg;
+  }
+}
+
+@layer utilities {
+  /* Animation utilities */
+  .animate-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .animate-out {
+    animation: fadeOut 0.3s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeOut {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+  }
+
+  /* Pulse animation for loading states */
+  .pulse-green {
+    animation: pulseGreen 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulseGreen {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+}

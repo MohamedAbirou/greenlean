@@ -1,0 +1,172 @@
+/**
+ * GreenLean Design System - Color Palette
+ * Primary Brand Color: #00C951
+ * Optimized for both light and dark modes
+ */
+
+:root {
+  /* ========================================
+     BRAND COLORS - GreenLean Green (#00C951)
+     ======================================== */
+  --green-50: oklch(0.97 0.02 145);
+  --green-100: oklch(0.94 0.05 145);
+  --green-200: oklch(0.88 0.08 145);
+  --green-300: oklch(0.80 0.12 145);
+  --green-400: oklch(0.72 0.16 145);
+  --green-500: oklch(0.73 0.21 148); /* #00C951 - Primary Brand */
+  --green-600: oklch(0.60 0.18 148);
+  --green-700: oklch(0.48 0.15 148);
+  --green-800: oklch(0.38 0.12 148);
+  --green-900: oklch(0.28 0.08 148);
+  --green-950: oklch(0.18 0.05 148);
+
+  /* ========================================
+     SUPPORTING ACCENT COLORS
+     ======================================== */
+  --blue-accent: oklch(0.65 0.18 240);
+  --blue-accent-light: oklch(0.75 0.15 240);
+  --blue-accent-dark: oklch(0.55 0.20 240);
+
+  --orange-accent: oklch(0.70 0.16 50);
+  --orange-accent-light: oklch(0.80 0.14 50);
+  --orange-accent-dark: oklch(0.60 0.18 50);
+
+  --purple-accent: oklch(0.60 0.18 300);
+  --purple-accent-light: oklch(0.70 0.16 300);
+  --purple-accent-dark: oklch(0.50 0.20 300);
+
+  /* ========================================
+     SEMANTIC COLORS - Light Mode
+     ======================================== */
+  --success: var(--green-500);
+  --success-foreground: white;
+
+  --error: oklch(0.55 0.22 25);
+  --error-foreground: white;
+
+  --warning: oklch(0.75 0.15 60);
+  --warning-foreground: oklch(0.20 0 0);
+
+  --info: var(--blue-accent);
+  --info-foreground: white;
+
+  /* ========================================
+     NEUTRAL COLORS
+     ======================================== */
+  --gray-50: oklch(0.99 0 0);
+  --gray-100: oklch(0.97 0 0);
+  --gray-200: oklch(0.93 0 0);
+  --gray-300: oklch(0.88 0 0);
+  --gray-400: oklch(0.70 0 0);
+  --gray-500: oklch(0.55 0 0);
+  --gray-600: oklch(0.45 0 0);
+  --gray-700: oklch(0.37 0.034 259.733);
+  --gray-800: oklch(0.28 0.033 256.848);
+  --gray-900: oklch(0.18 0.033 256.848);
+  --gray-950: oklch(0.10 0.033 256.848);
+
+  /* ========================================
+     COMPONENT TOKENS - Light Mode
+     ======================================== */
+  --background: var(--gray-50);
+  --foreground: var(--gray-900);
+
+  --card: white;
+  --card-foreground: var(--gray-900);
+
+  --popover: white;
+  --popover-foreground: var(--gray-900);
+
+  --primary: var(--green-500);
+  --primary-foreground: white;
+
+  --secondary: var(--gray-100);
+  --secondary-foreground: var(--gray-900);
+
+  --muted: var(--gray-100);
+  --muted-foreground: var(--gray-600);
+
+  --accent: var(--green-50);
+  --accent-foreground: var(--green-900);
+
+  --destructive: var(--error);
+  --destructive-foreground: var(--error-foreground);
+
+  --border: var(--gray-200);
+  --input: var(--gray-200);
+  --ring: var(--green-500);
+
+  /* ========================================
+     SHADOWS & EFFECTS
+     ======================================== */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+  /* Green glow effects for brand elements */
+  --shadow-green: 0 0 20px oklch(0.73 0.21 148 / 0.3);
+  --shadow-green-lg: 0 0 40px oklch(0.73 0.21 148 / 0.4);
+}
+
+.dark {
+  /* ========================================
+     SEMANTIC COLORS - Dark Mode
+     ======================================== */
+  --success: var(--green-400);
+  --success-foreground: var(--gray-950);
+
+  --error: oklch(0.60 0.22 25);
+  --error-foreground: white;
+
+  --warning: oklch(0.70 0.15 60);
+  --warning-foreground: var(--gray-950);
+
+  --info: var(--blue-accent-light);
+  --info-foreground: var(--gray-950);
+
+  /* ========================================
+     COMPONENT TOKENS - Dark Mode
+     ======================================== */
+  --background: var(--gray-900);
+  --foreground: var(--gray-50);
+
+  --card: var(--gray-800);
+  --card-foreground: var(--gray-50);
+
+  --popover: var(--gray-800);
+  --popover-foreground: var(--gray-50);
+
+  --primary: var(--green-400);
+  --primary-foreground: var(--gray-950);
+
+  --secondary: var(--gray-700);
+  --secondary-foreground: var(--gray-50);
+
+  --muted: var(--gray-800);
+  --muted-foreground: var(--gray-400);
+
+  --accent: var(--gray-700);
+  --accent-foreground: var(--green-400);
+
+  --destructive: var(--error);
+  --destructive-foreground: var(--error-foreground);
+
+  --border: var(--gray-700);
+  --input: var(--gray-700);
+  --ring: var(--green-400);
+
+  /* ========================================
+     SHADOWS & EFFECTS - Dark Mode
+     ======================================== */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.8);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.9), 0 1px 2px -1px rgb(0 0 0 / 0.9);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.9), 0 2px 4px -2px rgb(0 0 0 / 0.9);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.9), 0 4px 6px -4px rgb(0 0 0 / 0.9);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.9), 0 8px 10px -6px rgb(0 0 0 / 0.9);
+
+  /* Enhanced green glow for dark mode */
+  --shadow-green: 0 0 30px oklch(0.73 0.21 148 / 0.4);
+  --shadow-green-lg: 0 0 50px oklch(0.73 0.21 148 / 0.5);
+}
