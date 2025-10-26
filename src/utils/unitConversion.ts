@@ -96,39 +96,99 @@ export const parseWeightAnswer = (
   return { value: 0, unit: unitSystem === "imperial" ? "lbs" : "kg", displayValue: "N/A" };
 };
 
+const formatMetricField = (value: any, unitSystem: UnitSystem, fieldType: 'height' | 'weight'): any => {
+  if (!value) return value;
+
+  if (typeof value === 'object') {
+    if (value.ft !== undefined || value.inch !== undefined) {
+      return { ft: String(value.ft || 0), inch: String(value.inch || 0) };
+    }
+    if (value.cm !== undefined) {
+      return { cm: String(Math.round(parseFloat(value.cm))) };
+    }
+    if (value.kg !== undefined) {
+      return { kg: String(parseFloat(value.kg).toFixed(1)) };
+    }
+    if (value.lbs !== undefined) {
+      return { lbs: String(parseFloat(value.lbs).toFixed(1)) };
+    }
+    return value;
+  }
+
+  const numValue = parseFloat(value);
+  if (isNaN(numValue)) return value;
+
+  if (fieldType === 'height') {
+    if (unitSystem === "imperial") {
+      const { feet, inches } = cmToFeetInches(numValue);
+      return { ft: String(feet), inch: String(inches) };
+    } else {
+      return { cm: String(Math.round(numValue)) };
+    }
+  } else {
+    if (unitSystem === "imperial") {
+      return { lbs: String(kgToLbs(numValue).toFixed(1)) };
+    } else {
+      return { kg: String(numValue.toFixed(1)) };
+    }
+  }
+};
+
 export const prepareAnswersForBackend = (
   answers: any,
   unitSystem: UnitSystem
 ): any => {
   const preparedAnswers = { ...answers };
 
-  if (answers.height) {
-    const heightData = parseHeightAnswer(answers.height, unitSystem);
-    if (unitSystem === "imperial") {
-      const { feet, inches } = cmToFeetInches(heightData.value);
-      preparedAnswers.height = { ft: feet, inch: inches };
-    } else {
-      preparedAnswers.height = { cm: Math.round(heightData.value) };
-    }
-  }
+  const heightFields = ['height', 'neck', 'waist', 'hip'];
+  const weightFields = ['currentWeight', 'targetWeight'];
 
-  if (answers.currentWeight) {
-    const weightData = parseWeightAnswer(answers.currentWeight, unitSystem);
-    if (unitSystem === "imperial") {
-      preparedAnswers.currentWeight = { lbs: kgToLbs(weightData.value).toFixed(1) };
-    } else {
-      preparedAnswers.currentWeight = { kg: weightData.value.toFixed(1) };
+  heightFields.forEach(field => {
+    if (preparedAnswers[field] !== undefined) {
+      preparedAnswers[field] = formatMetricField(preparedAnswers[field], unitSystem, 'height');
     }
-  }
+  });
 
-  if (answers.targetWeight) {
-    const weightData = parseWeightAnswer(answers.targetWeight, unitSystem);
-    if (unitSystem === "imperial") {
-      preparedAnswers.targetWeight = { lbs: kgToLbs(weightData.value).toFixed(1) };
-    } else {
-      preparedAnswers.targetWeight = { kg: weightData.value.toFixed(1) };
+  weightFields.forEach(field => {
+    if (preparedAnswers[field] !== undefined) {
+      preparedAnswers[field] = formatMetricField(preparedAnswers[field], unitSystem, 'weight');
     }
-  }
+  });
 
   return preparedAnswers;
+};
+
+export const combineProfileWithQuizAnswers = (
+  profileData: any,
+  quizAnswers: any,
+  unitSystem: UnitSystem
+): any => {
+  const combined: any = {};
+
+  if (profileData.age) combined.age = String(profileData.age);
+  if (profileData.gender) combined.gender = profileData.gender;
+  if (profileData.country) combined.country = profileData.country;
+  if (profileData.occupation_activity) combined.occupation_activity = profileData.occupation_activity;
+
+  if (profileData.height_cm) {
+    if (unitSystem === "imperial") {
+      const { feet, inches } = cmToFeetInches(profileData.height_cm);
+      combined.height = { ft: String(feet), inch: String(inches) };
+    } else {
+      combined.height = { cm: String(Math.round(profileData.height_cm)) };
+    }
+  }
+
+  if (profileData.weight_kg) {
+    if (unitSystem === "imperial") {
+      combined.currentWeight = { lbs: String(kgToLbs(profileData.weight_kg).toFixed(1)) };
+    } else {
+      combined.currentWeight = { kg: String(profileData.weight_kg.toFixed(1)) };
+    }
+  }
+
+  return {
+    ...combined,
+    ...quizAnswers,
+  };
 };

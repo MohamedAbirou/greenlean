@@ -20,7 +20,7 @@ import { supabase } from "@/lib/supabase";
 import { mlService } from "@/services/mlService";
 import { useColorTheme } from "@/utils/colorUtils";
 import { logFrontendError, logInfo } from "@/utils/errorLogger";
-import { prepareAnswersForBackend } from "@/utils/unitConversion";
+import { prepareAnswersForBackend, combineProfileWithQuizAnswers } from "@/utils/unitConversion";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -655,7 +655,13 @@ const Quiz: React.FC = () => {
   const calculateAndNavigate = async () => {
     const userUnitSystem = profileData?.unit_system || "metric";
 
-    const preparedAnswers = prepareAnswersForBackend(answers, userUnitSystem);
+    const combinedAnswers = combineProfileWithQuizAnswers(
+      profileData,
+      answers,
+      userUnitSystem
+    );
+
+    const preparedAnswers = prepareAnswersForBackend(combinedAnswers, userUnitSystem);
 
     const healthProfile = { answers: preparedAnswers };
     localStorage.setItem("healthProfile", JSON.stringify(healthProfile));
