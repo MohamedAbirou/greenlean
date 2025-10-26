@@ -513,21 +513,34 @@ const messages = [
 ];
 
 const Quiz: React.FC = () => {
-  const [currentPhase, setCurrentPhase] = useState(0);
-  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const platform = usePlatform();
+  const colorTheme = useColorTheme(platform.settings?.theme_color);
+
+  const loadQuizProgress = () => {
+    if (!user) return null;
+    try {
+      const saved = localStorage.getItem(`quizProgress_${user.id}`);
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const savedProgress = loadQuizProgress();
+
+  const [currentPhase, setCurrentPhase] = useState(savedProgress?.currentPhase || 0);
+  const [currentQuestion, setCurrentQuestion] = useState(savedProgress?.currentQuestion || 0);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [answers, setAnswers] = useState<{ [key: string]: any }>({});
-  const [heightUnit, setHeightUnit] = useState("cm");
-  const [weightUnit, setWeightUnit] = useState("kg");
+  const [answers, setAnswers] = useState<{ [key: string]: any }>(savedProgress?.answers || {});
+  const [heightUnit, setHeightUnit] = useState(savedProgress?.heightUnit || "cm");
+  const [weightUnit, setWeightUnit] = useState(savedProgress?.weightUnit || "kg");
   const [showSummary, setShowSummary] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [completed, setCompleted] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const platform = usePlatform();
-  const colorTheme = useColorTheme(platform.settings?.theme_color);
 
   const [messageIndex, setMessageIndex] = useState(0);
 
@@ -537,6 +550,21 @@ const Quiz: React.FC = () => {
     }, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (!user || loadingProfile) return;
+
+    const quizProgress = {
+      currentPhase,
+      currentQuestion,
+      answers,
+      heightUnit,
+      weightUnit,
+      timestamp: Date.now(),
+    };
+
+    localStorage.setItem(`quizProgress_${user.id}`, JSON.stringify(quizProgress));
+  }, [currentPhase, currentQuestion, answers, heightUnit, weightUnit, user, loadingProfile]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -586,14 +614,19 @@ const Quiz: React.FC = () => {
             prefilledAnswers.occupation_activity = data.occupation_activity;
           }
 
-          setAnswers(prefilledAnswers);
+          setAnswers(prev => ({
+            ...prefilledAnswers,
+            ...prev,
+          }));
 
-          if (data.unit_system === "imperial") {
-            setHeightUnit("ft/inch");
-            setWeightUnit("lbs");
-          } else {
-            setHeightUnit("cm");
-            setWeightUnit("kg");
+          if (!savedProgress) {
+            if (data.unit_system === "imperial") {
+              setHeightUnit("ft/inch");
+              setWeightUnit("lbs");
+            } else {
+              setHeightUnit("cm");
+              setWeightUnit("kg");
+            }
           }
         }
       } catch (error) {
@@ -608,12 +641,42 @@ const Quiz: React.FC = () => {
 
   const phase = QUIZ_PHASES[currentPhase];
   const question = phase.questions[currentQuestion];
-  const totalQuestions = QUIZ_PHASES.reduce(
-    (sum, p) => sum + p.questions.length,
-    0
-  );
-  const answeredQuestions = Object.keys(answers).length;
-  const progress = (answeredQuestions / totalQuestions) * 100;
+
+  const getQuestionStats = () => {
+    const skippedFields = profileData?.onboarding_completed
+      ? ["age", "gender", "country", "height", "currentWeight", "occupation_activity"]
+      : [];
+
+    let totalQuestionsCount = 0;
+    let currentQuestionIndex = 0;
+    let reachedCurrent = false;
+
+    for (let p = 0; p < QUIZ_PHASES.length; p++) {
+      for (let q = 0; q < QUIZ_PHASES[p].questions.length; q++) {
+        const questionItem = QUIZ_PHASES[p].questions[q];
+        const isSkipped = skippedFields.includes(questionItem.id);
+
+        if (!isSkipped) {
+          totalQuestionsCount++;
+        }
+
+        if (p === currentPhase && q === currentQuestion) {
+          reachedCurrent = true;
+        }
+
+        if (!reachedCurrent && !isSkipped) {
+          currentQuestionIndex++;
+        }
+      }
+    }
+
+    return { totalQuestionsCount, currentQuestionIndex };
+  };
+
+  const { totalQuestionsCount, currentQuestionIndex } = getQuestionStats();
+  const progress = totalQuestionsCount > 0
+    ? (currentQuestionIndex / totalQuestionsCount) * 100
+    : 0;
 
   // Height unit switch
   const handleHeightUnitChange = (unit: "cm" | "ft/inch") => {
@@ -810,6 +873,10 @@ const Quiz: React.FC = () => {
 
     const healthProfile = { answers: preparedAnswers };
     localStorage.setItem("healthProfile", JSON.stringify(healthProfile));
+
+    if (user) {
+      localStorage.removeItem(`quizProgress_${user.id}`);
+    }
 
     if (user) {
       try {
@@ -1328,7 +1395,7 @@ const Quiz: React.FC = () => {
                 <div className="mb-8">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-medium">
-                      Phase {currentPhase + 1} of {QUIZ_PHASES.length}
+                      Question {currentQuestionIndex + 1} of {totalQuestionsCount}
                     </span>
                     <span className="text-sm text-foreground/80">
                       {Math.round(progress)}% Complete
@@ -1340,6 +1407,11 @@ const Quiz: React.FC = () => {
                       style={{ width: `${progress}%` }}
                     />
                   </div>
+                  {profileData?.onboarding_completed && savedProgress && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Progress saved - you can continue where you left off
+                    </p>
+                  )}
                 </div>
 
                 {/* Phase Header */}
