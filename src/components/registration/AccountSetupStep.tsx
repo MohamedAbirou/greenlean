@@ -41,7 +41,7 @@ export const AccountSetupStep: React.FC<AccountSetupStepProps> = ({
         const { data: existingUser, error } = await supabase
           .from("profiles")
           .select("username")
-          .eq("username", data.username.toLowerCase())
+          .eq("username", data.username)
           .maybeSingle();
 
         if (error) throw error;
@@ -116,7 +116,7 @@ export const AccountSetupStep: React.FC<AccountSetupStepProps> = ({
               id="username"
               type="text"
               value={data.username}
-              onChange={(e) => onChange("username", e.target.value.toLowerCase())}
+              onChange={(e) => onChange("username", e.target.value)}
               placeholder="johndoe"
               className={`pl-10 pr-10 ${
                 errors.username
