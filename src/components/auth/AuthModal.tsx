@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import type { ColorTheme } from "@/utils/colorUtils";
 import { ArrowLeft, Lock, Mail, User, UserCircle } from "lucide-react";
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import {
   Dialog,
@@ -31,6 +32,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
   btnContent,
   size
 }) => {
+  const navigate = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup" | "reset">(defaultMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -127,12 +129,6 @@ const AuthModal: React.FC<AuthModalProps> = ({
     setError(null);
     setSuccess(null);
   };
-
-  const handleSignUp = () => {
-    setMode("signup");
-    setError(null);
-    setSuccess(null);
-  }
 
   const handleReset = () => {
     setMode("reset");
@@ -297,7 +293,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
             <div className="text-center space-y-2">
               <button
                 type="button"
-                onClick={handleSignUp}
+                onClick={() => navigate("/register")}
                 className="text-primary hover:text-primary/80 text-sm font-medium cursor-pointer"
               >
                 Don't have an account? Sign up

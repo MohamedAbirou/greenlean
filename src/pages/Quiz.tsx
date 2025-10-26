@@ -521,6 +521,8 @@ const Quiz: React.FC = () => {
   const [showSummary, setShowSummary] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [completed, setCompleted] = useState(false);
+  const [profileData, setProfileData] = useState<any>(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const navigate = useNavigate();
   const { user } = useAuth();
   const platform = usePlatform();
@@ -534,6 +536,51 @@ const Quiz: React.FC = () => {
     }, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user) {
+        setLoadingProfile(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (data && data.onboarding_completed) {
+          setProfileData(data);
+          const prefilledAnswers: { [key: string]: any } = {};
+
+          if (data.age) prefilledAnswers.age = data.age;
+          if (data.gender) prefilledAnswers.gender = data.gender;
+          if (data.country) prefilledAnswers.country = data.country;
+          if (data.height_cm) {
+            prefilledAnswers.height = { cm: data.height_cm.toString() };
+          }
+          if (data.weight_kg) {
+            prefilledAnswers.currentWeight = { kg: data.weight_kg.toString() };
+          }
+          if (data.occupation_activity) {
+            prefilledAnswers.occupation_activity = data.occupation_activity;
+          }
+
+          setAnswers(prefilledAnswers);
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      } finally {
+        setLoadingProfile(false);
+      }
+    };
+
+    fetchProfile();
+  }, [user]);
 
   const phase = QUIZ_PHASES[currentPhase];
   const question = phase.questions[currentQuestion];
@@ -636,6 +683,21 @@ const Quiz: React.FC = () => {
     return true;
   };
 
+  const shouldSkipQuestion = (questionId: string): boolean => {
+    if (!profileData || !profileData.onboarding_completed) return false;
+
+    const skipFields = [
+      "age",
+      "gender",
+      "country",
+      "height",
+      "currentWeight",
+      "occupation_activity",
+    ];
+
+    return skipFields.includes(questionId) && answers[questionId] !== undefined;
+  };
+
   const handleNext = () => {
     if (!user) {
       return;
@@ -649,14 +711,25 @@ const Quiz: React.FC = () => {
       return;
     }
 
-    if (currentQuestion < phase.questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-    } else if (currentPhase < QUIZ_PHASES.length - 1) {
-      setCurrentPhase(currentPhase + 1);
-      setCurrentQuestion(0);
-    } else {
-      setShowSummary(true);
+    let nextQuestion = currentQuestion + 1;
+    let nextPhase = currentPhase;
+
+    while (nextPhase < QUIZ_PHASES.length) {
+      if (nextQuestion < QUIZ_PHASES[nextPhase].questions.length) {
+        const nextQ = QUIZ_PHASES[nextPhase].questions[nextQuestion];
+        if (!shouldSkipQuestion(nextQ.id)) {
+          setCurrentQuestion(nextQuestion);
+          setCurrentPhase(nextPhase);
+          return;
+        }
+        nextQuestion++;
+      } else {
+        nextPhase++;
+        nextQuestion = 0;
+      }
     }
+
+    setShowSummary(true);
   };
 
   const handlePrevious = () => {
@@ -1082,10 +1155,28 @@ const Quiz: React.FC = () => {
     );
   }
 
+  if (loadingProfile) {
+    return (
+      <div className="min-h-screen pt-24 pb-16 bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-foreground">Loading your profile...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen pt-24 pb-16 bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
+          {profileData?.onboarding_completed && (
+            <div className="bg-primary/10 border border-primary/20 text-foreground text-sm text-center rounded-lg my-2 py-3 px-4">
+              <p className="font-medium">
+                Welcome back! We've pre-filled some questions with your profile information.
+              </p>
+            </div>
+          )}
           <div className="bg-yellow-100 border-b border-yellow-300 text-yellow-900 text-sm text-center rounded-lg my-2 py-2">
             ⚠️ This quiz is in <span className="font-bold">BETA</span> mode —
             results may not be final.

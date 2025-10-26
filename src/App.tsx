@@ -29,6 +29,7 @@ import Profile from "./pages/Profile";
 import Quiz from "./pages/Quiz";
 import QuizHistory from "./pages/QuizHistory";
 import QuizResult from "./pages/QuizResult";
+import Register from "./pages/Register";
 import ResetPassword from "./pages/ResetPassword";
 import WeightLoss from "./pages/WeightLoss";
 
@@ -50,6 +51,9 @@ function App() {
               <Routes>
                 {/* Auth callback route outside of layout */}
                 <Route path="/auth/callback" element={<AuthCallback />} />
+
+                {/* Registration route outside of layout */}
+                <Route path="/register" element={<Register />} />
 
                 {/* Password reset route outside of layout */}
                 <Route path="/reset-password" element={<ResetPassword />} />
