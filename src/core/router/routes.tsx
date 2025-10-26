@@ -6,7 +6,7 @@
 import { lazy } from "react";
 import type { RouteObject } from "react-router-dom";
 import Layout from "../../components/layout/Layout";
-import ProtectedRoute from "../../components/auth/ProtectedRoute";
+import { ProtectedRoute } from "../../features/auth";
 import { FullPageLoader } from "../../shared/components/feedback";
 
 const Home = lazy(() => import("../../pages/Home"));

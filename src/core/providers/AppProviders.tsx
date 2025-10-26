@@ -11,7 +11,7 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Toaster } from "react-hot-toast";
 import Cookies from "js-cookie";
 import { getQueryClient } from "../../lib/react-query";
-import { AuthProvider } from "../../contexts/AuthContext";
+import { AuthProvider } from "../../features/auth";
 import { PlatformProvider } from "../../contexts/PlatformContext";
 import CookieConsent from "../../components/CookieConsent";
 import { ErrorBoundary } from "../../shared/components/feedback";
