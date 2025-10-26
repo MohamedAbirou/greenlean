@@ -1,8 +1,8 @@
-import { supabase } from "@/lib/supabase";
 import type {
   DashboardCalculations,
   DashboardDietPlan,
 } from "@/types/dashboard";
+import { NutritionService } from "@/features/nutrition";
 import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
@@ -72,18 +72,8 @@ export const DietPlanSection: React.FC<DietPlanSectionProps> = ({
   }, [userId]);
 
   const loadTodayLogs = async () => {
-    try {
-      const today = new Date().toISOString().split("T")[0];
-      const { data, error } = await supabase
-        .from("daily_nutrition_logs")
-        .select("total_calories, total_protein, total_carbs, total_fats")
-        .eq("user_id", userId)
-        .eq("log_date", today)
-        .order("created_at", { ascending: false });
-      if (data && !error) setTodayLogs(data);
-    } catch (error) {
-      console.error("Error loading today's logs:", error);
-    }
+    const logs = await NutritionService.getTodayLogs(userId);
+    setTodayLogs(logs);
   };
 
   const totalLoggedToday = todayLogs.reduce(

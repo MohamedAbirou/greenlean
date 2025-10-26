@@ -1,5 +1,5 @@
-import { supabase } from "@/lib/supabase";
-import type { DashboardWorkoutPlan, WorkoutExercise } from "@/types/dashboard";
+import type { DashboardWorkoutPlan } from "@/types/dashboard";
+import { WorkoutService, type WorkoutLog, type ExerciseLog } from "@/features/workout";
 import { Plus } from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
@@ -20,33 +20,6 @@ interface WorkoutSectionProps {
   workoutPlanData: DashboardWorkoutPlan;
 }
 
-type WorkoutLogData = {
-  workout_date: string;
-  duration_minutes: number;
-  calories_burned: number;
-  completed: boolean;
-};
-
-type ExerciseLog = Omit<
-  WorkoutExercise,
-  | "progression"
-  | "alternatives"
-  | "instructions"
-  | "safety_notes"
-  | "muscle_groups"
-  | "equipment_needed"
-  | "tempo"
-> & { difficulty: string };
-
-type WorkoutLog = {
-  workout_type: string;
-  exercises: ExerciseLog[];
-  notes: string;
-  duration_minutes?: number;
-  calories_burned?: number;
-  completed?: boolean;
-};
-
 const INITIAL_EXERCISE: ExerciseLog = {
   name: "",
   reps: 0,
@@ -65,48 +38,6 @@ const INITIAL_WORKOUT_LOG: WorkoutLog = {
   completed: false,
 };
 
-const getWeekStartDate = (): string => {
-  const today = new Date();
-  const dayOfWeek = today.getDay();
-  const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-  const monday = new Date(today);
-  monday.setDate(today.getDate() - diff);
-  return monday.toISOString().split("T")[0];
-};
-
-const calculateStreak = (logs: WorkoutLogData[]): number => {
-  if (logs.length === 0) return 0;
-
-  const sortedDates = Array.from(
-    new Set(logs.filter(log => log.completed).map(log => log.workout_date))
-  ).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-
-  if (sortedDates.length === 0) return 0;
-
-  const today = new Date().toISOString().split("T")[0];
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().split("T")[0];
-
-  if (sortedDates[0] !== today && sortedDates[0] !== yesterdayStr) {
-    return 0;
-  }
-
-  let streak = 1;
-  for (let i = 1; i < sortedDates.length; i++) {
-    const currentDate = new Date(sortedDates[i - 1]);
-    const previousDate = new Date(sortedDates[i]);
-    const diffDays = Math.floor(
-      (currentDate.getTime() - previousDate.getTime()) / (1000 * 60 * 60 * 24)
-    );
-    if (diffDays === 1) {
-      streak++;
-    } else {
-      break;
-    }
-  }
-  return streak;
-};
 
 export const WorkoutSection: React.FC<WorkoutSectionProps> = React.memo(
   ({ userId, workoutPlanData }) => {
@@ -115,24 +46,14 @@ export const WorkoutSection: React.FC<WorkoutSectionProps> = React.memo(
     const [expandedExercise, setExpandedExercise] = useState<string | null>("");
     const [workoutLog, setWorkoutLog] =
       useState<WorkoutLog>(INITIAL_WORKOUT_LOG);
-    const [weeklyLogs, setWeeklyLogs] = useState<WorkoutLogData[]>([]);
+    const [weeklyLogs, setWeeklyLogs] = useState<import("@/features/workout").WorkoutLogData[]>([]);
     const [newExercise, setNewExercise] =
       useState<ExerciseLog>(INITIAL_EXERCISE);
     const [selectedTab, setSelectedTab] = useState("overview");
 
     const loadWeeklyLogs = useCallback(async () => {
-      try {
-        const weekStart = getWeekStartDate();
-        const { data, error } = await supabase
-          .from("workout_logs")
-          .select("workout_date, duration_minutes, calories_burned, completed")
-          .eq("user_id", userId)
-          .gte("workout_date", weekStart)
-          .order("workout_date", { ascending: false });
-        if (data && !error) setWeeklyLogs(data);
-      } catch (error) {
-        console.error("Error loading weekly logs:", error);
-      }
+      const logs = await WorkoutService.getWeeklyLogs(userId);
+      setWeeklyLogs(logs);
     }, [userId]);
 
     useEffect(() => {
@@ -168,16 +89,7 @@ export const WorkoutSection: React.FC<WorkoutSectionProps> = React.memo(
         return;
       }
       try {
-        const { error } = await supabase.from("workout_logs").insert({
-          user_id: userId,
-          workout_type: workoutLog.workout_type,
-          exercises: workoutLog.exercises,
-          duration_minutes: workoutLog.duration_minutes,
-          calories_burned: workoutLog.calories_burned,
-          completed: workoutLog.completed ?? false,
-          notes: workoutLog.notes,
-        });
-        if (error) throw error;
+        await WorkoutService.logWorkout(userId, workoutLog);
         toast.success("Workout logged successfully! 🎉");
         setShowLogModal(false);
         setWorkoutLog(INITIAL_WORKOUT_LOG);
@@ -193,32 +105,9 @@ export const WorkoutSection: React.FC<WorkoutSectionProps> = React.memo(
 
     // Memoized stat calculations
     const stats = useMemo(() => {
-      const uniqueCompletedDays = new Set(
-        weeklyLogs.filter(log => log.completed).map(log => log.workout_date)
-      ).size;
-
-      const weeklyCaloriesBurned = weeklyLogs
-        .filter(log => log.completed)
-        .reduce((sum, log) => sum + (log.calories_burned || 0), 0);
-
-      const weeklyTotalTime = weeklyLogs
-        .filter(log => log.completed)
-        .reduce((sum, log) => sum + (log.duration_minutes || 0), 0);
-
-      const currentStreak = calculateStreak(weeklyLogs);
-
       const weeklyTarget =
         workoutPlanData?.plan_data.weekly_summary?.total_workout_days || 5;
-      const weeklyProgress = (uniqueCompletedDays / weeklyTarget) * 100;
-
-      return {
-        weeklyWorkoutCount: uniqueCompletedDays,
-        weeklyCaloriesBurned,
-        weeklyTarget,
-        weeklyProgress,
-        weeklyTotalTime,
-        currentStreak,
-      };
+      return WorkoutService.calculateStats(weeklyLogs, weeklyTarget);
     }, [weeklyLogs, workoutPlanData?.plan_data.weekly_summary]);
 
     // Memoized tabs configuration
