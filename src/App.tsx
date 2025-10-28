@@ -5,7 +5,6 @@
 
 import { Suspense } from "react";
 import { useRoutes } from "react-router-dom";
-import { AnimatePresence } from "framer-motion";
 import { AppProviders } from "./core/providers";
 import { routes, suspenseFallback } from "./core/router/routes";
 
@@ -14,7 +13,7 @@ function AppRoutes() {
 
   return (
     <Suspense fallback={suspenseFallback}>
-      <AnimatePresence mode="wait">{element}</AnimatePresence>
+      {element}
     </Suspense>
   );
 }
