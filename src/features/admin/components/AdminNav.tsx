@@ -1,0 +1,40 @@
+import { Award, BarChart2, CircleStar, Trophy, Users } from "lucide-react";
+import React from "react";
+
+interface AdminNavProps {
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+}
+
+const AdminNav: React.FC<AdminNavProps> = ({ activeTab, setActiveTab }) => {
+  const tabs = [
+    { id: "overview", label: "Overview", icon: BarChart2 },
+    { id: "challenges", label: "Challenges", icon: Trophy },
+    { id: "badges", label: "Badges", icon: Award },
+    { id: "users", label: "Users", icon: Users },
+    { id: "rewards", label: "Rewards", icon: CircleStar },
+  ];
+
+  return (
+    <div className="bg-card rounded-xl shadow-md mb-8">
+      <div className="flex overflow-x-auto">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center px-6 py-4 border-b-2 cursor-pointer transition-colors ${
+              activeTab === tab.id
+                ? "text-primary border-primary"
+                : "border-transparent text-foreground hover:text-primary"
+            }`}
+          >
+            <tab.icon className="h-5 w-5 mr-2" />
+            {tab.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default AdminNav;

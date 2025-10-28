@@ -1,5 +1,5 @@
 import { IconMap } from "@/helpers/challengeHelper";
-import type { Challenge } from "@/types/challenge";
+import type { Challenge } from "@/shared/types/challenge";
 import { Edit, Sparkles, Star, Trash2 } from "lucide-react";
 
 export const challengeColumns = ({

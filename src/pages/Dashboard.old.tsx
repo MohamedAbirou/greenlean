@@ -1,17 +1,13 @@
-import { DietPlanSection } from "@/components/dashboard/DietPlanSection";
-import { OverviewSection } from "@/components/dashboard/OverviewSection";
-import { WorkoutSection } from "@/components/dashboard/WorkoutSection";
-import { usePlatform } from "@/contexts/PlatformContext";
-import { useAuth } from "@/contexts/useAuth";
-import { useDashboardDataQuery } from "@/hooks/Queries/useDashboardData";
-import { useColorTheme } from "@/utils/colorUtils";
+import { useAuth } from "@/features/auth";
+import { DietPlanSection } from "@/features/dashboard/components/sections/DietPlanSection";
+import { OverviewSection } from "@/features/dashboard/components/sections/OverviewSection";
+import { WorkoutSection } from "@/features/dashboard/components/sections/WorkoutSection";
+import { useDashboardDataQuery } from "@/shared/hooks/Queries/useDashboardData";
 import { ArrowRight, Loader } from "lucide-react";
 import React, { useState } from "react";
 
 const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState("overview");
-  const platform = usePlatform();
-  const colorTheme = useColorTheme(platform.settings?.theme_color);
   const { user } = useAuth();
 
   const { data, isLoading } = useDashboardDataQuery(user?.id);
@@ -24,7 +20,7 @@ const Dashboard: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
-        <Loader className={`h-8 w-8 animate-spin ${colorTheme.primaryText}`} />
+        <Loader className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -41,7 +37,7 @@ const Dashboard: React.FC = () => {
           </p>
           <a
             href="/quiz"
-            className={`inline-flex items-center px-6 py-3 ${colorTheme.primaryBg} text-white rounded-full hover:${colorTheme.primaryHover} transition-colors`}
+            className={`inline-flex items-center px-6 py-3 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors`}
           >
             Take the Quiz <ArrowRight className="ml-2 h-5 w-5" />
           </a>
@@ -75,7 +71,7 @@ const Dashboard: React.FC = () => {
                   index === 0 ? "rounded-l-md" : ""
                 } ${
                   activeTab === tab.id
-                    ? colorTheme.primaryBg + " text-white"
+                    ? "bg-primary text-white"
                     : "bg-card text-foreground hover:text-primary"
                 }`}
                 onClick={() => setActiveTab(tab.id)}
@@ -91,7 +87,6 @@ const Dashboard: React.FC = () => {
             answers={answers}
             calculations={calculations}
             bmiStatus={bmiStatus!}
-            colorTheme={colorTheme}
           />
         )}
 

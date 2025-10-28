@@ -3,23 +3,22 @@
  * Clean, modular quiz implementation
  */
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { LogIn } from "lucide-react";
-import { useAuth } from "../features/auth";
+import { useState } from "react";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import { AuthModal, useAuth } from "../features/auth";
 import {
+  PhaseIndicators,
   QUIZ_PHASES,
   QuizCard,
-  QuizProgressBar,
-  PhaseIndicators,
   QuizLoading,
-  useQuizState,
+  QuizProgressBar,
   QuizService,
   serializeAnswers,
+  useQuizState,
 } from "../features/quiz";
-import { AuthModal } from "../features/auth";
-import toast from "react-hot-toast";
 
 export default function Quiz() {
   const navigate = useNavigate();

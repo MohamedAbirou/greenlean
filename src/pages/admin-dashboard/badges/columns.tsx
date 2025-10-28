@@ -1,4 +1,4 @@
-import type { Badge } from "@/types/challenge";
+import type { Badge } from "@/shared/types/challenge";
 import { Edit, Trash2 } from "lucide-react";
 
 export const badgeColumns = ({

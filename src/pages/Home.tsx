@@ -1,25 +1,10 @@
 import { motion } from "framer-motion";
-import {
-  ArrowRight,
-  Award,
-  Dumbbell,
-  Heart,
-  Quote,
-  Utensils
-} from "lucide-react";
+import { ArrowRight, Award, Dumbbell, Heart, Quote, Utensils } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
 // Components
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { usePlatform } from "@/contexts/PlatformContext";
-import { useColorTheme } from "@/utils/colorUtils";
+import { Button } from "@/shared/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/shared/components/ui/card";
 
 const Home: React.FC = () => {
   const benefits = [
@@ -44,8 +29,7 @@ const Home: React.FC = () => {
     {
       icon: <Award className="h-8 w-8 text-purple-500" />,
       title: "Expert Support",
-      description:
-        "Receive guidance from nutrition and fitness experts committed to your success.",
+      description: "Receive guidance from nutrition and fitness experts committed to your success.",
     },
   ];
 
@@ -76,9 +60,6 @@ const Home: React.FC = () => {
     },
   ];
 
-  const platform = usePlatform();
-  const colorTheme = useColorTheme(platform.settings?.theme_color);
-  
   return (
     <div>
       {/* Hero Section */}
@@ -100,9 +81,7 @@ const Home: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              Your Journey to a{" "}
-              <span className={`${colorTheme.primaryText}`}>Healthier You</span>{" "}
-              Starts Here
+              Your Journey to a <span className="text-primary">Healthier You</span> Starts Here
             </motion.h1>
 
             <motion.p
@@ -111,9 +90,8 @@ const Home: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              Discover personalized diet plans and weight loss strategies
-              tailored just for you. All completely free, no subscriptions
-              required.
+              Discover personalized diet plans and weight loss strategies tailored just for you. All
+              completely free, no subscriptions required.
             </motion.p>
 
             <motion.div
@@ -122,20 +100,12 @@ const Home: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
             >
-              <Button
-                asChild
-                size="xl"
-                className={`${colorTheme.primaryBg} hover:${colorTheme.primaryHover}`}
-              >
+              <Button asChild size="xl" className="bg-primary hover:bg-primary/90">
                 <Link to="/quiz">
                   Take the Quiz <ArrowRight className="mt-1" />
                 </Link>
               </Button>
-              <Button
-                asChild
-                size="xl"
-                className={`${colorTheme.primaryBg} hover:${colorTheme.primaryHover}`}
-              >
+              <Button asChild size="xl" className="bg-primary hover:bg-primary/90">
                 <Link to="/diet-plans">
                   View Plans <ArrowRight className="mt-1" />
                 </Link>
@@ -149,12 +119,10 @@ const Home: React.FC = () => {
       <section className="py-16 bg-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">
-              Why Choose GreenLean?
-            </h2>
+            <h2 className="text-3xl font-bold text-foreground mb-4">Why Choose GreenLean?</h2>
             <p className="text-lg text-foreground/80 max-w-2xl mx-auto">
-              We're committed to helping you achieve your health goals through
-              personalized guidance and support.
+              We're committed to helping you achieve your health goals through personalized guidance
+              and support.
             </p>
           </div>
 
@@ -190,9 +158,7 @@ const Home: React.FC = () => {
       <section className="py-16 bg-card">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">
-              How It Works
-            </h2>
+            <h2 className="text-3xl font-bold text-foreground mb-4">How It Works</h2>
             <p className="text-lg text-foreground/80 max-w-2xl mx-auto">
               Three simple steps to your personalized health journey
             </p>
@@ -203,8 +169,7 @@ const Home: React.FC = () => {
               {
                 number: "01",
                 title: "Take the Quiz",
-                description:
-                  "Answer a few questions about your lifestyle, preferences, and goals.",
+                description: "Answer a few questions about your lifestyle, preferences, and goals.",
               },
               {
                 number: "02",
@@ -229,29 +194,21 @@ const Home: React.FC = () => {
               >
                 <Card key={index}>
                   <CardHeader>
-                    <CardTitle
-                      className={`text-5xl font-bold ${colorTheme.primaryText} dark:${colorTheme.primaryDark} absolute top-0 left-0`}
-                    >
+                    <CardTitle className="text-5xl font-bold text-primary absolute top-0 left-0">
                       {step.number}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="relative z-10 text-xl font-semibold text-foreground mb-2">
                     {step.title}
                   </CardContent>
-                  <CardFooter className="text-foreground/80">
-                    {step.description}
-                  </CardFooter>
+                  <CardFooter className="text-foreground/80">{step.description}</CardFooter>
                 </Card>
               </motion.div>
             ))}
           </div>
 
           <div className="text-center mt-12">
-            <Button
-              asChild
-              size="xl"
-              className={`${colorTheme.primaryBg} hover:${colorTheme.primaryHover} rounded-full`}
-            >
+            <Button asChild size="xl" className="bg-primary hover:bg-primary/90 rounded-full">
               <Link to="/quiz">
                 Start Your Journey <ArrowRight className="mt-1" />
               </Link>
@@ -264,9 +221,7 @@ const Home: React.FC = () => {
       <section className="py-16 bg-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">
-              Success Stories
-            </h2>
+            <h2 className="text-3xl font-bold text-foreground mb-4">Success Stories</h2>
             <p className="text-lg text-foreground/80 max-w-2xl mx-auto">
               Real people, real results. Here's what our community has to say.
             </p>
@@ -284,9 +239,7 @@ const Home: React.FC = () => {
                 <Card>
                   <CardHeader>
                     <CardTitle className="overflow-hidden">
-                      <Quote
-                        className={`h-8 w-8 ${colorTheme.primaryText} mb-4`}
-                      />
+                      <Quote className={`h-8 w-8 text-primary mb-4`} />
                       <p className="text-foreground/80 mb-6 italic line-clamp-2">
                         "{testimonial.testimonial}"
                       </p>
@@ -299,12 +252,8 @@ const Home: React.FC = () => {
                       className="w-12 h-12 rounded-full object-cover mr-4"
                     />
                     <div>
-                      <h4 className="font-semibold text-foreground">
-                        {testimonial.name}
-                      </h4>
-                      <p className={`${colorTheme.primaryText} text-sm`}>
-                        {testimonial.role}
-                      </p>
+                      <h4 className="font-semibold text-foreground">{testimonial.name}</h4>
+                      <p className={`text-primary text-sm`}>{testimonial.role}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -315,15 +264,13 @@ const Home: React.FC = () => {
       </section>
 
       {/* CTA Section */}
-      <section className={`py-16 ${colorTheme.primaryBg}`}>
+      <section className="py-16 bg-primary">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center text-white">
-            <h2 className="text-3xl font-bold mb-4">
-              Ready to Transform Your Life?
-            </h2>
+            <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Life?</h2>
             <p className="text-lg mb-8">
-              Start your journey to a healthier you today. Take our quick quiz
-              to get your personalized plan.
+              Start your journey to a healthier you today. Take our quick quiz to get your
+              personalized plan.
             </p>
             <Button asChild size="xl" className="rounded-full">
               <Link to="/quiz">

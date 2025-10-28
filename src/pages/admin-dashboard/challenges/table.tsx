@@ -1,7 +1,7 @@
 "use client";
 
-import { DataTable } from "@/components/data-table/data-table";
-import type { Challenge } from "@/types/challenge";
+import { DataTable } from "@/shared/components/data-table/data-table";
+import type { Challenge } from "@/shared/types/challenge";
 import { challengeColumns } from "./columns";
 
 export default function ChallengesTable({

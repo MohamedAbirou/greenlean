@@ -3,11 +3,11 @@
  * Manages authentication state with Supabase
  */
 
-import { useState, useEffect, useCallback } from "react";
-import { supabase } from "../../../lib/supabase";
+import { supabase } from "@/lib/supabase";
+import type { User } from "@supabase/supabase-js";
+import { useCallback, useEffect, useState } from "react";
 import { AuthService } from "../api/authService";
 import type { AuthState, Profile } from "../types";
-import type { User } from "@supabase/supabase-js";
 
 export function useAuthState(): AuthState {
   const [user, setUser] = useState<User | null>(null);

@@ -89,7 +89,7 @@
   --card-foreground: oklch(0.97 0 0);
   --popover: oklch(0.28 0.033 256.848);
   --popover-foreground: oklch(0.97 0 0);
-  --primary: var(--green-400);
+  --primary: var(--green-500);
   --primary-foreground: oklch(0.10 0.033 256.848);
   --secondary: oklch(0.37 0.034 259.733);
   --secondary-foreground: oklch(0.97 0 0);
@@ -101,6 +101,7 @@
   --destructive-foreground: white;
   --border: oklch(0.37 0.034 259.733);
   --input: oklch(0.37 0.034 259.733);
+  --button: oklch(0.37 0.034 259.733);
   --ring: var(--green-400);
 
   /* Enhanced green glow for dark mode */

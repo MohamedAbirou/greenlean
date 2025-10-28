@@ -3,22 +3,21 @@
  * Modal dialog for authentication (sign in, sign up, reset password)
  */
 
+import { ArrowLeft, UserCircle } from "lucide-react";
 import { useState } from "react";
-import { UserCircle, ArrowLeft } from "lucide-react";
-import { Button } from "../../../components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { Button } from "../../../shared/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../../../components/ui/dialog";
-import { SignInForm } from "./SignInForm";
-import { SignUpForm } from "./SignUpForm";
+} from "../../../shared/components/ui/dialog";
 import { ResetPasswordForm } from "./ResetPasswordForm";
-import { useNavigate } from "react-router-dom";
+import { SignInForm } from "./SignInForm";
 
-type AuthMode = "signin" | "signup" | "reset";
+type AuthMode = "signin" | "reset";
 
 interface AuthModalProps {
   defaultMode?: AuthMode;
@@ -51,7 +50,6 @@ export function AuthModal({
 
   const titles: Record<AuthMode, string> = {
     signin: "Sign In",
-    signup: "Create Account",
     reset: "Reset Password",
   };
 
@@ -60,7 +58,7 @@ export function AuthModal({
       <DialogTrigger asChild>
         <Button
           size={buttonSize}
-          className={`rounded-full bg-primary text-primary-foreground hover:opacity-90 transition-opacity ${buttonClassName}`}
+          className={`rounded-full bg-primary text-white hover:opacity-90 transition-opacity ${buttonClassName}`}
         >
           <UserCircle size={20} />
           {buttonText}
@@ -89,13 +87,6 @@ export function AuthModal({
               onSuccess={handleSuccess}
               onSwitchToSignUp={() => navigate("/register")}
               onSwitchToReset={() => setMode("reset")}
-            />
-          )}
-
-          {mode === "signup" && (
-            <SignUpForm
-              onSuccess={() => setMode("signin")}
-              onSwitchToSignIn={() => setMode("signin")}
             />
           )}
 

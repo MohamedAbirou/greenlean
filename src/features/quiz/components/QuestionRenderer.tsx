@@ -3,19 +3,19 @@
  * Renders different question types
  */
 
-import { Input } from "../../../components/ui/input";
-import { Textarea } from "../../../components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "../../../components/ui/radio-group";
-import { Label } from "../../../components/ui/label";
-import { Slider } from "../../../components/ui/slider";
+import { Badge } from "../../../shared/components/ui/badge";
+import { Input } from "../../../shared/components/ui/input";
+import { Label } from "../../../shared/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "../../../shared/components/ui/radio-group";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../components/ui/select";
-import { Badge } from "../../../components/ui/badge";
+} from "../../../shared/components/ui/select";
+import { Slider } from "../../../shared/components/ui/slider";
+import { Textarea } from "../../../shared/components/ui/textarea";
 import type { QuizQuestion } from "../types";
 
 interface QuestionRendererProps {

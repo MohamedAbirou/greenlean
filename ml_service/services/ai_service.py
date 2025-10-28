@@ -1,3 +1,5 @@
+# ml_service/services/ai_service.py
+
 """AI service for interacting with multiple AI providers"""
 
 import json
@@ -5,7 +7,7 @@ from typing import Dict, Any, Optional
 import anthropic
 import google.generativeai as genai
 from llamaapi import LlamaAPI
-from openai import OpenAI
+from openai import AsyncOpenAI
 from fastapi import HTTPException
 
 from config.settings import settings
@@ -17,7 +19,7 @@ class AIService:
 
     def __init__(self):
         """Initialize AI clients based on available API keys"""
-        self.openai_client: Optional[OpenAI] = None
+        self.openai_client: Optional[AsyncOpenAI] = None
         self.anthropic_client: Optional[anthropic.Anthropic] = None
         self.llama_client: Optional[LlamaAPI] = None
         self.gemini_configured: bool = False
@@ -25,7 +27,7 @@ class AIService:
         # Initialize OpenAI
         if settings.has_openai:
             try:
-                self.openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
+                self.openai_client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
                 logger.info("OpenAI client initialized")
             except Exception as e:
                 log_error(e, "Failed to initialize OpenAI client")
@@ -80,7 +82,7 @@ class AIService:
 
         return response.strip()
 
-    def call_openai(
+    async def call_openai(
         self,
         prompt: str,
         model: str,
@@ -88,7 +90,7 @@ class AIService:
         temperature: Optional[float] = None
     ) -> str:
         """
-        Call OpenAI API.
+        Call OpenAI API asynchronously.
 
         Args:
             prompt: User prompt
@@ -109,7 +111,7 @@ class AIService:
             )
 
         try:
-            response = self.openai_client.chat.completions.create(
+            response = await self.openai_client.chat.completions.create(
                 model=model,
                 messages=[
                     {
@@ -128,14 +130,14 @@ class AIService:
             log_error(e, "OpenAI API call")
             raise HTTPException(status_code=500, detail=error_msg)
 
-    def call_anthropic(
+    async def call_anthropic(
         self,
         prompt: str,
         model: str,
         max_tokens: Optional[int] = None
     ) -> str:
         """
-        Call Anthropic Claude API.
+        Call Anthropic Claude API asynchronously.
 
         Args:
             prompt: User prompt
@@ -155,11 +157,10 @@ class AIService:
             )
 
         try:
-            # Ensure model starts with "claude"
             if not model.startswith("claude"):
                 model = "claude-3-5-sonnet-20241022"
 
-            message = self.anthropic_client.messages.create(
+            message = await self.anthropic_client.messages.create(
                 model=model,
                 max_tokens=max_tokens or settings.AI_MAX_TOKENS,
                 messages=[{"role": "user", "content": prompt}]
@@ -171,7 +172,7 @@ class AIService:
             log_error(e, "Anthropic API call")
             raise HTTPException(status_code=500, detail=error_msg)
 
-    def generate_plan(
+    async def generate_plan(
         self,
         prompt: str,
         provider: str,
@@ -180,6 +181,7 @@ class AIService:
     ) -> Dict[str, Any]:
         """
         Generate a plan using the specified AI provider.
+        NOW ASYNC - must be awaited!
 
         Args:
             prompt: Formatted prompt string
@@ -195,7 +197,6 @@ class AIService:
         """
         provider_lower = provider.lower()
 
-        # Validate provider is configured
         if not settings.validate_ai_provider(provider_lower):
             raise HTTPException(
                 status_code=400,
@@ -203,24 +204,21 @@ class AIService:
             )
 
         try:
-            # Log request
             logger.info(
                 f"Generating plan with {provider} ({model}) "
                 f"{f'for user {user_id}' if user_id else ''}"
             )
 
-            # Call appropriate provider
             if provider_lower == "openai":
-                response = self.call_openai(prompt, model)
+                response = await self.call_openai(prompt, model)
             elif provider_lower == "anthropic":
-                response = self.call_anthropic(prompt, model)
+                response = await self.call_anthropic(prompt, model)
             else:
                 raise HTTPException(
                     status_code=400,
                     detail=f"Unsupported AI provider: {provider}"
                 )
 
-            # Clean and parse response
             clean_response = self.clean_json_response(response)
 
             try:
@@ -244,5 +242,4 @@ class AIService:
             raise HTTPException(status_code=500, detail=error_msg)
 
 
-# Global AI service instance
 ai_service = AIService()

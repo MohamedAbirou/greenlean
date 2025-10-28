@@ -1,7 +1,7 @@
 "use client";
 
-import { DataTable } from "@/components/data-table/data-table";
-import type { Badge } from "@/types/challenge";
+import { DataTable } from "@/shared/components/data-table/data-table";
+import type { Badge } from "@/shared/types/challenge";
 import { badgeColumns } from "./columns";
 
 export default function BadgesTable({

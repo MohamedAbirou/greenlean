@@ -1,17 +1,19 @@
 """
-Refactored FastAPI application for AI Health & Fitness ML Service.
-Clean, modular architecture with comprehensive error handling and logging.
+FastAPI application with async background plan generation.
 """
 
+import asyncio
 import time
 from contextlib import asynccontextmanager
 from typing import Dict, Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 
 from config.settings import settings
 from config.logging_config import logger, log_api_request, log_api_response, log_error
+from prompts.json_formats.meal_plan_format import MEAL_PLAN_JSON_FORMAT
+from prompts.json_formats.workout_plan_format import WORKOUT_PLAN_JSON_FORMAT
 from models.quiz import GeneratePlansRequest, Calculations, Macros
 from services.ai_service import ai_service
 from services.database import db_service
@@ -23,23 +25,20 @@ from prompts.workout_plan import WORKOUT_PLAN_PROMPT
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager for startup and shutdown events"""
-    # Startup
     logger.info(f"Starting {settings.APP_TITLE} v{settings.APP_VERSION}")
-
+    
     try:
         await db_service.initialize()
     except Exception as e:
         logger.warning(f"Database initialization failed: {e}. Continuing without database.")
-
+    
     yield
-
-    # Shutdown
+    
     logger.info("Shutting down application...")
     await db_service.close()
     logger.info("Application shutdown complete")
 
 
-# Initialize FastAPI application
 app = FastAPI(
     title=settings.APP_TITLE,
     description=settings.APP_DESCRIPTION,
@@ -47,7 +46,6 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Configure CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
@@ -59,12 +57,7 @@ app.add_middleware(
 
 @app.get("/health")
 async def health_check() -> Dict[str, Any]:
-    """
-    Health check endpoint.
-
-    Returns:
-        Service status and available AI providers
-    """
+    """Health check endpoint"""
     return {
         "status": "healthy",
         "service": settings.APP_TITLE,
@@ -79,42 +72,24 @@ async def health_check() -> Dict[str, Any]:
     }
 
 
-@app.post("/generate-meal-plan")
-async def generate_meal_plan(request: GeneratePlansRequest) -> Dict[str, Any]:
-    """
-    Generate a personalized AI meal plan based on quiz results.
-
-    Args:
-        request: GeneratePlansRequest with user data and preferences
-
-    Returns:
-        Generated meal plan with nutritional information
-
-    Raises:
-        HTTPException: If generation fails
-    """
-    start_time = time.time()
-    log_api_request(
-        "/generate-meal-plan",
-        request.user_id,
-        request.ai_provider,
-        request.model_name
-    )
-
+async def _generate_meal_plan_background(
+    user_id: str,
+    quiz_result_id: str,
+    request: GeneratePlansRequest,
+    nutrition: Dict[str, Any]
+):
+    """Background task to generate meal plan - FIXED"""
     try:
-        # Calculate nutrition profile
-        nutrition = calculate_nutrition_profile(request.answers)
+        logger.info(f"Starting background meal plan generation for user {user_id}")
+        
         macros = nutrition["macros"]
         display = nutrition["display"]
-
-        # Format body fat percentage
         body_fat_str = (
             f"{nutrition['bodyFatPercentage']}%"
             if nutrition.get("bodyFatPercentage")
             else "Not provided"
         )
-
-        # Format prompt with user data
+        
         prompt = MEAL_PLAN_PROMPT.format(
             age=request.answers.age,
             gender=request.answers.gender,
@@ -152,87 +127,54 @@ async def generate_meal_plan(request: GeneratePlansRequest) -> Dict[str, Any]:
             protein_pct_of_calories=macros["protein_pct_of_calories"],
             carbs_pct_of_calories=macros["carbs_pct_of_calories"],
             fat_pct_of_calories=macros["fat_pct_of_calories"],
+            MEAL_PLAN_JSON_FORMAT=MEAL_PLAN_JSON_FORMAT
         )
-
-        # Add quality reminder
+        
         full_prompt = (
             prompt + "\n\nDouble-check all values align with the user's "
             "calorie/macro targets before finalizing the JSON output."
         )
-
-        # Generate meal plan using AI service
-        meal_plan = ai_service.generate_plan(
+        
+        meal_plan = await ai_service.generate_plan(
             full_prompt,
             request.ai_provider,
             request.model_name,
-            request.user_id
+            user_id
         )
-
-        # Save to database
+        
         await db_service.save_meal_plan(
-            request.user_id,
-            request.quiz_result_id,
+            user_id,
+            quiz_result_id,
             meal_plan,
             nutrition["goalCalories"],
             request.answers.preferredExercise,
             request.answers.dietaryStyle
         )
-
-        # Log success
-        duration_ms = (time.time() - start_time) * 1000
-        log_api_response("/generate-meal-plan", request.user_id, True, duration_ms)
-
-        return {
-            "success": True,
-            "meal_plan": meal_plan,
-            "macros": macros,
-            "message": "Meal plan generated successfully"
-        }
-
-    except HTTPException:
-        raise
+        
+        await db_service.update_plan_status(user_id, "meal", "completed")
+        logger.info(f"Meal plan generated successfully for user {user_id}")
+        
     except Exception as e:
-        duration_ms = (time.time() - start_time) * 1000
-        log_api_response("/generate-meal-plan", request.user_id, False, duration_ms)
-        log_error(e, "Meal plan generation", request.user_id)
-        raise HTTPException(status_code=500, detail=str(e))
+        log_error(e, "Background meal plan generation", user_id)
+        await db_service.update_plan_status(user_id, "meal", "failed", str(e))
 
-
-@app.post("/generate-workout-plan")
-async def generate_workout_plan(request: GeneratePlansRequest) -> Dict[str, Any]:
-    """
-    Generate a personalized AI workout plan based on quiz results.
-
-    Args:
-        request: GeneratePlansRequest with user data and preferences
-
-    Returns:
-        Generated workout plan
-
-    Raises:
-        HTTPException: If generation fails
-    """
-    start_time = time.time()
-    log_api_request(
-        "/generate-workout-plan",
-        request.user_id,
-        request.ai_provider,
-        request.model_name
-    )
-
+async def _generate_workout_plan_background(
+    user_id: str,
+    quiz_result_id: str,
+    request: GeneratePlansRequest,
+    nutrition: Dict[str, Any]
+):
+    """Background task to generate workout plan - FIXED"""
     try:
-        # Calculate nutrition profile for body metrics
-        nutrition = calculate_nutrition_profile(request.answers)
+        logger.info(f"Starting background workout plan generation for user {user_id}")
+        
         display = nutrition["display"]
-
-        # Format body fat percentage
         body_fat_str = (
             f"{nutrition['bodyFatPercentage']}%"
             if nutrition.get("bodyFatPercentage")
             else "Not provided"
         )
-
-        # Format prompt with user data
+        
         prompt = WORKOUT_PLAN_PROMPT.format(
             age=request.answers.age,
             gender=request.answers.gender,
@@ -258,70 +200,53 @@ async def generate_workout_plan(request: GeneratePlansRequest) -> Dict[str, Any]
             exercise_frequency=request.answers.exerciseFrequency,
             preferred_exercise=request.answers.preferredExercise,
             training_environment=request.answers.trainingEnvironment,
-            equipment=request.answers.equipment
+            equipment=request.answers.equipment,
+            WORKOUT_PLAN_JSON_FORMAT=WORKOUT_PLAN_JSON_FORMAT
         )
-
-        # Generate workout plan using AI service
-        workout_plan = ai_service.generate_plan(
+        
+        workout_plan = await ai_service.generate_plan(
             prompt,
             request.ai_provider,
             request.model_name,
-            request.user_id
+            user_id
         )
-
-        # Save to database
+        
         await db_service.save_workout_plan(
-            request.user_id,
-            request.quiz_result_id,
+            user_id,
+            quiz_result_id,
             workout_plan,
             request.answers.preferredExercise,
             request.answers.exerciseFrequency,
-            workout_plan.get('weekly_summary', {}).get('total_workout_days', 5)
+            5
         )
-
-        # Log success
-        duration_ms = (time.time() - start_time) * 1000
-        log_api_response("/generate-workout-plan", request.user_id, True, duration_ms)
-
-        return {
-            "success": True,
-            "workout_plan": workout_plan,
-            "message": "Workout plan generated successfully"
-        }
-
-    except HTTPException:
-        raise
+        
+        await db_service.update_plan_status(user_id, "workout", "completed")
+        logger.info(f"Workout plan generated successfully for user {user_id}")
+        
     except Exception as e:
-        duration_ms = (time.time() - start_time) * 1000
-        log_api_response("/generate-workout-plan", request.user_id, False, duration_ms)
-        log_error(e, "Workout plan generation", request.user_id)
-        raise HTTPException(status_code=500, detail=str(e))
+        log_error(e, "Background workout plan generation", user_id)
+        await db_service.update_plan_status(user_id, "workout", "failed", str(e))
 
-
-@app.post("/generate-complete-plan")
-async def generate_complete_plan(request: GeneratePlansRequest) -> Dict[str, Any]:
+@app.post("/generate-plans")
+async def generate_plans(
+    request: GeneratePlansRequest,
+    background_tasks: BackgroundTasks
+) -> Dict[str, Any]:
     """
-    Generate both meal and workout plans in one call.
-
-    Args:
-        request: GeneratePlansRequest with user data and preferences
-
-    Returns:
-        Combined meal and workout plans with calculations
-
-    Raises:
-        HTTPException: If generation fails
+    Generate plans with instant response and background AI generation.
+    
+    Returns calculations immediately and kicks off background tasks for AI plans.
     """
     start_time = time.time()
     log_api_request(
-        "/generate-complete-plan",
+        "/generate-plans",
         request.user_id,
         request.ai_provider,
         request.model_name
     )
-
+    
     try:
-        # Calculate nutrition profile
+        # Calculate nutrition profile immediately
         calc_result = calculate_nutrition_profile(request.answers)
         calculations = Calculations(
             bmi=calc_result["bmi"],
@@ -332,37 +257,253 @@ async def generate_complete_plan(request: GeneratePlansRequest) -> Dict[str, Any
             goalCalories=calc_result["goalCalories"],
             goalWeight=calc_result["targetWeight"] or 0.0,
         )
-
-        # Generate both plans
-        meal_result = await generate_meal_plan(request)
-        workout_result = await generate_workout_plan(request)
-
-        # Update quiz results with calculations
+        
+        # Update quiz results with calculations FIRST
         await db_service.update_quiz_calculations(
             request.quiz_result_id,
             calculations.model_dump()
         )
+        
+        # Initialize plan status as generating
+        await db_service.initialize_plan_status(
+            request.user_id,
+            request.quiz_result_id
+        )
+        
+        # Schedule background tasks for AI generation
+        # background_tasks.add_task(
+        #     _generate_meal_plan_background,
+        #     request.user_id,
+        #     request.quiz_result_id,
+        #     request,
+        #     calc_result
+        # )
+        
+        # background_tasks.add_task(
+        #     _generate_workout_plan_background,
+        #     request.user_id,
+        #     request.quiz_result_id,
+        #     request,
+        #     calc_result
+        # )
 
-        # Log success
+        # 3️⃣ Fire both AI generation tasks concurrently
+        asyncio.create_task(
+            _generate_meal_plan_background(request.user_id, request.quiz_result_id, request, calc_result)
+        )
+        asyncio.create_task(
+            _generate_workout_plan_background(request.user_id, request.quiz_result_id, request, calc_result)
+        )
+        
         duration_ms = (time.time() - start_time) * 1000
-        log_api_response("/generate-complete-plan", request.user_id, True, duration_ms)
-
+        log_api_response("/generate-plans", request.user_id, True, duration_ms)
+        
         return {
             "success": True,
-            "meal_plan": meal_result["meal_plan"],
-            "workout_plan": workout_result["workout_plan"],
-            "macros": meal_result["macros"],
-            "message": "Complete health plan generated successfully"
+            "calculations": calculations.model_dump(),
+            "macros": calculations.macros.model_dump(),
+            "meal_plan_status": "generating",
+            "workout_plan_status": "generating",
+            "message": "Calculations complete. Plans are being generated in the background."
         }
+        
+    except Exception as e:
+        duration_ms = (time.time() - start_time) * 1000
+        log_api_response("/generate-plans", request.user_id, False, duration_ms)
+        log_error(e, "Plan generation initialization", request.user_id)
+        raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/plan-status/{user_id}")
+async def get_plan_status(user_id: str) -> Dict[str, Any]:
+    """Check status of plan generation for a user"""
+    try:
+        status = await db_service.get_plan_status(user_id)
+        
+        if not status:
+            raise HTTPException(status_code=404, detail="No plan generation found for user")
+        
+        return {
+            "success": True,
+            "meal_plan_status": status["meal_plan_status"],
+            "workout_plan_status": status["workout_plan_status"],
+            "meal_plan_error": status.get("meal_plan_error"),
+            "workout_plan_error": status.get("workout_plan_error")
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        log_error(e, "Plan status check", user_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Keep legacy endpoints for backward compatibility
+@app.post("/generate-meal-plan")
+async def generate_meal_plan(request: GeneratePlansRequest) -> Dict[str, Any]:
+    """Legacy endpoint - generates meal plan synchronously"""
+    start_time = time.time()
+    log_api_request("/generate-meal-plan", request.user_id, request.ai_provider, request.model_name)
+    
+    try:
+        nutrition = calculate_nutrition_profile(request.answers)
+        macros = nutrition["macros"]
+        display = nutrition["display"]
+        
+        body_fat_str = (
+            f"{nutrition['bodyFatPercentage']}%"
+            if nutrition.get("bodyFatPercentage")
+            else "Not provided"
+        )
+        
+        prompt = MEAL_PLAN_PROMPT.format(
+            age=request.answers.age,
+            gender=request.answers.gender,
+            current_weight=display["weight"],
+            target_weight=display["targetWeight"],
+            height=display["height"],
+            main_goal=request.answers.mainGoal,
+            secondary_goals=request.answers.secondaryGoals,
+            time_frame=request.answers.timeFrame,
+            body_type=request.answers.bodyType,
+            body_fat=body_fat_str,
+            health_conditions=request.answers.healthConditions,
+            health_conditions_other=request.answers.healthConditions_other,
+            medications=request.answers.medications,
+            lifestyle=request.answers.lifestyle,
+            stress_level=request.answers.stressLevel,
+            sleep_quality=request.answers.sleepQuality,
+            motivation_level=request.answers.motivationLevel,
+            occupation_activity=request.answers.occupation_activity,
+            country=request.answers.country,
+            cooking_skill=request.answers.cookingSkill,
+            cooking_time=request.answers.cookingTime,
+            grocery_budget=request.answers.groceryBudget,
+            dietary_style=request.answers.dietaryStyle,
+            disliked_foods=request.answers.dislikedFoods,
+            foodAllergies=request.answers.foodAllergies,
+            meals_per_day=request.answers.mealsPerDay,
+            challenges=request.answers.challenges,
+            exercise_frequency=request.answers.exerciseFrequency,
+            preferred_exercise=request.answers.preferredExercise,
+            daily_calories=nutrition["goalCalories"],
+            protein=macros["protein_g"],
+            carbs=macros["carbs_g"],
+            fats=macros["fat_g"],
+            protein_pct_of_calories=macros["protein_pct_of_calories"],
+            carbs_pct_of_calories=macros["carbs_pct_of_calories"],
+            fat_pct_of_calories=macros["fat_pct_of_calories"],
+            MEAL_PLAN_JSON_FORMAT=MEAL_PLAN_JSON_FORMAT
+        )
+        
+        full_prompt = prompt + "\n\nDouble-check all values align with the user's calorie/macro targets before finalizing the JSON output."
+        
+        meal_plan = await ai_service.generate_plan(full_prompt, request.ai_provider, request.model_name, request.user_id)
+        
+        await db_service.save_meal_plan(
+            request.user_id,
+            request.quiz_result_id,
+            meal_plan,
+            nutrition["goalCalories"],
+            request.answers.preferredExercise,
+            request.answers.dietaryStyle
+        )
+        
+        duration_ms = (time.time() - start_time) * 1000
+        log_api_response("/generate-meal-plan", request.user_id, True, duration_ms)
+        
+        return {
+            "success": True,
+            "meal_plan": meal_plan,
+            "macros": macros,
+            "message": "Meal plan generated successfully"
+        }
+        
     except HTTPException:
         raise
     except Exception as e:
         duration_ms = (time.time() - start_time) * 1000
-        log_api_response("/generate-complete-plan", request.user_id, False, duration_ms)
-        log_error(e, "Complete plan generation", request.user_id)
+        log_api_response("/generate-meal-plan", request.user_id, False, duration_ms)
+        log_error(e, "Meal plan generation", request.user_id)
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/generate-workout-plan")
+async def generate_workout_plan(request: GeneratePlansRequest) -> Dict[str, Any]:
+    """Legacy endpoint - generates workout plan synchronously"""
+    start_time = time.time()
+    log_api_request("/generate-workout-plan", request.user_id, request.ai_provider, request.model_name)
+    
+    try:
+        nutrition = calculate_nutrition_profile(request.answers)
+        display = nutrition["display"]
+        
+        body_fat_str = (
+            f"{nutrition['bodyFatPercentage']}%"
+            if nutrition.get("bodyFatPercentage")
+            else "Not provided"
+        )
+        
+        prompt = WORKOUT_PLAN_PROMPT.format(
+            age=request.answers.age,
+            gender=request.answers.gender,
+            current_weight=display["weight"],
+            target_weight=display["targetWeight"],
+            height=display["height"],
+            main_goal=request.answers.mainGoal,
+            secondary_goals=request.answers.secondaryGoals,
+            time_frame=request.answers.timeFrame,
+            body_type=request.answers.bodyType,
+            body_fat=body_fat_str,
+            health_conditions=request.answers.healthConditions,
+            health_conditions_other=request.answers.healthConditions_other,
+            injuries=request.answers.injuries,
+            medications=request.answers.medications,
+            lifestyle=request.answers.lifestyle,
+            stress_level=request.answers.stressLevel,
+            sleep_quality=request.answers.sleepQuality,
+            motivation_level=request.answers.motivationLevel,
+            occupation_activity=request.answers.occupation_activity,
+            country=request.answers.country,
+            challenges=request.answers.challenges,
+            exercise_frequency=request.answers.exerciseFrequency,
+            preferred_exercise=request.answers.preferredExercise,
+            training_environment=request.answers.trainingEnvironment,
+            equipment=request.answers.equipment,
+            WORKOUT_PLAN_JSON_FORMAT=WORKOUT_PLAN_JSON_FORMAT
+        )
+        
+        workout_plan = await ai_service.generate_plan(prompt, request.ai_provider, request.model_name, request.user_id)
+        
+        await db_service.save_workout_plan(
+            request.user_id,
+            request.quiz_result_id,
+            workout_plan,
+            request.answers.preferredExercise,
+            request.answers.exerciseFrequency,
+            workout_plan.get('weekly_summary', {}).get('total_workout_days', 5)
+        )
+        
+        duration_ms = (time.time() - start_time) * 1000
+        log_api_response("/generate-workout-plan", request.user_id, True, duration_ms)
+        
+        return {
+            "success": True,
+            "workout_plan": workout_plan,
+            "message": "Workout plan generated successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        duration_ms = (time.time() - start_time) * 1000
+        log_api_response("/generate-workout-plan", request.user_id, False, duration_ms)
+        log_error(e, "Workout plan generation", request.user_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/generate-complete-plan")
+async def generate_complete_plan(request: GeneratePlansRequest) -> Dict[str, Any]:
+    """Legacy endpoint - redirects to new async endpoint"""
+    background_tasks = BackgroundTasks()
+    return await generate_plans(request, background_tasks)
 
 if __name__ == "__main__":
     import uvicorn

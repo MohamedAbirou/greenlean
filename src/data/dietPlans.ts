@@ -1,4 +1,4 @@
-import type { DietPlan } from "@/types/dashboard";
+import type { DietPlan } from "@/shared/types/dashboard";
 
 export const dietPlans: DietPlan[] = [
   {

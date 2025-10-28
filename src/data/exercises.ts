@@ -1,4 +1,4 @@
-import type { Exercise } from "@/types/dashboard";
+import type { Exercise } from "@/shared/types/dashboard";
 
 export const exercises: Exercise[] = [
   {

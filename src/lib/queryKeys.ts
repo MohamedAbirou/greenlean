@@ -8,5 +8,8 @@ export const queryKeys = {
   reward: (id: string) => [...queryKeys.rewards, id] as const,
   settings: ["settings"] as const,
   badges: ["badges"] as const,
-  dashboard: ["dashboard"] as const
+  dashboard: ["dashboard"] as const,
+  profile: ["profile"] as const,
+  quizProgress: ["quiz_progress"] as const,
+  latestQuizResult: ["latest_quiz_result"] as const
 };

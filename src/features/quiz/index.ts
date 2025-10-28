@@ -2,9 +2,28 @@
  * Quiz Feature Exports
  */
 
+// API
 export { QuizService } from "./api/quizService";
-export { QuizCard, QuizProgressBar, PhaseIndicators, QuizLoading } from "./components";
+
+// Components
+export { PhaseIndicators, QuizCard, QuizLoading, QuizProgressBar } from "./components";
+
+// Hooks
+export {
+    useLatestQuizResult, useProfileData,
+    useQuizProgress,
+    useSaveQuizProgress,
+    useSubmitQuiz
+} from "./hooks/useQuizData";
 export { useQuizState } from "./hooks/useQuizState";
-export { QUIZ_PHASES, LOADING_MESSAGES } from "./data/quizPhases";
+
+// Data
+export { LOADING_MESSAGES, QUIZ_PHASES } from "./data/quizPhases";
+
+// Types
 export * from "./types";
+
+// Utils
 export * from "./utils/quizHelpers";
+export * from "./utils/unitConversion";
+

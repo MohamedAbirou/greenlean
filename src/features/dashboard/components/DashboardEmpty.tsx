@@ -5,7 +5,7 @@
 
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "../../../components/ui/button";
+import { Button } from "../../../shared/components/ui/button";
 
 interface DashboardEmptyProps {
   primaryBg?: string;

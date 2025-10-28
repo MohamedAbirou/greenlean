@@ -3,8 +3,8 @@
  * Handles user profile operations
  */
 
-import { supabase } from "@/lib/supabase";
-import type { Profile, ProfileUpdate, AvatarUploadResult } from "../types";
+import { supabase } from "@/lib/supabase/client";
+import type { AvatarUploadResult, Profile, ProfileUpdate } from "../types";
 
 export class ProfileService {
   /**

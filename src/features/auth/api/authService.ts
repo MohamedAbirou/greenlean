@@ -3,7 +3,7 @@
  * All authentication-related API calls
  */
 
-import { supabase } from "../../../lib/supabase";
+import { supabase } from "@/lib/supabase";
 import type {
   SignInCredentials,
   SignUpData,

@@ -1,18 +1,18 @@
-import { AccountSetupStep } from "@/components/registration/AccountSetupStep";
-import { MeasurementsStep } from "@/components/registration/MeasurementsStep";
-import { OccupationStep } from "@/components/registration/OccupationStep";
-import { PersonalInfoStep } from "@/components/registration/PersonalInfoStep";
-import { StepIndicator } from "@/components/registration/StepIndicator";
-import { SummaryStep } from "@/components/registration/SummaryStep";
-import { useAuth } from "@/contexts/useAuth";
+import { useAuth } from "@/features/auth";
+import { AccountSetupStep } from "@/features/register/components/AccountSetupStep";
+import { MeasurementsStep } from "@/features/register/components/MeasurementsStep";
+import { OccupationStep } from "@/features/register/components/OccupationStep";
+import { PersonalInfoStep } from "@/features/register/components/PersonalInfoStep";
+import { StepIndicator } from "@/features/register/components/StepIndicator";
+import { SummaryStep } from "@/features/register/components/SummaryStep";
 import { supabase } from "@/lib/supabase";
-import type { RegistrationData } from "@/types/registration";
+import type { RegistrationData } from "@/shared/types/registration";
 import {
   calculateAge,
   convertHeightToCm,
   convertWeightToKg,
   getUnitSystemForCountry,
-} from "@/utils/countryUtils";
+} from "@/shared/utils/countryUtils";
 import { AnimatePresence } from "framer-motion";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -234,7 +234,10 @@ const Register: React.FC = () => {
     } catch (error) {
       console.error("Registration error:", error);
       if (error instanceof Error) {
-        if (error.message.includes("already registered") || error.message.includes("already been registered")) {
+        if (
+          error.message.includes("already registered") ||
+          error.message.includes("already been registered")
+        ) {
           toast.error("This email is already registered. Please sign in instead.");
         } else {
           toast.error(error.message || "Failed to create account. Please try again.");

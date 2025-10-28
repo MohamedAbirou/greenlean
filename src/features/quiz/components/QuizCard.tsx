@@ -4,13 +4,13 @@
  */
 
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Check } from "lucide-react";
-import { Button } from "../../../components/ui/button";
-import { Card, CardContent } from "../../../components/ui/card";
-import { Label } from "../../../components/ui/label";
-import { Badge } from "../../../components/ui/badge";
+import { Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { Badge } from "../../../shared/components/ui/badge";
+import { Button } from "../../../shared/components/ui/button";
+import { Card, CardContent } from "../../../shared/components/ui/card";
+import { Label } from "../../../shared/components/ui/label";
+import type { QuizPhase, QuizQuestion } from "../types";
 import { QuestionRenderer } from "./QuestionRenderer";
-import type { QuizQuestion, QuizPhase } from "../types";
 
 interface QuizCardProps {
   phase: QuizPhase;

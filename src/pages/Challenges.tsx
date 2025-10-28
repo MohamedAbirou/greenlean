@@ -1,11 +1,9 @@
-import ChallengeCard from "@/components/ChallengeCard";
-import { usePlatform } from "@/contexts/PlatformContext";
-import { useAuth } from "@/contexts/useAuth";
-import { canUpdateProgress, IconMap } from "@/helpers/challengeHelper";
-import { useChallengesQuery } from "@/hooks/Queries/useChallenges";
-import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/features/auth";
+import ChallengeCard from "@/features/challenges/components/ChallengeCard";
+import { canUpdateProgress, IconMap } from "@/features/challenges/utils/progress";
+import { supabase } from "@/lib/supabase/client";
 import { createNotification } from "@/services/notificationService";
-import { useColorTheme } from "@/utils/colorUtils";
+import { useChallengesQuery } from "@/shared/hooks/Queries/useChallenges";
 import confetti from "canvas-confetti";
 import { AnimatePresence, domAnimation, LazyMotion, m } from "framer-motion";
 import * as LucideIcons from "lucide-react";
@@ -27,8 +25,7 @@ interface UserRewards {
 function getNextExpiration(type: string) {
   const now = new Date();
   if (type === "daily") return new Date(now.getTime() + 24 * 60 * 60 * 1000);
-  if (type === "weekly")
-    return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  if (type === "weekly") return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
   return null;
 }
 
@@ -44,9 +41,6 @@ const Challenges: React.FC = () => {
   const [joiningId, setJoiningId] = useState<string | null>(null);
   const [quittingId, setQuittingId] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
-
-  const platform = usePlatform();
-  const colorTheme = useColorTheme(platform.settings?.theme_color);
 
   const {
     data: challengesData,
@@ -95,9 +89,7 @@ const Challenges: React.FC = () => {
     async (challengeId: string) => {
       setJoiningId(challengeId);
       try {
-        const challenge = (challengesData || []).find(
-          (c) => c.id === challengeId
-        );
+        const challenge = (challengesData || []).find((c) => c.id === challengeId);
         if (!challenge) return;
 
         const { error } = await supabase.from("challenge_participants").insert({
@@ -169,9 +161,7 @@ const Challenges: React.FC = () => {
     async (challengeId: string, newProgress: number) => {
       setUpdatingId(challengeId);
       try {
-        const challenge = (challengesData || []).find(
-          (c) => c.id === challengeId
-        );
+        const challenge = (challengesData || []).find((c) => c.id === challengeId);
         if (!challenge) return;
 
         const { data: participant } = await supabase
@@ -184,9 +174,7 @@ const Challenges: React.FC = () => {
         if (!participant) return;
 
         // check if user can update
-        if (
-          !canUpdateProgress(challenge.type, participant.last_progress_date)
-        ) {
+        if (!canUpdateProgress(challenge.type, participant.last_progress_date)) {
           toast.error("🚫 You already logged progress for this period!");
           return;
         }
@@ -221,10 +209,7 @@ const Challenges: React.FC = () => {
           if (currentRewards) {
             const updateBadges = [...(currentRewards.badges || [])];
 
-            if (
-              challenge.badge &&
-              !updateBadges.find((b) => b.id === challenge.badge!.id)
-            ) {
+            if (challenge.badge && !updateBadges.find((b) => b.id === challenge.badge!.id)) {
               updateBadges.push({
                 id: challenge.badge.id,
                 name: challenge.badge.name,
@@ -289,16 +274,12 @@ const Challenges: React.FC = () => {
   const filteredChallenges = useMemo(() => {
     return (challengesData || [])
       .filter((challenge) => {
-        const matchesType =
-          activeFilter === "all" || challenge.type === activeFilter;
+        const matchesType = activeFilter === "all" || challenge.type === activeFilter;
         const matchesDifficulty =
-          difficultyFilter === "all" ||
-          challenge.difficulty === difficultyFilter;
+          difficultyFilter === "all" || challenge.difficulty === difficultyFilter;
 
         // Find participant status for this user
-        const participant = challenge.participants?.find(
-          (p) => p.user_id === user?.id
-        );
+        const participant = challenge.participants?.find((p) => p.user_id === user?.id);
 
         const isCompleted = participant?.completed;
         const isJoined = !!participant;
@@ -314,15 +295,9 @@ const Challenges: React.FC = () => {
       .sort((a, b) => {
         switch (sortBy) {
           case "newest":
-            return (
-              new Date(b.created_at).getTime() -
-              new Date(a.created_at).getTime()
-            );
+            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
           case "oldest":
-            return (
-              new Date(a.created_at).getTime() -
-              new Date(b.created_at).getTime()
-            );
+            return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
           case "points_high":
             return b.points - a.points;
           case "points_low":
@@ -341,19 +316,12 @@ const Challenges: React.FC = () => {
             return 0;
         }
       });
-  }, [
-    activeFilter,
-    challengesData,
-    difficultyFilter,
-    sortBy,
-    statusFilter,
-    user?.id,
-  ]);
+  }, [activeFilter, challengesData, difficultyFilter, sortBy, statusFilter, user?.id]);
 
   if (isLoading) {
     return (
       <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
-        <Loader className={`h-8 w-8 animate-spin ${colorTheme.primaryText}`} />
+        <Loader className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -430,13 +398,10 @@ const Challenges: React.FC = () => {
                     <p className="text-xs font-bold text-purple-600 dark:text-purple-300 uppercase tracking-wider mb-2">
                       Badges Earned
                     </p>
-                    {userRewards?.badges.length === 0 && (
-                      <p className="text-foreground">.....</p>
-                    )}
+                    {userRewards?.badges.length === 0 && <p className="text-foreground">.....</p>}
                     <div className="flex flex-wrap gap-2">
                       {userRewards?.badges.map((badge, index) => {
-                        const IconComponent =
-                          IconMap[badge.icon] || LucideIcons.Star;
+                        const IconComponent = IconMap[badge.icon] || LucideIcons.Star;
 
                         return (
                           <div
@@ -449,9 +414,7 @@ const Challenges: React.FC = () => {
                             }}
                           >
                             <IconComponent className="w-4 h-4" />
-                            <span className="max-w-[90px] truncate">
-                              {badge.name}
-                            </span>
+                            <span className="max-w-[90px] truncate">{badge.name}</span>
                           </div>
                         );
                       })}
@@ -539,19 +502,17 @@ const Challenges: React.FC = () => {
           <AnimatePresence mode="popLayout">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredChallenges.map((challenge, index) => (
-                <>
-                  <ChallengeCard
-                    key={challenge.id}
-                    index={index}
-                    challenge={challenge}
-                    isJoining={joiningId === challenge.id}
-                    isQuitting={quittingId === challenge.id}
-                    updatingProgress={updatingId === challenge.id}
-                    updateProgress={updateProgress}
-                    quitChallenge={quitChallenge}
-                    joinChallenge={joinChallenge}
-                  />
-                </>
+                <ChallengeCard
+                  key={challenge.id}
+                  index={index}
+                  challenge={challenge}
+                  isJoining={joiningId === challenge.id}
+                  isQuitting={quittingId === challenge.id}
+                  updatingProgress={updatingId === challenge.id}
+                  updateProgress={updateProgress}
+                  quitChallenge={quitChallenge}
+                  joinChallenge={joinChallenge}
+                />
               ))}
             </div>
           </AnimatePresence>

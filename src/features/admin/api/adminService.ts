@@ -3,9 +3,9 @@
  * Handles admin operations
  */
 
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/client";
 import { createNotification } from "@/services/notificationService";
-import type { Challenge } from "@/types/challenge";
+import type { Challenge } from "@/shared/types/challenge";
 
 export class AdminService {
   /**

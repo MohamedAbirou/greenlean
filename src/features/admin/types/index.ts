@@ -2,7 +2,7 @@
  * Admin Feature Types
  */
 
-import type { Challenge } from "@/types/challenge";
+import type { Challenge } from "@/shared/types/challenge";
 
 export interface AdminStatus {
   isAdmin: boolean;

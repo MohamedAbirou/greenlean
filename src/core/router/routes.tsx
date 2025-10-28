@@ -3,11 +3,12 @@
  * Lazy-loaded routes for optimal performance
  */
 
+import NewQuiz from "@/pages/NewQuiz";
 import { lazy } from "react";
 import type { RouteObject } from "react-router-dom";
-import Layout from "../../components/layout/Layout";
 import { ProtectedRoute } from "../../features/auth";
 import { FullPageLoader } from "../../shared/components/feedback";
+import Layout from "../../shared/components/layout/Layout";
 
 const Home = lazy(() => import("../../pages/Home"));
 const About = lazy(() => import("../../pages/About"));
@@ -24,7 +25,7 @@ const DietPlanDetails = lazy(() => import("../../pages/DietPlanDetails"));
 const WeightLoss = lazy(() => import("../../pages/WeightLoss"));
 const ExerciseDetails = lazy(() => import("../../pages/ExerciseDetails"));
 const AdminDashboard = lazy(() => import("../../pages/AdminDashboard"));
-const AdminBootstrap = lazy(() => import("../../components/admin/AdminBootstrap"));
+const AdminBootstrap = lazy(() => import("../../features/admin/components/AdminBootstrap"));
 const Register = lazy(() => import("../../pages/Register"));
 const ResetPassword = lazy(() => import("../../pages/ResetPassword"));
 const AuthCallback = lazy(() => import("../../pages/AuthCallback"));
@@ -65,7 +66,7 @@ export const routes: RouteObject[] = [
       },
       {
         path: "quiz",
-        element: <Quiz />,
+        element: <NewQuiz />,
       },
       {
         path: "diet-plans",

@@ -1,9 +1,12 @@
+# services/database.py (FIXED)
+
 """Database service for managing connections and operations"""
 
 import json
 from typing import Optional, Any, Dict
 import asyncpg
 from contextlib import asynccontextmanager
+from datetime import datetime
 
 from config.settings import settings
 from config.logging_config import logger, log_database_operation, log_error
@@ -17,20 +20,9 @@ class DatabaseService:
         self.pool: Optional[asyncpg.Pool] = None
 
     async def initialize(self) -> None:
-        """
-        Initialize database connection pool.
-
-        Raises:
-            Exception: If database initialization fails
-        """
+        """Initialize database connection pool"""
         try:
-            if not all([
-                settings.DB_USER,
-                settings.DB_PASSWORD,
-                settings.DB_HOST,
-                settings.DB_PORT,
-                settings.DB_NAME
-            ]):
+            if not all([settings.DB_USER, settings.DB_PASSWORD, settings.DB_HOST, settings.DB_PORT, settings.DB_NAME]):
                 logger.warning("Database credentials not fully configured. Skipping DB initialization.")
                 return
 
@@ -57,20 +49,53 @@ class DatabaseService:
 
     @asynccontextmanager
     async def get_connection(self):
-        """
-        Context manager for database connections.
-
-        Yields:
-            Database connection from pool
-
-        Raises:
-            Exception: If no pool is available
-        """
+        """Context manager for database connections"""
         if not self.pool:
             raise Exception("Database pool not initialized")
 
         async with self.pool.acquire() as connection:
             yield connection
+
+    async def initialize_plan_status(self, user_id: str, quiz_result_id: str) -> bool:
+        """Initialize plan generation status records with placeholder values"""
+        try:
+            if not self.pool:
+                logger.warning("Database not initialized. Skipping status initialization.")
+                return False
+
+            async with self.get_connection() as conn:
+                # Initialize meal plan with generating status and placeholder values
+                await conn.execute(
+                    """
+                    INSERT INTO ai_meal_plans 
+                    (user_id, quiz_result_id, plan_data, status, is_active, daily_calories, preferences, restrictions)
+                    VALUES ($1, $2, NULL, 'generating', false, 0, '[]', '')
+                    ON CONFLICT (user_id, quiz_result_id) 
+                    DO UPDATE SET status = 'generating', updated_at = NOW()
+                    """,
+                    user_id,
+                    quiz_result_id
+                )
+                
+                # Initialize workout plan with generating status and placeholder values
+                await conn.execute(
+                    """
+                    INSERT INTO ai_workout_plans 
+                    (user_id, quiz_result_id, plan_data, status, is_active, workout_type, duration_per_session, frequency_per_week)
+                    VALUES ($1, $2, NULL, 'generating', false, '[]', '', 0)
+                    ON CONFLICT (user_id, quiz_result_id)
+                    DO UPDATE SET status = 'generating', updated_at = NOW()
+                    """,
+                    user_id,
+                    quiz_result_id
+                )
+
+            log_database_operation("INSERT", "plan_status_init", user_id, success=True)
+            return True
+
+        except Exception as e:
+            log_error(e, "Failed to initialize plan status", user_id)
+            return False
 
     async def save_meal_plan(
         self,
@@ -81,20 +106,7 @@ class DatabaseService:
         preferences: list,
         restrictions: str
     ) -> bool:
-        """
-        Save meal plan to database.
-
-        Args:
-            user_id: User ID
-            quiz_result_id: Quiz result ID
-            plan_data: Generated meal plan data
-            daily_calories: Target daily calories
-            preferences: User preferences list
-            restrictions: Dietary restrictions
-
-        Returns:
-            True if successful, False otherwise
-        """
+        """Save meal plan to database with completed status"""
         try:
             if not self.pool:
                 logger.warning("Database not initialized. Skipping meal plan save.")
@@ -104,8 +116,18 @@ class DatabaseService:
                 await conn.execute(
                     """
                     INSERT INTO ai_meal_plans
-                    (user_id, quiz_result_id, plan_data, daily_calories, preferences, restrictions, is_active)
-                    VALUES ($1, $2, $3, $4, $5, $6, true)
+                    (user_id, quiz_result_id, plan_data, daily_calories, preferences, restrictions, status, is_active, generated_at)
+                    VALUES ($1, $2, $3, $4, $5, $6, 'completed', true, NOW())
+                    ON CONFLICT (user_id, quiz_result_id)
+                    DO UPDATE SET 
+                        plan_data = $3,
+                        daily_calories = $4,
+                        preferences = $5,
+                        restrictions = $6,
+                        status = 'completed',
+                        is_active = true,
+                        generated_at = NOW(),
+                        updated_at = NOW()
                     """,
                     user_id,
                     quiz_result_id,
@@ -115,12 +137,12 @@ class DatabaseService:
                     restrictions
                 )
 
-            log_database_operation("INSERT", "ai_meal_plans", user_id, success=True)
+            log_database_operation("UPSERT", "ai_meal_plans", user_id, success=True)
             return True
 
         except Exception as e:
             log_error(e, "Failed to save meal plan", user_id)
-            log_database_operation("INSERT", "ai_meal_plans", user_id, success=False)
+            await self.update_plan_status(user_id, "meal", "failed", str(e))
             return False
 
     async def save_workout_plan(
@@ -132,20 +154,7 @@ class DatabaseService:
         duration_per_session: str,
         frequency_per_week: int
     ) -> bool:
-        """
-        Save workout plan to database.
-
-        Args:
-            user_id: User ID
-            quiz_result_id: Quiz result ID
-            plan_data: Generated workout plan data
-            workout_type: Types of workouts
-            duration_per_session: Exercise frequency
-            frequency_per_week: Workouts per week
-
-        Returns:
-            True if successful, False otherwise
-        """
+        """Save workout plan to database with completed status"""
         try:
             if not self.pool:
                 logger.warning("Database not initialized. Skipping workout plan save.")
@@ -155,8 +164,18 @@ class DatabaseService:
                 await conn.execute(
                     """
                     INSERT INTO ai_workout_plans
-                    (user_id, quiz_result_id, plan_data, workout_type, duration_per_session, frequency_per_week, is_active)
-                    VALUES ($1, $2, $3, $4, $5, $6, true)
+                    (user_id, quiz_result_id, plan_data, workout_type, duration_per_session, frequency_per_week, status, is_active, generated_at)
+                    VALUES ($1, $2, $3, $4, $5, $6, 'completed', true, NOW())
+                    ON CONFLICT (user_id, quiz_result_id)
+                    DO UPDATE SET 
+                        plan_data = $3,
+                        workout_type = $4,
+                        duration_per_session = $5,
+                        frequency_per_week = $6,
+                        status = 'completed',
+                        is_active = true,
+                        generated_at = NOW(),
+                        updated_at = NOW()
                     """,
                     user_id,
                     quiz_result_id,
@@ -166,29 +185,92 @@ class DatabaseService:
                     frequency_per_week
                 )
 
-            log_database_operation("INSERT", "ai_workout_plans", user_id, success=True)
+            log_database_operation("UPSERT", "ai_workout_plans", user_id, success=True)
             return True
 
         except Exception as e:
             log_error(e, "Failed to save workout plan", user_id)
-            log_database_operation("INSERT", "ai_workout_plans", user_id, success=False)
+            await self.update_plan_status(user_id, "workout", "failed", str(e))
             return False
 
-    async def update_quiz_calculations(
+    async def update_plan_status(
         self,
-        quiz_result_id: str,
-        calculations: Dict[str, Any]
+        user_id: str,
+        plan_type: str,
+        status: str,
+        error_message: Optional[str] = None
     ) -> bool:
-        """
-        Update quiz result with calculations.
+        """Update plan generation status"""
+        try:
+            if not self.pool:
+                return False
 
-        Args:
-            quiz_result_id: Quiz result ID
-            calculations: Calculated metrics
+            table = "ai_meal_plans" if plan_type == "meal" else "ai_workout_plans"
 
-        Returns:
-            True if successful, False otherwise
-        """
+            async with self.get_connection() as conn:
+                await conn.execute(
+                    f"""
+                    UPDATE {table}
+                    SET status = $1, error_message = $2, updated_at = NOW()
+                    WHERE user_id = $3
+                    AND id = (SELECT id FROM {table} WHERE user_id = $3 ORDER BY created_at DESC LIMIT 1)
+                    """,
+                    status,
+                    error_message,
+                    user_id
+                )
+
+            log_database_operation("UPDATE", f"{table}_status", user_id, success=True)
+            return True
+
+        except Exception as e:
+            log_error(e, f"Failed to update {plan_type} plan status", user_id)
+            return False
+
+    async def get_plan_status(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """Get current plan generation status for user"""
+        try:
+            if not self.pool:
+                return None
+
+            async with self.get_connection() as conn:
+                meal_status = await conn.fetchrow(
+                    """
+                    SELECT status, error_message, generated_at
+                    FROM ai_meal_plans
+                    WHERE user_id = $1
+                    ORDER BY created_at DESC
+                    LIMIT 1
+                    """,
+                    user_id
+                )
+                
+                workout_status = await conn.fetchrow(
+                    """
+                    SELECT status, error_message, generated_at
+                    FROM ai_workout_plans
+                    WHERE user_id = $1
+                    ORDER BY created_at DESC
+                    LIMIT 1
+                    """,
+                    user_id
+                )
+
+            return {
+                "meal_plan_status": meal_status["status"] if meal_status else "not_started",
+                "meal_plan_error": meal_status["error_message"] if meal_status else None,
+                "meal_plan_generated_at": meal_status["generated_at"].isoformat() if meal_status and meal_status["generated_at"] else None,
+                "workout_plan_status": workout_status["status"] if workout_status else "not_started",
+                "workout_plan_error": workout_status["error_message"] if workout_status else None,
+                "workout_plan_generated_at": workout_status["generated_at"].isoformat() if workout_status and workout_status["generated_at"] else None
+            }
+
+        except Exception as e:
+            log_error(e, "Failed to get plan status", user_id)
+            return None
+
+    async def update_quiz_calculations(self, quiz_result_id: str, calculations: Dict[str, Any]) -> bool:
+        """Update quiz result with calculations"""
         try:
             if not self.pool:
                 logger.warning("Database not initialized. Skipping calculations update.")
@@ -214,5 +296,4 @@ class DatabaseService:
             return False
 
 
-# Global database service instance
 db_service = DatabaseService()

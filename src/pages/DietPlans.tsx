@@ -1,14 +1,12 @@
-import { Input } from "@/components/ui/input";
+import { dietPlans } from "@/data/dietPlans";
+import { Input } from "@/shared/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { usePlatform } from "@/contexts/PlatformContext";
-import { dietPlans } from "@/data/dietPlans";
-import { useColorTheme } from "@/utils/colorUtils";
+} from "@/shared/components/ui/select";
 import { motion } from "framer-motion";
 import { ArrowRight, Filter, Search } from "lucide-react";
 import React, { useState } from "react";
@@ -18,8 +16,6 @@ const DietPlans: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [difficultyFilter, setDifficultyFilter] = useState("All");
-  const platform = usePlatform();
-  const colorTheme = useColorTheme(platform.settings?.theme_color);
 
   const categories = ["All", "Weight Loss", "Health"];
   const difficulties = ["All", "Easy", "Medium", "Hard"];
@@ -28,10 +24,8 @@ const DietPlans: React.FC = () => {
     const matchesSearch =
       plan.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       plan.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory =
-      categoryFilter === "All" || plan.category === categoryFilter;
-    const matchesDifficulty =
-      difficultyFilter === "All" || plan.difficulty === difficultyFilter;
+    const matchesCategory = categoryFilter === "All" || plan.category === categoryFilter;
+    const matchesDifficulty = difficultyFilter === "All" || plan.difficulty === difficultyFilter;
 
     return matchesSearch && matchesCategory && matchesDifficulty;
   });
@@ -40,12 +34,10 @@ const DietPlans: React.FC = () => {
     <div className="min-h-screen pt-24 pb-16 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-foreground mb-4">
-            Explore Diet Plans
-          </h1>
+          <h1 className="text-3xl font-bold text-foreground mb-4">Explore Diet Plans</h1>
           <p className="text-lg text-foreground/80 max-w-2xl mx-auto">
-            Browse our collection of diet plans designed to help you achieve
-            your health and fitness goals.
+            Browse our collection of diet plans designed to help you achieve your health and fitness
+            goals.
           </p>
         </div>
 
@@ -69,10 +61,7 @@ const DietPlans: React.FC = () => {
               {/* Category Filter */}
               <div className="relative">
                 <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/70" />
-                <Select
-                  value={categoryFilter}
-                  onValueChange={(val) => setCategoryFilter(val)}
-                >
+                <Select value={categoryFilter} onValueChange={(val) => setCategoryFilter(val)}>
                   <SelectTrigger className="pl-10 pr-8 py-3 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-green-500">
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
@@ -89,10 +78,7 @@ const DietPlans: React.FC = () => {
               {/* Difficulty Filter */}
               <div className="relative">
                 <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/70" />
-                <Select
-                  value={difficultyFilter}
-                  onValueChange={(val) => setDifficultyFilter(val)}
-                >
+                <Select value={difficultyFilter} onValueChange={(val) => setDifficultyFilter(val)}>
                   <SelectTrigger className="pl-10 pr-8 py-3 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-green-500">
                     <SelectValue placeholder="Select difficulty" />
                   </SelectTrigger>
@@ -122,20 +108,14 @@ const DietPlans: React.FC = () => {
                 viewport={{ once: true }}
               >
                 <div className="h-48 relative">
-                  <img
-                    src={plan.image}
-                    alt={plan.name}
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={plan.image} alt={plan.name} className="w-full h-full object-cover" />
                   <div className="absolute top-4 right-4 bg-background py-1 px-3 rounded-full text-sm font-medium text-foreground/80">
                     {plan.category}
                   </div>
                 </div>
                 <div className="p-6">
                   <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-xl font-bold text-foreground">
-                      {plan.name}
-                    </h3>
+                    <h3 className="text-xl font-bold text-foreground">{plan.name}</h3>
                     <span
                       className={`text-sm font-medium py-1 px-3 rounded-full ${
                         plan.difficulty === "Easy"
@@ -148,16 +128,14 @@ const DietPlans: React.FC = () => {
                       {plan.difficulty}
                     </span>
                   </div>
-                  <p className="text-secondary-foreground mb-4">
-                    {plan.description}
-                  </p>
+                  <p className="text-secondary-foreground mb-4">{plan.description}</p>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-500 dark:text-foreground/70">
                       {plan.duration}
                     </span>
                     <Link
                       to={`/diet-plans/${plan.id}`}
-                      className={`inline-flex items-center ${colorTheme.primaryText} hover:${colorTheme.primaryText} font-medium`}
+                      className="inline-flex items-center text-primary hover:text-primary/90 font-medium"
                     >
                       View Plan <ArrowRight className="ml-1 h-4 w-4" />
                     </Link>

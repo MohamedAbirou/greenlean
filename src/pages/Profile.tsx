@@ -1,10 +1,8 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { usePlatform } from "@/contexts/PlatformContext";
-import { useAuth } from "@/contexts/useAuth";
+import { useAuth } from "@/features/auth";
 import { useProfile } from "@/features/profile";
-import { useColorTheme } from "@/utils/colorUtils";
+import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
+import { Label } from "@/shared/components/ui/label";
 import { motion } from "framer-motion";
 import { Camera, Loader, Mail, User } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
@@ -28,9 +26,6 @@ const Profile: React.FC = () => {
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const platform = usePlatform();
-  const colorTheme = useColorTheme(platform.settings?.theme_color);
-
   useEffect(() => {
     if (profile) {
       setFullName(profile.full_name || "");
@@ -41,9 +36,7 @@ const Profile: React.FC = () => {
     fileInputRef.current?.click();
   };
 
-  const handleAvatarChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
       const file = event.target.files?.[0];
       if (!file || !user) return;
@@ -119,9 +112,7 @@ const Profile: React.FC = () => {
           >
             <div className="p-8">
               <div className="flex items-center justify-between mb-8">
-                <h1 className="text-2xl font-bold text-foreground">
-                  Profile Settings
-                </h1>
+                <h1 className="text-2xl font-bold text-foreground">Profile Settings</h1>
               </div>
 
               {message && (
@@ -226,8 +217,7 @@ const Profile: React.FC = () => {
                     />
                   </div>
                   <p className="mt-2 text-sm text-foreground/70">
-                    Email cannot be changed. Contact support if you need to
-                    update your email.
+                    Email cannot be changed. Contact support if you need to update your email.
                   </p>
                 </div>
 
@@ -235,7 +225,7 @@ const Profile: React.FC = () => {
                 <div className="flex justify-end">
                   <Button
                     type="submit"
-                    className={`${colorTheme.primaryBg} ${colorTheme.primaryHover} text-white flex items-center`}
+                    className="bg-primary hover:bg-primary/90 text-white flex items-center"
                     disabled={updating}
                   >
                     {updating ? (

@@ -1,10 +1,14 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { usePlatform } from "@/contexts/PlatformContext";
-import { useColorTheme } from "@/utils/colorUtils";
+import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
+import { Label } from "@/shared/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
+import { Textarea } from "@/shared/components/ui/textarea";
 import { motion } from "framer-motion";
 import { Mail, MapPin, MessageSquare, Send } from "lucide-react";
 import React, { useState } from "react";
@@ -19,17 +23,12 @@ const Contact: React.FC = () => {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [submitStatus, setSubmitStatus] = useState<
-    "idle" | "loading" | "success" | "error"
-  >("idle");
-
-  const platform = usePlatform();
-  const colorTheme = useColorTheme(platform.settings?.theme_color);
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "loading" | "success" | "error">(
+    "idle"
+  );
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -75,18 +74,16 @@ const Contact: React.FC = () => {
       setSubmitStatus("loading");
 
       if (validateForm()) {
-        const res = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/resend-email`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            },
-            body: JSON.stringify({
-              to: "abiroumohamed58@gmail.com",
-              subject: formData.subject,
-              html: `
+        const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/resend-email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            to: "abiroumohamed58@gmail.com",
+            subject: formData.subject,
+            html: `
                 <div style="font-family: 'Inter', sans-serif; background:#f9fafb; padding:20px;">
                   <div style="max-width:600px; margin:auto; background:white; border-radius:12px; padding:30px; box-shadow:0 2px 10px rgba(0,0,0,0.1)">
                     <h2 style="color:#6366f1; margin-bottom:10px;">📬 New Message from Your Contact Form</h2>
@@ -103,9 +100,8 @@ const Contact: React.FC = () => {
                   </div>
                 </div>
               `,
-            }),
-          }
-        );
+          }),
+        });
 
         if (!res.ok) throw new Error("Failed to send email");
 
@@ -140,13 +136,13 @@ const Contact: React.FC = () => {
             Contact Us
           </motion.h1>
           <motion.p
-            className="text-lg text-foreground/80 max-w-2xl mx-auto"
+            className="text-lg text-muted-foreground max-w-2xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            Have questions or feedback? We'd love to hear from you. Fill out the
-            form below and we'll get back to you as soon as possible.
+            Have questions or feedback? We'd love to hear from you. Fill out the form below and
+            we'll get back to you as soon as possible.
           </motion.p>
         </div>
 
@@ -158,27 +154,21 @@ const Contact: React.FC = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="bg-white dark:bg-gray-700 rounded-xl shadow-md p-6">
-              <h2 className="text-xl font-semibold text-foreground mb-6">
-                Get in Touch
-              </h2>
+            <div className="bg-card rounded-xl shadow-md p-6">
+              <h2 className="text-xl font-semibold text-foreground mb-6">Get in Touch</h2>
 
               <div className="space-y-4">
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
-                    <div
-                      className={`w-10 h-10 rounded-full ${colorTheme.primaryBg}/20 flex items-center justify-center`}
-                    >
-                      <Mail className={`h-5 w-5 ${colorTheme.primaryText}`} />
+                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                      <Mail className="h-5 w-5 text-primary" />
                     </div>
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                      Email
-                    </h3>
+                    <h3 className="text-sm font-medium text-foreground">Email</h3>
                     <a
                       href="mailto:support@greenlean.com"
-                      className="text-sm text-foreground/80 hover:text-primary"
+                      className="text-sm text-muted-foreground hover:text-primary"
                     >
                       support@greenlean.com
                     </a>
@@ -187,21 +177,19 @@ const Contact: React.FC = () => {
 
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
-                    <div
-                      className={`w-10 h-10 rounded-full ${colorTheme.primaryBg}/20 flex items-center justify-center`}
-                    >
-                      <MapPin className={`h-5 w-5 ${colorTheme.primaryText}`} />
+                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                      <MapPin className="h-5 w-5 text-primary" />
                     </div>
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <h3 className="text-sm font-medium text-foreground">
                       Address
                     </h3>
                     <a
                       href="https://maps.google.com/?q=229+West+28th+Street+New+York+NY+10001"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-foreground/80 hover:text-primary"
+                      className="text-sm text-muted-foreground hover:text-primary"
                     >
                       229 West 28th Street
                       <br />
@@ -214,19 +202,15 @@ const Contact: React.FC = () => {
 
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
-                    <div
-                      className={`w-10 h-10 rounded-full ${colorTheme.primaryBg}/20 flex items-center justify-center`}
-                    >
-                      <MessageSquare
-                        className={`h-5 w-5 ${colorTheme.primaryText}`}
-                      />
+                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                      <MessageSquare className="h-5 w-5 text-primary" />
                     </div>
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <h3 className="text-sm font-medium text-foreground">
                       Support Hours
                     </h3>
-                    <p className="text-sm text-foreground/80">
+                    <p className="text-sm text-muted-foreground">
                       Monday - Friday: 9:00 AM - 6:00 PM EST
                       <br />
                       Saturday: 10:00 AM - 4:00 PM EST
@@ -237,15 +221,10 @@ const Contact: React.FC = () => {
                 </div>
               </div>
 
-              <div
-                className={`mt-8 p-4 ${colorTheme.primaryBg}/20 rounded-lg border ${colorTheme.primaryBorder}`}
-              >
-                <p className={`text-sm ${colorTheme.primaryText}`}>
+              <div className="mt-8 p-4 bg-primary/20 rounded-lg border border-primary">
+                <p className="text-sm text-primary">
                   For immediate assistance, please check our{" "}
-                  <Link
-                    to="/faq"
-                    className={`${colorTheme.primaryText} font-medium hover:${colorTheme.primaryText}`}
-                  >
+                  <Link to="/faq" className="text-primary font-medium hover:text-primary">
                     FAQ page
                   </Link>{" "}
                   or send us an email.
@@ -261,10 +240,8 @@ const Contact: React.FC = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="bg-white dark:bg-gray-700 rounded-xl shadow-md p-6">
-              <h2 className="text-xl font-semibold text-foreground mb-6">
-                Send us a Message
-              </h2>
+            <div className="bg-card rounded-xl shadow-md p-6">
+              <h2 className="text-xl font-semibold text-foreground mb-6">Send us a Message</h2>
 
               {submitStatus === "success" ? (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
@@ -275,8 +252,8 @@ const Contact: React.FC = () => {
                     Message Sent Successfully!
                   </h3>
                   <p className="text-green-600 mb-4">
-                    Thank you for contacting us. We've received your message and
-                    will get back to you within 24-48 hours.
+                    Thank you for contacting us. We've received your message and will get back to
+                    you within 24-48 hours.
                   </p>
                   <button
                     className="px-4 py-2 bg-primary hover:bg-primary/80 text-white rounded-lg  transition-colors"
@@ -297,14 +274,10 @@ const Contact: React.FC = () => {
                         value={formData.name}
                         onChange={handleChange}
                         placeholder="Your name"
-                        className={`${
-                          errors.name ? "border-red-300" : "border-gray-300"
-                        }`}
+                        className={`${errors.name ? "border-red-300" : "border-gray-300"}`}
                       />
                       {errors.name && (
-                        <p className="mt-1 text-sm text-destructive">
-                          {errors.name}
-                        </p>
+                        <p className="mt-1 text-sm text-destructive">{errors.name}</p>
                       )}
                     </div>
 
@@ -317,14 +290,10 @@ const Contact: React.FC = () => {
                         value={formData.email}
                         onChange={handleChange}
                         placeholder="your.email@example.com"
-                        className={`${
-                          errors.email ? "border-red-300" : "border-gray-300"
-                        }`}
+                        className={`${errors.email ? "border-red-300" : "border-gray-300"}`}
                       />
                       {errors.email && (
-                        <p className="mt-1 text-sm text-destructive">
-                          {errors.email}
-                        </p>
+                        <p className="mt-1 text-sm text-destructive">{errors.email}</p>
                       )}
                     </div>
                   </div>
@@ -348,31 +317,19 @@ const Contact: React.FC = () => {
                         <SelectValue placeholder="Select a subject" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="General Inquiry">
-                          General Inquiry
-                        </SelectItem>
-                        <SelectItem value="Diet Plan Question">
-                          Diet Plan Question
-                        </SelectItem>
+                        <SelectItem value="General Inquiry">General Inquiry</SelectItem>
+                        <SelectItem value="Diet Plan Question">Diet Plan Question</SelectItem>
                         <SelectItem value="Exercise Routine Question">
                           Exercise Routine Question
                         </SelectItem>
-                        <SelectItem value="Technical Support">
-                          Technical Support
-                        </SelectItem>
-                        <SelectItem value="Partnership Inquiry">
-                          Partnership Inquiry
-                        </SelectItem>
-                        <SelectItem value="Media Inquiry">
-                          Media Inquiry
-                        </SelectItem>
+                        <SelectItem value="Technical Support">Technical Support</SelectItem>
+                        <SelectItem value="Partnership Inquiry">Partnership Inquiry</SelectItem>
+                        <SelectItem value="Media Inquiry">Media Inquiry</SelectItem>
                         <SelectItem value="Other">Other</SelectItem>
                       </SelectContent>
                     </Select>
                     {errors.subject && (
-                      <p className="mt-1 text-sm text-destructive">
-                        {errors.subject}
-                      </p>
+                      <p className="mt-1 text-sm text-destructive">{errors.subject}</p>
                     )}
                   </div>
 
@@ -386,14 +343,10 @@ const Contact: React.FC = () => {
                       value={formData.message}
                       onChange={handleChange}
                       placeholder="How can we help you?"
-                      className={`${
-                        errors.message ? "border-red-300" : "border-gray-300"
-                      }`}
+                      className={`${errors.message ? "border-red-300" : "border-gray-300"}`}
                     />
                     {errors.message && (
-                      <p className="mt-1 text-sm text-destructive">
-                        {errors.message}
-                      </p>
+                      <p className="mt-1 text-sm text-destructive">{errors.message}</p>
                     )}
                   </div>
 
@@ -404,7 +357,7 @@ const Contact: React.FC = () => {
                       className={`w-full flex justify-center items-center ${
                         submitStatus === "loading"
                           ? "bg-gray-400 cursor-not-allowed"
-                          : `${colorTheme.primaryBg} ${colorTheme.primaryHover}`
+                          : `bg-primary hover:bg-primary/90`
                       }`}
                       disabled={submitStatus === "loading"}
                     >

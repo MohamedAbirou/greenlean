@@ -1,26 +1,23 @@
-import AuthModal from "@/components/auth/AuthModal";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { AuthModal, useAuth } from "@/features/auth";
+import { supabase } from "@/lib/supabase/client";
+import { mlService } from "@/services/mlService";
+import { Badge } from "@/shared/components/ui/badge";
+import { Button } from "@/shared/components/ui/button";
+import { Card, CardContent } from "@/shared/components/ui/card";
+import { Input } from "@/shared/components/ui/input";
+import { Label } from "@/shared/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/shared/components/ui/radio-group";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
-import { Textarea } from "@/components/ui/textarea";
-import { usePlatform } from "@/contexts/PlatformContext";
-import { useAuth } from "@/contexts/useAuth";
-import { supabase } from "@/lib/supabase";
-import { mlService } from "@/services/mlService";
-import { useColorTheme } from "@/utils/colorUtils";
+} from "@/shared/components/ui/select";
+import { Slider } from "@/shared/components/ui/slider";
+import { Textarea } from "@/shared/components/ui/textarea";
 import { logFrontendError, logInfo } from "@/utils/errorLogger";
-import { prepareAnswersForBackend, combineProfileWithQuizAnswers } from "@/utils/unitConversion";
+import { combineProfileWithQuizAnswers, prepareAnswersForBackend } from "@/shared/utils/unitConversion";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -117,13 +114,7 @@ const QUIZ_PHASES = [
         label: "How often do you exercise?",
         type: "radio",
         required: true,
-        options: [
-          "Never",
-          "1-2 times/week",
-          "3-4 times/week",
-          "5-6 times/week",
-          "Daily",
-        ],
+        options: ["Never", "1-2 times/week", "3-4 times/week", "5-6 times/week", "Daily"],
       },
       {
         id: "preferredExercise",
@@ -249,11 +240,7 @@ const QUIZ_PHASES = [
         label: "Grocery Budget",
         type: "radio",
         required: true,
-        options: [
-          "Low (budget-friendly)",
-          "Medium (moderate)",
-          "High (premium)",
-        ],
+        options: ["Low (budget-friendly)", "Medium (moderate)", "High (premium)"],
       },
     ],
   },
@@ -415,8 +402,6 @@ const messages = [
 const Quiz: React.FC = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
-  const platform = usePlatform();
-  const colorTheme = useColorTheme(platform.settings?.theme_color);
 
   const [currentPhase, setCurrentPhase] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -474,10 +459,7 @@ const Quiz: React.FC = () => {
       timestamp: Date.now(),
     };
 
-    localStorage.setItem(
-      `quizProgress_${user.id}`,
-      JSON.stringify(quizProgress)
-    );
+    localStorage.setItem(`quizProgress_${user.id}`, JSON.stringify(quizProgress));
   }, [
     currentPhase,
     currentQuestion,
@@ -532,10 +514,7 @@ const Quiz: React.FC = () => {
   const question = phase.questions[currentQuestion];
 
   // total number of questions across all phases
-  const totalQuestions = QUIZ_PHASES.reduce(
-    (sum, p) => sum + p.questions.length,
-    0
-  );
+  const totalQuestions = QUIZ_PHASES.reduce((sum, p) => sum + p.questions.length, 0);
 
   // number of questions before current phase
   const questionsBeforeCurrentPhase = QUIZ_PHASES.slice(0, currentPhase).reduce(
@@ -599,11 +578,7 @@ const Quiz: React.FC = () => {
   const canProceed = () => {
     if (question.required) {
       const answer = answers[question.id];
-      if (
-        answer === undefined ||
-        answer === "" ||
-        (Array.isArray(answer) && answer.length === 0)
-      ) {
+      if (answer === undefined || answer === "" || (Array.isArray(answer) && answer.length === 0)) {
         return false;
       }
     }
@@ -655,11 +630,7 @@ const Quiz: React.FC = () => {
   const calculateAndNavigate = async () => {
     const userUnitSystem = profileData?.unit_system || "metric";
 
-    const combinedAnswers = combineProfileWithQuizAnswers(
-      profileData,
-      answers,
-      userUnitSystem
-    );
+    const combinedAnswers = combineProfileWithQuizAnswers(profileData, answers, userUnitSystem);
 
     const preparedAnswers = prepareAnswersForBackend(combinedAnswers, userUnitSystem);
 
@@ -778,12 +749,8 @@ const Quiz: React.FC = () => {
               <Input
                 type="number"
                 value={answer?.cm || ""}
-                onChange={(e) =>
-                  handleAnswer(question.id, { cm: e.target.value })
-                }
-                className={`bg-background text-lg ${
-                  error && "border-red-500 dark:border-red-400"
-                }`}
+                onChange={(e) => handleAnswer(question.id, { cm: e.target.value })}
+                className={`bg-background text-lg ${error && "border-red-500 dark:border-red-400"}`}
                 placeholder="170"
                 required
               />
@@ -792,9 +759,7 @@ const Quiz: React.FC = () => {
                 <Input
                   type="number"
                   value={answer?.ft || ""}
-                  onChange={(e) =>
-                    handleAnswer(question.id, { ...answer, ft: e.target.value })
-                  }
+                  onChange={(e) => handleAnswer(question.id, { ...answer, ft: e.target.value })}
                   placeholder="5"
                   className={`w-16 bg-background text-lg ${
                     error && "border-red-500 dark:border-red-400"
@@ -826,9 +791,7 @@ const Quiz: React.FC = () => {
               </p>
             )}
             <p className="text-sm text-foreground/80 text-center">
-              {heightUnit === "cm"
-                ? "Range: 100-250 cm"
-                : "Range: 3'3\" - 8'2\""}
+              {heightUnit === "cm" ? "Range: 100-250 cm" : "Range: 3'3\" - 8'2\""}
             </p>
           </div>
         );
@@ -846,9 +809,7 @@ const Quiz: React.FC = () => {
                 })
               }
               placeholder={weightUnit === "kg" ? "70" : "154"}
-              className={`bg-background text-lg ${
-                error && "border-red-500 dark:border-red-400"
-              }`}
+              className={`bg-background text-lg ${error && "border-red-500 dark:border-red-400"}`}
             />
             {error && (
               <p className="mt-2 text-destructive/90 bg-destructive/20 rounded-md px-2 py-0.5">
@@ -863,10 +824,7 @@ const Quiz: React.FC = () => {
 
       case "radio":
         return (
-          <RadioGroup
-            value={answer}
-            onValueChange={(val) => handleAnswer(question.id, val)}
-          >
+          <RadioGroup value={answer} onValueChange={(val) => handleAnswer(question.id, val)}>
             <div className="space-y-3">
               {question.options?.map((option) => (
                 <Label
@@ -877,10 +835,7 @@ const Quiz: React.FC = () => {
                       : "border-background hover:border-primary/50"
                   }`}
                 >
-                  <RadioGroupItem
-                    value={option}
-                    className="mr-3 bg-background dark:bg-black/40"
-                  />
+                  <RadioGroupItem value={option} className="mr-3 bg-background dark:bg-black/40" />
                   <span className="flex-1">{option}</span>
                 </Label>
               ))}
@@ -891,14 +846,9 @@ const Quiz: React.FC = () => {
       case "select":
         return (
           <>
-            <Select
-              value={answer}
-              onValueChange={(val) => handleAnswer(question.id, val)}
-            >
+            <Select value={answer} onValueChange={(val) => handleAnswer(question.id, val)}>
               <SelectTrigger
-                className={`bg-background w-full ${
-                  error && "border-red-500 dark:border-red-400"
-                }`}
+                className={`bg-background w-full ${error && "border-red-500 dark:border-red-400"}`}
               >
                 <SelectValue placeholder="Select an option" />
               </SelectTrigger>
@@ -933,14 +883,10 @@ const Quiz: React.FC = () => {
               >
                 <div
                   className={`w-5 h-5 border-2 rounded mr-3 flex items-center justify-center ${
-                    selected.includes(option)
-                      ? "bg-primary border-primary"
-                      : "border-background"
+                    selected.includes(option) ? "bg-primary border-primary" : "border-background"
                   }`}
                 >
-                  {selected.includes(option) && (
-                    <Check className="w-3 h-3 text-white" />
-                  )}
+                  {selected.includes(option) && <Check className="w-3 h-3 text-white" />}
                 </div>
                 <span className="flex-1">{option}</span>
               </Label>
@@ -952,9 +898,7 @@ const Quiz: React.FC = () => {
                   type="text"
                   placeholder="Please specify your health condition"
                   value={answers[`${question.id}_other`] || ""}
-                  onChange={(e) =>
-                    handleAnswer(`${question.id}_other`, e.target.value)
-                  }
+                  onChange={(e) => handleAnswer(`${question.id}_other`, e.target.value)}
                   className="bg-background text-lg"
                 />
               </div>
@@ -967,12 +911,8 @@ const Quiz: React.FC = () => {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <span className="text-4xl font-bold text-primary">
-                {answer || question.min}
-              </span>
-              {question.id === "bodyFat" && (
-                <span className="text-2xl text-foreground/80">%</span>
-              )}
+              <span className="text-4xl font-bold text-primary">{answer || question.min}</span>
+              {question.id === "bodyFat" && <span className="text-2xl text-foreground/80">%</span>}
             </div>
             <Slider
               value={[answer || question.min]}
@@ -1027,22 +967,13 @@ const Quiz: React.FC = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="bg-background rounded-2xl shadow-lg p-8 text-center"
           >
-            <LogIn
-              className={`h-16 w-16 ${colorTheme.primaryText} mx-auto mb-6`}
-            />
-            <h2 className="text-2xl font-bold text-foreground mb-4">
-              Sign In to Take the Quiz
-            </h2>
+            <LogIn className="h-16 w-16 text-primary mx-auto mb-6" />
+            <h2 className="text-2xl font-bold text-foreground mb-4">Sign In to Take the Quiz</h2>
             <p className="text-foreground mb-8">
-              To get your personalized diet and exercise plan, please sign in or
-              create an account. It's completely free!
+              To get your personalized diet and exercise plan, please sign in or create an account.
+              It's completely free!
             </p>
-            <AuthModal
-              colorTheme={colorTheme}
-              classNames="w-full"
-              size="lg"
-              btnContent="Sign In to Continue"
-            />
+            <AuthModal />
           </motion.div>
         </div>
       </div>
@@ -1054,8 +985,8 @@ const Quiz: React.FC = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           <div className="bg-yellow-100 border-b border-yellow-300 text-yellow-900 text-sm text-center rounded-lg my-2 py-2">
-            ⚠️ This quiz is in <span className="font-bold">BETA</span> mode —
-            results may not be final.
+            ⚠️ This quiz is in <span className="font-bold">BETA</span> mode — results may not be
+            final.
           </div>
 
           <AnimatePresence mode="wait">
@@ -1067,24 +998,18 @@ const Quiz: React.FC = () => {
                 transition={{ duration: 0.4 }}
                 className="bg-background rounded-2xl shadow-lg p-6 text-center"
               >
-                <h2 className="text-xl font-bold text-foreground mb-3">
-                  Almost ready!
-                </h2>
+                <h2 className="text-xl font-bold text-foreground mb-3">Almost ready!</h2>
 
                 <p className="text-foreground mb-4">
-                  Got it — you want to{" "}
-                  <span className="font-semibold">{answers.mainGoal}</span>, eat{" "}
+                  Got it — you want to <span className="font-semibold">{answers.mainGoal}</span>,
+                  eat{" "}
                   <span className="font-semibold">
                     {answers.mealsPerDay}{" "}
                     {answers.dietaryStyle && answers.dietaryStyle !== "other"
                       ? `of ${answers.dietaryStyle}`
                       : ""}
                   </span>
-                  , and train{" "}
-                  <span className="font-semibold">
-                    {answers.exerciseFrequency}
-                  </span>
-                  .
+                  , and train <span className="font-semibold">{answers.exerciseFrequency}</span>.
                 </p>
                 {/* 
                 <p className="text-foreground mb-4">
@@ -1105,26 +1030,22 @@ const Quiz: React.FC = () => {
                   </p>
                 )} */}
 
-                {answers.healthConditions &&
-                  answers.healthConditions.length > 0 && (
-                    <p className="text-foreground mb-4">
-                      Health conditions:{" "}
-                      <span className="font-semibold">
-                        {answers.healthConditions.includes("Other") &&
-                        answers.healthConditions_other
-                          ? answers.healthConditions_other
-                          : answers.healthConditions.join(", ")}
-                      </span>
-                    </p>
-                  )}
+                {answers.healthConditions && answers.healthConditions.length > 0 && (
+                  <p className="text-foreground mb-4">
+                    Health conditions:{" "}
+                    <span className="font-semibold">
+                      {answers.healthConditions.includes("Other") && answers.healthConditions_other
+                        ? answers.healthConditions_other
+                        : answers.healthConditions.join(", ")}
+                    </span>
+                  </p>
+                )}
 
-                <p className="text-foreground/70 mb-6">
-                  Does this look correct?
-                </p>
+                <p className="text-foreground/70 mb-6">Does this look correct?</p>
 
                 <div className="flex justify-center gap-4">
                   <Button
-                    className={`${colorTheme.primaryBg} ${colorTheme.primaryHover} text-white`}
+                    className="bg-primary hover:bg-primary/90 text-white"
                     onClick={() => {
                       setShowSummary(false);
                       setCompleted(true); // now show spinner
@@ -1133,10 +1054,7 @@ const Quiz: React.FC = () => {
                   >
                     Yes, generate my plan
                   </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowSummary(false)}
-                  >
+                  <Button variant="outline" onClick={() => setShowSummary(false)}>
                     Edit my answers
                   </Button>
                 </div>
@@ -1173,12 +1091,8 @@ const Quiz: React.FC = () => {
                         <PhaseIcon className="w-6 h-6 text-primary" />
                       </div>
                       <div>
-                        <h2 className="text-2xl font-bold text-foreground">
-                          {phase.name}
-                        </h2>
-                        <p className="text-foreground/80">
-                          {phase.description}
-                        </p>
+                        <h2 className="text-2xl font-bold text-foreground">{phase.name}</h2>
+                        <p className="text-foreground/80">{phase.description}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -1204,9 +1118,7 @@ const Quiz: React.FC = () => {
                       </Label>
 
                       {"description" in question && question.description && (
-                        <p className="italic text-sm text-foreground/70">
-                          {question.description}
-                        </p>
+                        <p className="italic text-sm text-foreground/70">{question.description}</p>
                       )}
 
                       {renderQuestion()}
@@ -1272,9 +1184,9 @@ const Quiz: React.FC = () => {
                 className="bg-background rounded-2xl shadow-lg p-8 text-center"
               >
                 <div
-                  className={`w-16 h-16 ${colorTheme.primaryBg}/20 dark:bg-${colorTheme.primaryDark}/20 rounded-full flex items-center justify-center mx-auto mb-6`}
+                  className={`w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6`}
                 >
-                  <Check className={`h-8 w-8 ${colorTheme.primaryText}`} />
+                  <Check className="h-8 w-8 text-primary" />
                 </div>
                 <h2 className="text-2xl font-bold text-foreground mb-4">
                   Creating Your Personalized Plan

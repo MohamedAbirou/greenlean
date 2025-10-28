@@ -2,7 +2,7 @@
  * Workout Feature Types
  */
 
-import type { WorkoutExercise } from "@/types/dashboard";
+import type { WorkoutExercise } from "@/shared/types/dashboard";
 
 export interface WorkoutLogData {
   workout_date: string;
@@ -29,6 +29,7 @@ export interface WorkoutLog {
   duration_minutes?: number;
   calories_burned?: number;
   completed?: boolean;
+  workout_date?: string; // Date for the workout log
 }
 
 export interface WorkoutStats {

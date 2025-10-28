@@ -3,7 +3,7 @@
  * Defines all quiz questions organized by phase
  */
 
-import { User, Target, Activity, Heart, Utensils } from "lucide-react";
+import { Activity, Heart, Target, User, Utensils } from "lucide-react";
 import type { QuizPhase } from "../types";
 
 export const QUIZ_PHASES: QuizPhase[] = [

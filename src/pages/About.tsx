@@ -1,14 +1,9 @@
-import { usePlatform } from "@/contexts/PlatformContext";
-import { useColorTheme } from "@/utils/colorUtils";
 import { motion } from "framer-motion";
 import { ArrowRight, Award, Clock, Heart, Users } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
 
 const About: React.FC = () => {
-  const platform = usePlatform();
-  const colorTheme = useColorTheme(platform.settings?.theme_color);
-
   return (
     <div className="min-h-screen pt-24 pb-16 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -28,9 +23,8 @@ const About: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            We're on a mission to make personalized nutrition and fitness
-            accessible to everyone, empowering you to take control of your
-            health journey.
+            We're on a mission to make personalized nutrition and fitness accessible to everyone,
+            empowering you to take control of your health journey.
           </motion.p>
         </div>
 
@@ -44,21 +38,18 @@ const About: React.FC = () => {
           >
             <h2 className="text-3xl font-bold text-foreground mb-6">Our Story</h2>
             <p className="text-foreground/80 mb-4">
-              GreenLean was born from a simple observation: health and wellness
-              advice is often generic, overwhelming, and inaccessible to many
-              people.
+              GreenLean was born from a simple observation: health and wellness advice is often
+              generic, overwhelming, and inaccessible to many people.
             </p>
             <p className="text-foreground/80 mb-4">
-              We believe that everyone deserves personalized guidance for their
-              unique health journey. Our team of nutrition experts, fitness
-              professionals, and health enthusiasts came together to create a
-              platform that delivers customized plans without the premium price
-              tag.
+              We believe that everyone deserves personalized guidance for their unique health
+              journey. Our team of nutrition experts, fitness professionals, and health enthusiasts
+              came together to create a platform that delivers customized plans without the premium
+              price tag.
             </p>
             <p className="text-foreground/80">
-              Today, GreenLean helps thousands of people discover diet and
-              fitness approaches tailored to their specific needs, goals, and
-              preferences—all completely free.
+              Today, GreenLean helps thousands of people discover diet and fitness approaches
+              tailored to their specific needs, goals, and preferences—all completely free.
             </p>
           </motion.div>
           <motion.div
@@ -79,9 +70,7 @@ const About: React.FC = () => {
         {/* Our Values */}
         <div className="mb-16">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-foreground mb-4">
-              Our Values
-            </h2>
+            <h2 className="text-3xl font-bold text-foreground mb-4">Our Values</h2>
             <p className="text-lg text-foreground/80 max-w-2xl mx-auto">
               These core principles guide everything we do at GreenLean.
             </p>
@@ -125,9 +114,7 @@ const About: React.FC = () => {
                 <div className="rounded-full bg-background/60 w-16 h-16 flex items-center justify-center mb-4">
                   {value.icon}
                 </div>
-                <h3 className="text-xl font-semibold text-foreground mb-2">
-                  {value.title}
-                </h3>
+                <h3 className="text-xl font-semibold text-foreground mb-2">{value.title}</h3>
                 <p className="text-foreground/80">{value.description}</p>
               </motion.div>
             ))}
@@ -137,9 +124,7 @@ const About: React.FC = () => {
         {/* Team Section */}
         <div className="mb-16">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-foreground mb-4">
-              Our Expert Team
-            </h2>
+            <h2 className="text-3xl font-bold text-foreground mb-4">Our Expert Team</h2>
             <p className="text-lg text-foreground/80 max-w-2xl mx-auto">
               Meet the professionals behind GreenLean's personalized plans.
             </p>
@@ -151,13 +136,15 @@ const About: React.FC = () => {
                 name: "Amy Shapiro",
                 role: "Nutrition Specialist",
                 bio: "With over 10 years of experience in clinical nutrition, Dr. Chen helps develop our personalized diet plans.",
-                image:"https://ourkindra.com/cdn/shop/articles/Amy_Shapiro_Kitchen6_Claudine_Williams_1200x1200.jpg?v=1639095072",
+                image:
+                  "https://ourkindra.com/cdn/shop/articles/Amy_Shapiro_Kitchen6_Claudine_Williams_1200x1200.jpg?v=1639095072",
               },
               {
                 name: "Jesse K.",
                 role: "Certified Fitness Coach",
                 bio: "Former professional athlete with a passion for helping people find exercise routines they actually enjoy.",
-                image: "https://fitnesstrainer.imgix.net/uploads/instructor/picture/24330/35F77D51-1F6C-458C-9D51-0CBDF168878E.jpeg?auto=format%2Cenhance%2Credeye&h=250&w=250&fit=facearea&facepad=4",
+                image:
+                  "https://fitnesstrainer.imgix.net/uploads/instructor/picture/24330/35F77D51-1F6C-458C-9D51-0CBDF168878E.jpeg?auto=format%2Cenhance%2Credeye&h=250&w=250&fit=facearea&facepad=4",
               },
               {
                 name: "Dr Clodagh Campbell",
@@ -183,12 +170,8 @@ const About: React.FC = () => {
                   />
                 </div>
                 <div className="p-6">
-                  <h3 className="text-xl font-bold text-foreground mb-1">
-                    {member.name}
-                  </h3>
-                  <p className={`${colorTheme.primaryText} font-medium mb-3`}>
-                    {member.role}
-                  </p>
+                  <h3 className="text-xl font-bold text-foreground mb-1">{member.name}</h3>
+                  <p className="text-primary font-medium mb-3">{member.role}</p>
                   <p className="text-foreground/80">{member.bio}</p>
                 </div>
               </motion.div>
@@ -197,17 +180,15 @@ const About: React.FC = () => {
         </div>
 
         {/* CTA Section */}
-        <div className={`${colorTheme.primaryBg} rounded-xl p-8 text-center text-white`}>
-          <h2 className="text-2xl font-bold mb-4">
-            Ready to Start Your Health Journey?
-          </h2>
+        <div className="bg-primary rounded-xl p-8 text-center text-white">
+          <h2 className="text-2xl font-bold mb-4">Ready to Start Your Health Journey?</h2>
           <p className="text-lg mb-6 max-w-2xl mx-auto">
-            Take our quiz to get your personalized diet and weight loss plan,
-            tailored to your unique needs and preferences.
+            Take our quiz to get your personalized diet and weight loss plan, tailored to your
+            unique needs and preferences.
           </p>
           <Link
             to="/quiz"
-            className={`inline-flex items-center px-6 py-3 bg-white ${colorTheme.primaryText} font-semibold rounded-full hover:bg-foreground transition-colors duration-300`}
+            className="inline-flex items-center px-6 py-3 bg-white text-primary font-semibold rounded-full hover:bg-foreground transition-colors duration-300"
           >
             Take the Quiz <ArrowRight className="ml-2 h-5 w-5" />
           </Link>

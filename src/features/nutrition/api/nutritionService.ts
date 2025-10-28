@@ -3,8 +3,8 @@
  * Handles nutrition logging and tracking operations
  */
 
-import { supabase } from "@/lib/supabase";
-import type { NutritionLog, TodayLog, NutritionStats, MacroTargets } from "../types";
+import { supabase } from "@/lib/supabase/client";
+import type { MacroTargets, NutritionLog, NutritionStats, TodayLog } from "../types";
 
 export class NutritionService {
   /**

@@ -3,8 +3,8 @@
  * Handles workout logging and tracking operations
  */
 
-import { supabase } from "@/lib/supabase";
-import type { WorkoutLogData, WorkoutLog, WorkoutStats } from "../types";
+import { supabase } from "@/lib/supabase/client";
+import type { WorkoutLog, WorkoutLogData, WorkoutStats } from "../types";
 
 export class WorkoutService {
   /**
@@ -125,6 +125,7 @@ export class WorkoutService {
         calories_burned: log.calories_burned,
         completed: log.completed ?? false,
         notes: log.notes,
+        workout_date: log.workout_date || new Date().toISOString().split("T")[0],
       });
 
       if (error) throw error;
