@@ -4,6 +4,7 @@
  */
 
 import AuthCallback from "@/pages/AuthCallback";
+import Challenges from "@/pages/Challenges";
 import Contact from "@/pages/Contact";
 import Dashboard from "@/pages/Dashboard";
 import DietPlanDetails from "@/pages/DietPlanDetails";
@@ -25,7 +26,6 @@ import Layout from "../../shared/components/layout/Layout";
 const About = lazy(() => import("@/pages/About"));
 const FAQ = lazy(() => import("@/pages/FAQ"));
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
-const Challenges = lazy(() => import(/* webpackPrefetch: true */ "@/pages/Challenges"))
 const AdminBootstrap = lazy(() => import("@/features/admin/components/AdminBootstrap"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
