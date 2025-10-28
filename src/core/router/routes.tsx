@@ -3,6 +3,7 @@
  * Lazy-loaded routes for optimal performance
  */
 
+import Dashboard from "@/pages/Dashboard";
 import { lazy } from "react";
 import type { RouteObject } from "react-router-dom";
 import { ProtectedRoute } from "../../features/auth";
@@ -16,7 +17,7 @@ const FAQ = lazy(() => import("@/pages/FAQ"));
 const Quiz = lazy(() => import("@/pages/Quiz"))
 const QuizHistory = lazy(() => import("@/pages/QuizHistory"));
 const QuizResult = lazy(() => import("@/pages/QuizResult"));
-const Dashboard = lazy(() => import("@/pages/Dashboard"));
+// const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Profile = lazy(() => import("@/pages/Profile"));
 const Challenges = lazy(() => import("@/pages/Challenges"));
 const DietPlans = lazy(() => import("@/pages/DietPlans"));

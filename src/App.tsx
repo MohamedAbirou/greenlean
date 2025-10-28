@@ -11,11 +11,7 @@ import { routes, suspenseFallback } from "./core/router/routes";
 function AppRoutes() {
   const element = useRoutes(routes);
 
-  return (
-    <Suspense fallback={suspenseFallback}>
-      {element}
-    </Suspense>
-  );
+  return <Suspense fallback={suspenseFallback}>{element}</Suspense>;
 }
 
 function App() {
