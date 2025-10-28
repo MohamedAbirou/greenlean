@@ -22,10 +22,10 @@ import type { RouteObject } from "react-router-dom";
 import { ProtectedRoute } from "../../features/auth";
 import { FullPageLoader } from "../../shared/components/feedback";
 import Layout from "../../shared/components/layout/Layout";
+import AdminDashboard from "@/pages/AdminDashboard";
 
 const About = lazy(() => import("@/pages/About"));
 const FAQ = lazy(() => import("@/pages/FAQ"));
-const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const AdminBootstrap = lazy(() => import("@/features/admin/components/AdminBootstrap"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
