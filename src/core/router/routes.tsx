@@ -3,32 +3,31 @@
  * Lazy-loaded routes for optimal performance
  */
 
+import AuthCallback from "@/pages/AuthCallback";
+import Contact from "@/pages/Contact";
 import Dashboard from "@/pages/Dashboard";
+import DietPlanDetails from "@/pages/DietPlanDetails";
+import DietPlans from "@/pages/DietPlans";
+import ExerciseDetails from "@/pages/ExerciseDetails";
+import Home from "@/pages/Home";
+import Profile from "@/pages/Profile";
+import Quiz from "@/pages/Quiz";
+import QuizHistory from "@/pages/QuizHistory";
+import QuizResult from "@/pages/QuizResult";
+import Register from "@/pages/Register";
+import WeightLoss from "@/pages/WeightLoss";
 import { lazy } from "react";
 import type { RouteObject } from "react-router-dom";
 import { ProtectedRoute } from "../../features/auth";
 import { FullPageLoader } from "../../shared/components/feedback";
 import Layout from "../../shared/components/layout/Layout";
 
-const Home = lazy(() => import("@/pages/Home"));
 const About = lazy(() => import("@/pages/About"));
-const Contact = lazy(() => import("@/pages/Contact"));
 const FAQ = lazy(() => import("@/pages/FAQ"));
-const Quiz = lazy(() => import("@/pages/Quiz"))
-const QuizHistory = lazy(() => import("@/pages/QuizHistory"));
-const QuizResult = lazy(() => import("@/pages/QuizResult"));
-// const Dashboard = lazy(() => import("@/pages/Dashboard"));
-const Profile = lazy(() => import("@/pages/Profile"));
-const Challenges = lazy(() => import("@/pages/Challenges"));
-const DietPlans = lazy(() => import("@/pages/DietPlans"));
-const DietPlanDetails = lazy(() => import("@/pages/DietPlanDetails"));
-const WeightLoss = lazy(() => import("@/pages/WeightLoss"));
-const ExerciseDetails = lazy(() => import("@/pages/ExerciseDetails"));
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
+const Challenges = lazy(() => import(/* webpackPrefetch: true */ "@/pages/Challenges"))
 const AdminBootstrap = lazy(() => import("@/features/admin/components/AdminBootstrap"));
-const Register = lazy(() => import("@/pages/Register"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
-const AuthCallback = lazy(() => import("@/pages/AuthCallback"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 export const routes: RouteObject[] = [
