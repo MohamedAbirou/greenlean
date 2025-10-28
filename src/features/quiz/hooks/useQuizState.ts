@@ -1,78 +1,189 @@
-/**
- * Quiz State Hook
- * Manages quiz navigation and answers
- */
+// src/features/quiz/hooks/useQuizState.ts
 
-import { useState, useCallback } from "react";
-import type { QuizAnswers, QuizPhase } from "../types";
-import {
-  calculateProgress,
-  canProceedToNext,
-  getNextQuestion,
-  getPreviousQuestion,
-} from "../utils/quizHelpers";
+import { useAuth } from "@/features/auth";
+import { useEffect, useState } from "react";
+import { quizApi } from "../api/quizApi";
+import { QUIZ_PHASES } from "../data/phases";
+import type { ProfileData, QuizAnswers } from "../types";
+import { clearQuizProgress, loadQuizProgress, saveQuizProgress } from "../utils/storage";
+import { canProceed as canProceedUtil, validateAnswer } from "../utils/validation";
 
-export function useQuizState(phases: QuizPhase[]) {
+export const useQuizState = () => {
+  const { user, loading: authLoading } = useAuth();
+
   const [currentPhase, setCurrentPhase] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<QuizAnswers>({});
-  const [isCompleted, setIsCompleted] = useState(false);
+  const [heightUnit, setHeightUnit] = useState("cm");
+  const [weightUnit, setWeightUnit] = useState("kg");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [progressRestored, setProgressRestored] = useState(false);
 
-  const phase = phases[currentPhase];
+  const phase = QUIZ_PHASES[currentPhase];
   const question = phase.questions[currentQuestion];
 
-  const progress = calculateProgress(currentPhase, currentQuestion, phases);
+  // Load saved progress
+  useEffect(() => {
+    if (!user) return;
+
+    const savedProgress = loadQuizProgress(user.id);
+    if (savedProgress) {
+      setCurrentPhase(savedProgress.currentPhase || 0);
+      setCurrentQuestion(savedProgress.currentQuestion || 0);
+      setAnswers(savedProgress.answers || {});
+      setHeightUnit(savedProgress.heightUnit || "cm");
+      setWeightUnit(savedProgress.weightUnit || "kg");
+      setProgressRestored(true);
+    }
+  }, [user]);
+
+  // Fetch profile data
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user) {
+        setLoadingProfile(false);
+        return;
+      }
+
+      setLoadingProfile(true);
+
+      try {
+        const data = await quizApi.fetchProfile(user.id);
+
+        if (data && data.onboarding_completed) {
+          setProfileData(data);
+
+          if (data.unit_system === "imperial") {
+            setHeightUnit("ft/inch");
+            setWeightUnit("lbs");
+          } else {
+            setHeightUnit("cm");
+            setWeightUnit("kg");
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      } finally {
+        setLoadingProfile(false);
+      }
+    };
+
+    fetchProfile();
+  }, [user]);
+
+  // Save progress
+  useEffect(() => {
+    if (!user || !progressRestored || loadingProfile) return;
+
+    saveQuizProgress(user.id, {
+      currentPhase,
+      currentQuestion,
+      answers,
+      heightUnit,
+      weightUnit,
+      timestamp: Date.now(),
+    });
+  }, [
+    currentPhase,
+    currentQuestion,
+    answers,
+    heightUnit,
+    weightUnit,
+    user,
+    loadingProfile,
+    progressRestored,
+  ]);
+
+  const handleAnswer = (questionId: keyof QuizAnswers, value: any) => {
+    setAnswers((prev) => ({ ...prev, [questionId]: value }));
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors[questionId];
+      return newErrors;
+    });
+  };
 
   const isFirstQuestion = currentPhase === 0 && currentQuestion === 0;
   const isLastQuestion =
-    currentPhase === phases.length - 1 && currentQuestion === phase.questions.length - 1;
+    currentPhase === QUIZ_PHASES.length - 1 && currentQuestion === phase.questions.length - 1;
+  const canProceed = () => canProceedUtil(question, answers);
 
-  const canProceed = canProceedToNext(question.id, answers, question.required);
+  const handleNext = () => {
+    if (!user || !canProceed()) return;
 
-  const handleAnswerChange = useCallback((questionId: string, value: any) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [questionId]: value,
-    }));
-  }, []);
+    const error = validateAnswer(question, answers[question.id] || "");
+    if (error) {
+      setErrors((prev) => ({ ...prev, [question.id]: error }));
+      return;
+    }
 
-  const handleNext = useCallback(() => {
-    const next = getNextQuestion(currentPhase, currentQuestion, phases);
-
-    if (next.completed) {
-      setIsCompleted(true);
+    if (currentQuestion < phase.questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+    } else if (currentPhase < QUIZ_PHASES.length - 1) {
+      setCurrentPhase(currentPhase + 1);
+      setCurrentQuestion(0);
     } else {
-      setCurrentPhase(next.phase);
-      setCurrentQuestion(next.question);
+      return "complete";
     }
-  }, [currentPhase, currentQuestion, phases]);
+  };
 
-  const handlePrevious = useCallback(() => {
-    const prev = getPreviousQuestion(currentPhase, currentQuestion);
-    if (prev) {
-      setCurrentPhase(prev.phase);
-      setCurrentQuestion(prev.question);
+  const handlePrevious = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion(currentQuestion - 1);
+    } else if (currentPhase > 0) {
+      setCurrentPhase(currentPhase - 1);
+      setCurrentQuestion(QUIZ_PHASES[currentPhase - 1].questions.length - 1);
     }
-  }, [currentPhase, currentQuestion]);
+  };
 
-  const handleSkip = useCallback(() => {
-    handleNext();
-  }, [handleNext]);
+  const handleSkip = () => {
+    if (question.skippable) handleNext();
+  };
+
+  const clearProgress = () => {
+    if (user) clearQuizProgress(user.id);
+  };
+
+  // Calculate progress
+  const totalQuestions = QUIZ_PHASES.reduce((sum, p) => sum + p.questions.length, 0);
+  const questionsBeforeCurrentPhase = QUIZ_PHASES.slice(0, currentPhase).reduce(
+    (sum, p) => sum + p.questions.length,
+    0
+  );
+  const answeredCount = questionsBeforeCurrentPhase + currentQuestion + 1;
+  const progress = (answeredCount / totalQuestions) * 100;
 
   return {
+    // State
     currentPhase,
     currentQuestion,
+    answers,
+    heightUnit,
+    weightUnit,
+    errors,
+    profileData,
+    loadingProfile,
+    progressRestored,
     phase,
     question,
-    answers,
     progress,
-    isCompleted,
     isFirstQuestion,
     isLastQuestion,
-    canProceed,
-    handleAnswerChange,
+
+    // Computed
+    isLoading: authLoading || loadingProfile,
+    isAuthenticated: !!user,
+
+    // Actions
+    setHeightUnit,
+    setWeightUnit,
+    handleAnswer,
     handleNext,
     handlePrevious,
     handleSkip,
+    canProceed,
+    clearProgress,
   };
-}
+};

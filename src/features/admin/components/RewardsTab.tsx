@@ -1,9 +1,9 @@
-import { IconMap } from "@/helpers/challengeHelper";
 import { useRewardsQuery, type Reward } from "@/shared/hooks/Queries/useRewards";
 import { Edit, Loader, Search, Star, StarIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Input } from "../../../shared/components/ui/input";
 import RewardForm from "./RewardForm";
+import { IconMap } from "@/features/challenges/utils/progress";
 
 const RewardsTab = () => {
   const [searchTerm, setSearchTerm] = useState("");

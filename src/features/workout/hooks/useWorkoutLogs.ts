@@ -50,6 +50,7 @@ export function useWorkoutLogs(userId: string, weeklyTarget = 5) {
       return { previousLogs };
     },
     onError: (error, variables, context) => {
+      console.error(error, variables);
       // Rollback on error
       if (context?.previousLogs) {
         queryClient.setQueryData(
@@ -81,6 +82,7 @@ export function useWorkoutLogs(userId: string, weeklyTarget = 5) {
       return { previousLogs };
     },
     onError: (error, variables, context) => {
+      console.error(error, variables);
       if (context?.previousLogs) {
         queryClient.setQueryData(
           ["workout-logs", userId],

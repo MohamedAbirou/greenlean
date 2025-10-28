@@ -1,8 +1,7 @@
-// src/features/quiz/utils/storage.ts
+import type { QuizProgressType } from "../types";
 
-import type { QuizProgress } from "../types";
 
-export const saveQuizProgress = (userId: string, progress: QuizProgress): void => {
+export const saveQuizProgress = (userId: string, progress: QuizProgressType): void => {
   try {
     localStorage.setItem(`quizProgress_${userId}`, JSON.stringify(progress));
   } catch (error) {
@@ -10,7 +9,7 @@ export const saveQuizProgress = (userId: string, progress: QuizProgress): void =
   }
 };
 
-export const loadQuizProgress = (userId: string): QuizProgress | null => {
+export const loadQuizProgress = (userId: string): QuizProgressType | null => {
   try {
     const saved = localStorage.getItem(`quizProgress_${userId}`);
     if (saved) {

@@ -68,7 +68,6 @@ export const DietPlanSection: React.FC<DietPlanSectionProps> = memo(({ userId, c
   );
 
   const {
-    logs: todayLogs,
     stats: nutritionStats,
     isLoggingMeal,
     refetch,

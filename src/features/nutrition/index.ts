@@ -5,11 +5,6 @@
 export { NutritionService } from "./api/nutritionService";
 export { useNutritionLogs } from "./hooks/useNutritionLogs";
 export type {
-    MacroTargets, NutritionLog, NutritionStats, TodayLog
+    NutritionLog as DefaultNutritionLog, TodayLog as DefaultTodayLog, MacroTargets, NutritionStats
 } from "./types";
 
-// Re-export types for convenience
-export type {
-    NutritionLog as DefaultNutritionLog,
-    TodayLog as DefaultTodayLog
-};

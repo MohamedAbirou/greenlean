@@ -1,6 +1,6 @@
 // src/features/dashboard/hooks/useDietPlan.ts
 
-import { quizApi } from "@/features/new_quiz/api/quizApi";
+import { quizApi } from "@/features/quiz/api/quizApi";
 import type { DashboardDietPlan } from "@/shared/types/dashboard";
 import { useQuery } from "@tanstack/react-query";
 import { DashboardService } from "../api/dashboardService";

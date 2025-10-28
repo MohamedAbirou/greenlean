@@ -1,4 +1,4 @@
-import { IconMap } from "@/helpers/challengeHelper";
+import { IconMap } from "@/features/challenges/utils/progress";
 import type { Challenge } from "@/shared/types/challenge";
 import { Edit, Sparkles, Star, Trash2 } from "lucide-react";
 

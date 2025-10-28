@@ -50,6 +50,7 @@ export function useNutritionLogs(userId: string, macroTargets?: MacroTargets) {
       return { previousLogs };
     },
     onError: (error, variables, context) => {
+      console.error(error, variables);
       if (context?.previousLogs) {
         queryClient.setQueryData(
           ["nutrition-logs", userId],
@@ -64,7 +65,7 @@ export function useNutritionLogs(userId: string, macroTargets?: MacroTargets) {
 
   const deleteMealMutation = useMutation({
     mutationFn: (logId: string) => NutritionService.deleteMealLog(logId),
-    onMutate: async (logId) => {
+    onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: ["nutrition-logs", userId] });
 
       const previousLogs = queryClient.getQueryData([
@@ -74,12 +75,13 @@ export function useNutritionLogs(userId: string, macroTargets?: MacroTargets) {
 
       queryClient.setQueryData(
         ["nutrition-logs", userId],
-        (old: any[] = []) => old.filter((log, index) => index !== 0)
+        (old: any[] = []) => old.filter((_, index) => index !== 0)
       );
 
       return { previousLogs };
     },
     onError: (error, variables, context) => {
+      console.error(error, variables);
       if (context?.previousLogs) {
         queryClient.setQueryData(
           ["nutrition-logs", userId],
@@ -93,7 +95,6 @@ export function useNutritionLogs(userId: string, macroTargets?: MacroTargets) {
   });
 
   return {
-    logs: logsQuery.data || [],
     stats,
     isLoading: logsQuery.isLoading,
     isError: logsQuery.isError,

@@ -1,65 +1,56 @@
-/**
- * Quiz Card Component
- * Displays current question with navigation
- */
+// src/features/quiz/components/QuizCard.tsx
 
+import { Badge } from "@/shared/components/ui/badge";
+import { Card, CardContent } from "@/shared/components/ui/card";
+import { Label } from "@/shared/components/ui/label";
 import { motion } from "framer-motion";
-import { Check, ChevronLeft, ChevronRight } from "lucide-react";
-import { Badge } from "../../../shared/components/ui/badge";
-import { Button } from "../../../shared/components/ui/button";
-import { Card, CardContent } from "../../../shared/components/ui/card";
-import { Label } from "../../../shared/components/ui/label";
-import type { QuizPhase, QuizQuestion } from "../types";
+import React from "react";
+import type { QuizAnswers, QuizQuestion } from "../types";
 import { QuestionRenderer } from "./QuestionRenderer";
+import { QuizNavigation } from "./QuizNavigation";
 
 interface QuizCardProps {
-  phase: QuizPhase;
+  currentPhase: number;
+  currentQuestion: number;
   question: QuizQuestion;
-  value: any;
-  isFirstQuestion: boolean;
-  isLastQuestion: boolean;
+  answers: QuizAnswers;
+  heightUnit: string;
+  weightUnit: string;
+  errors: Record<string, string>;
   canProceed: boolean;
-  onChange: (value: any) => void;
-  onNext: () => void;
+  onAnswer: (questionId: keyof QuizAnswers, value: any) => void;
+  onToggleMultiSelect: (questionId: keyof QuizAnswers, option: string) => void;
   onPrevious: () => void;
   onSkip: () => void;
+  onNext: () => void;
 }
 
-export function QuizCard({
-  phase,
+export const QuizCard: React.FC<QuizCardProps> = ({
+  currentPhase,
+  currentQuestion,
   question,
-  value,
-  isFirstQuestion,
-  isLastQuestion,
+  answers,
+  heightUnit,
+  weightUnit,
+  errors,
   canProceed,
-  onChange,
-  onNext,
+  onAnswer,
+  onToggleMultiSelect,
   onPrevious,
   onSkip,
-}: QuizCardProps) {
-  const PhaseIcon = phase.icon;
-
+  onNext,
+}) => {
   return (
-    <Card className="w-full max-w-2xl mx-auto shadow-xl border-2">
+    <Card>
       <motion.div
-        key={`${phase.id}-${question.id}`}
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: -20 }}
+        key={question.id}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.3 }}
       >
-        <CardContent className="p-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-3 bg-primary/10 rounded-full">
-              <PhaseIcon className="w-6 h-6 text-primary" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-foreground">{phase.name}</h3>
-              <p className="text-sm text-muted-foreground">{phase.description}</p>
-            </div>
-          </div>
-
-          <Label className="text-lg font-medium text-foreground mb-2 block">
+        <CardContent className="space-y-6">
+          <Label className="text-xl font-semibold">
             {question.label}
             {!question.required && (
               <Badge variant="secondary" className="ml-2">
@@ -69,42 +60,30 @@ export function QuizCard({
           </Label>
 
           {question.description && (
-            <p className="italic text-sm text-muted-foreground mb-4">{question.description}</p>
+            <p className="italic text-sm text-foreground/70">{question.description}</p>
           )}
 
-          <div className="mb-6">
-            <QuestionRenderer question={question} value={value} onChange={onChange} />
-          </div>
+          <QuestionRenderer
+            question={question}
+            answers={answers}
+            heightUnit={heightUnit}
+            weightUnit={weightUnit}
+            errors={errors}
+            onAnswer={onAnswer}
+            onToggleMultiSelect={onToggleMultiSelect}
+          />
 
-          <div className="flex justify-between">
-            <Button variant="outline" onClick={onPrevious} disabled={isFirstQuestion}>
-              <ChevronLeft className="w-4 h-4 mr-2" />
-              Previous
-            </Button>
-
-            <div className="flex gap-2">
-              {question.skippable && (
-                <Button variant="ghost" onClick={onSkip}>
-                  Skip
-                </Button>
-              )}
-              <Button onClick={onNext} disabled={!canProceed}>
-                {isLastQuestion ? (
-                  <>
-                    Complete
-                    <Check className="w-4 h-4 ml-2" />
-                  </>
-                ) : (
-                  <>
-                    Next
-                    <ChevronRight className="w-4 h-4 ml-2" />
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
+          <QuizNavigation
+            currentPhase={currentPhase}
+            currentQuestion={currentQuestion}
+            question={question}
+            canProceed={canProceed}
+            onPrevious={onPrevious}
+            onSkip={onSkip}
+            onNext={onNext}
+          />
         </CardContent>
       </motion.div>
     </Card>
   );
-}
+};

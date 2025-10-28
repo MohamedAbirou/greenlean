@@ -141,12 +141,6 @@ export const WorkoutSection: React.FC<WorkoutSectionProps> = memo(({ userId }) =
     logWorkout(logWithDate);
   }, [workoutLog, logWorkout]);
 
-  const handleWorkoutSuccess = useCallback(() => {
-    toast.success("Workout logged successfully! 🎉");
-    setShowLogModal(false);
-    setWorkoutLog(INITIAL_WORKOUT_LOG);
-  }, []);
-
   const handleCloseModal = useCallback(() => setShowLogModal(false), []);
   const handleOpenModal = useCallback(() => setShowLogModal(true), []);
 

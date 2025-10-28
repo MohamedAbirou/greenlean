@@ -1,145 +1,142 @@
-/**
- * Quiz Page (Refactored)
- * Clean, modular quiz implementation
- */
+// src/pages/Quiz.tsx
 
+import { AuthGate } from "@/features/quiz/components/AuthGate";
+import { PhaseDots } from "@/features/quiz/components/PhaseDots";
+import { PhaseHeader } from "@/features/quiz/components/PhaseHeader";
+import { QuizCard } from "@/features/quiz/components/QuizCard";
+import { QuizLoading } from "@/features/quiz/components/QuizLoading";
+import { QuizProgress } from "@/features/quiz/components/QuizProgress";
+import { QuizSummary } from "@/features/quiz/components/QuizSummary";
+import { useQuizState } from "@/features/quiz/hooks/useQuizState";
+import { useQuizSubmission } from "@/features/quiz/hooks/useQuizSubmission";
+import type { QuizAnswers } from "@/features/quiz/types";
 import { AnimatePresence } from "framer-motion";
-import { LogIn } from "lucide-react";
-import { useState } from "react";
-import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
-import { AuthModal, useAuth } from "../features/auth";
-import {
-  PhaseIndicators,
-  QUIZ_PHASES,
-  QuizCard,
-  QuizLoading,
-  QuizProgressBar,
-  QuizService,
-  serializeAnswers,
-  useQuizState,
-} from "../features/quiz";
+import React, { useState } from "react";
 
-export default function Quiz() {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
+const Quiz: React.FC = () => {
   const {
     currentPhase,
+    currentQuestion,
+    answers,
+    heightUnit,
+    weightUnit,
+    errors,
+    profileData,
+    progressRestored,
     phase,
     question,
-    answers,
     progress,
-    isCompleted,
-    isFirstQuestion,
-    isLastQuestion,
-    canProceed,
-    handleAnswerChange,
+    isLoading,
+    isAuthenticated,
+    handleAnswer,
     handleNext,
     handlePrevious,
     handleSkip,
-  } = useQuizState(QUIZ_PHASES);
+    canProceed,
+    clearProgress,
+  } = useQuizState();
 
-  const handleQuizComplete = async () => {
-    if (!user) {
-      toast.error("Please sign in to save your results");
-      return;
-    }
+  const { submitQuiz, isSubmitting } = useQuizSubmission();
 
-    setIsSubmitting(true);
+  const [showSummary, setShowSummary] = useState(false);
+  const [completed, setCompleted] = useState(false);
 
-    try {
-      const serializedAnswers = serializeAnswers(answers);
+  const toggleMultiSelect = (questionId: keyof QuizAnswers, option: string) => {
+    const current = (answers[questionId] as string[]) || [];
+    const newValue = current.includes(option)
+      ? current.filter((item) => item !== option)
+      : [...current, option];
+    handleAnswer(questionId, newValue);
+  };
 
-      const result = await QuizService.submitQuiz(user.id, serializedAnswers);
-
-      toast.success("Your personalized plan is ready!");
-      navigate(`/quiz-result/${result.id}`);
-    } catch (error) {
-      console.error("Quiz submission failed:", error);
-      toast.error("Failed to submit quiz. Please try again.");
-    } finally {
-      setIsSubmitting(false);
+  const handleNextWrapper = () => {
+    const result = handleNext();
+    if (result === "complete") {
+      setShowSummary(true);
     }
   };
 
-  const handleNextClick = () => {
-    if (isLastQuestion) {
-      handleQuizComplete();
-    } else {
-      handleNext();
-    }
+  const handleConfirmSummary = async () => {
+    setShowSummary(false);
+    setCompleted(true);
+
+    // Small delay for animation
+    setTimeout(async () => {
+      if (profileData) {
+        await submitQuiz(profileData.id, profileData, answers, clearProgress);
+      }
+    }, 500);
   };
 
-  if (!user) {
+  // Loading state
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center p-4">
-        <div className="bg-card rounded-2xl shadow-xl p-8 max-w-md w-full text-center border">
-          <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6">
-            <LogIn className="h-8 w-8 text-primary" />
-          </div>
-
-          <h2 className="text-2xl font-bold text-foreground mb-4">Sign in to Continue</h2>
-          <p className="text-muted-foreground mb-6">
-            Sign in to save your quiz results and get your personalized health plan
-          </p>
-
-          <AuthModal
-            defaultMode="signin"
-            buttonText="Sign In"
-            buttonClassName="w-full"
-            onAuthSuccess={() => window.location.reload()}
-          />
+      <div className="min-h-screen pt-24 pb-16 bg-gradient-global flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-foreground">Loading your profile...</p>
         </div>
       </div>
     );
   }
 
+  // Auth gate
+  if (!isAuthenticated) {
+    return <AuthGate />;
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted py-12 px-4">
-      <div className="container mx-auto max-w-4xl">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2">Health Assessment Quiz</h1>
-          <p className="text-muted-foreground">
-            Help us create your personalized health and fitness plan
-          </p>
+    <div className="min-h-screen pt-24 pb-16 bg-gradient-global">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-yellow-100 border-b border-yellow-300 text-yellow-900 text-sm text-center rounded-lg my-2 py-2">
+            ⚠️ This quiz is in <span className="font-bold">BETA</span> mode — results may not be
+            final.
+          </div>
+
+          <AnimatePresence mode="wait">
+            {showSummary ? (
+              <QuizSummary
+                answers={answers}
+                onEdit={() => setShowSummary(false)}
+                onConfirm={handleConfirmSummary}
+              />
+            ) : completed || isSubmitting ? (
+              <QuizLoading />
+            ) : (
+              <>
+                <QuizProgress
+                  currentPhase={currentPhase}
+                  progress={progress}
+                  progressRestored={progressRestored}
+                />
+
+                <PhaseHeader phase={phase} />
+
+                <QuizCard
+                  currentPhase={currentPhase}
+                  currentQuestion={currentQuestion}
+                  question={question}
+                  answers={answers}
+                  heightUnit={heightUnit}
+                  weightUnit={weightUnit}
+                  errors={errors}
+                  canProceed={canProceed()}
+                  onAnswer={handleAnswer}
+                  onToggleMultiSelect={toggleMultiSelect}
+                  onPrevious={handlePrevious}
+                  onSkip={handleSkip}
+                  onNext={handleNextWrapper}
+                />
+
+                <PhaseDots currentPhase={currentPhase} />
+              </>
+            )}
+          </AnimatePresence>
         </div>
-
-        {!isCompleted && !isSubmitting && (
-          <QuizProgressBar
-            currentPhase={currentPhase}
-            totalPhases={progress.totalPhases}
-            percentComplete={progress.percentComplete}
-          />
-        )}
-
-        <AnimatePresence mode="wait">
-          {!isCompleted && !isSubmitting ? (
-            <div key="quiz-content">
-              <QuizCard
-                phase={phase}
-                question={question}
-                value={answers[question.id]}
-                isFirstQuestion={isFirstQuestion}
-                isLastQuestion={isLastQuestion}
-                canProceed={canProceed}
-                onChange={(value) => handleAnswerChange(question.id, value)}
-                onNext={handleNextClick}
-                onPrevious={handlePrevious}
-                onSkip={handleSkip}
-              />
-
-              <PhaseIndicators
-                currentPhase={currentPhase}
-                totalPhases={progress.totalPhases}
-              />
-            </div>
-          ) : (
-            <QuizLoading key="loading" />
-          )}
-        </AnimatePresence>
       </div>
     </div>
   );
-}
+};
+
+export default Quiz;

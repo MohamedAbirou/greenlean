@@ -8,8 +8,8 @@
 
 // src/features/dashboard/index.ts (UPDATED EXPORTS)
 
-export { PlanGeneratingState } from "../new_quiz/components/PlanGeneratingState";
-export { usePlanStatus } from "../new_quiz/hooks/usePlanStatus";
+export { PlanGeneratingState } from "../quiz/components/PlanGeneratingState";
+export { usePlanStatus } from "../quiz/hooks/usePlanStatus";
 export { DashboardService } from "./api/dashboardService";
 export { BetaBanner } from "./components/BetaBanner";
 export { DashboardEmpty } from "./components/DashboardEmpty";

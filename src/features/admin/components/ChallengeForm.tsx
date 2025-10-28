@@ -1,4 +1,3 @@
-import { IconMap } from "@/helpers/challengeHelper";
 import type { Badge, Challenge } from "@/shared/types/challenge";
 import * as LucideIcons from "lucide-react";
 import React, { useEffect, useState } from "react";
@@ -9,6 +8,7 @@ import { Label } from "../../../shared/components/ui/label";
 import { ModalDialog } from "../../../shared/components/ui/modal-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../shared/components/ui/select";
 import { Textarea } from "../../../shared/components/ui/textarea";
+import { IconMap } from "@/features/challenges/utils/progress";
 
 interface ChallengeFormProps {
   challenge?: Challenge | null;

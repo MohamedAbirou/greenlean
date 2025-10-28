@@ -3,33 +3,32 @@
  * Lazy-loaded routes for optimal performance
  */
 
-import NewQuiz from "@/pages/NewQuiz";
 import { lazy } from "react";
 import type { RouteObject } from "react-router-dom";
 import { ProtectedRoute } from "../../features/auth";
 import { FullPageLoader } from "../../shared/components/feedback";
 import Layout from "../../shared/components/layout/Layout";
 
-const Home = lazy(() => import("../../pages/Home"));
-const About = lazy(() => import("../../pages/About"));
-const Contact = lazy(() => import("../../pages/Contact"));
-const FAQ = lazy(() => import("../../pages/FAQ"));
-const Quiz = lazy(() => import("../../pages/Quiz"));
-const QuizHistory = lazy(() => import("../../pages/QuizHistory"));
-const QuizResult = lazy(() => import("../../pages/QuizResult"));
-const Dashboard = lazy(() => import("../../pages/Dashboard"));
-const Profile = lazy(() => import("../../pages/Profile"));
-const Challenges = lazy(() => import("../../pages/Challenges"));
-const DietPlans = lazy(() => import("../../pages/DietPlans"));
-const DietPlanDetails = lazy(() => import("../../pages/DietPlanDetails"));
-const WeightLoss = lazy(() => import("../../pages/WeightLoss"));
-const ExerciseDetails = lazy(() => import("../../pages/ExerciseDetails"));
-const AdminDashboard = lazy(() => import("../../pages/AdminDashboard"));
-const AdminBootstrap = lazy(() => import("../../features/admin/components/AdminBootstrap"));
-const Register = lazy(() => import("../../pages/Register"));
-const ResetPassword = lazy(() => import("../../pages/ResetPassword"));
-const AuthCallback = lazy(() => import("../../pages/AuthCallback"));
-const NotFound = lazy(() => import("../../pages/NotFound"));
+const Home = lazy(() => import("@/pages/Home"));
+const About = lazy(() => import("@/pages/About"));
+const Contact = lazy(() => import("@/pages/Contact"));
+const FAQ = lazy(() => import("@/pages/FAQ"));
+const Quiz = lazy(() => import("@/pages/Quiz"))
+const QuizHistory = lazy(() => import("@/pages/QuizHistory"));
+const QuizResult = lazy(() => import("@/pages/QuizResult"));
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const Profile = lazy(() => import("@/pages/Profile"));
+const Challenges = lazy(() => import("@/pages/Challenges"));
+const DietPlans = lazy(() => import("@/pages/DietPlans"));
+const DietPlanDetails = lazy(() => import("@/pages/DietPlanDetails"));
+const WeightLoss = lazy(() => import("@/pages/WeightLoss"));
+const ExerciseDetails = lazy(() => import("@/pages/ExerciseDetails"));
+const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
+const AdminBootstrap = lazy(() => import("@/features/admin/components/AdminBootstrap"));
+const Register = lazy(() => import("@/pages/Register"));
+const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
+const AuthCallback = lazy(() => import("@/pages/AuthCallback"));
+const NotFound = lazy(() => import("@/pages/NotFound"));
 
 export const routes: RouteObject[] = [
   {
@@ -66,7 +65,7 @@ export const routes: RouteObject[] = [
       },
       {
         path: "quiz",
-        element: <NewQuiz />,
+        element: <Quiz />,
       },
       {
         path: "diet-plans",
