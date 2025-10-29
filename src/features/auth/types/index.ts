@@ -5,6 +5,7 @@
 
 import type { User } from "@supabase/supabase-js";
 
+
 export interface Profile {
   id: string;
   username: string;

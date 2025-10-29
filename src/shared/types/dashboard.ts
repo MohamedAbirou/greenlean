@@ -342,3 +342,4 @@ export interface ExerciseLibrary {
   outdoor_exercises: string[];
 }
 
+export type DashboardTab = "overview" | "meal-plan" | "exercise";

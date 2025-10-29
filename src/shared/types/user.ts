@@ -1,6 +1,9 @@
 export type User = {
   id: string;
-  username: string;
+  full_name: string;
   email: string;
-  role: string; // or role?: string
+  username: string;
+  is_admin: boolean;
+  role?: "super_admin" | "admin";
+  created_at: string;
 };

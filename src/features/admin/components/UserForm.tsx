@@ -1,6 +1,7 @@
 import { queryKeys } from "@/lib/queryKeys";
 import { supabase } from "@/lib/supabase/client";
 import { createNotification } from "@/services/notificationService";
+import type { User } from "@/shared/types/user";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -9,14 +10,6 @@ import { Checkbox } from "../../../shared/components/ui/checkbox";
 import { Input } from "../../../shared/components/ui/input";
 import { Label } from "../../../shared/components/ui/label";
 import { ModalDialog } from "../../../shared/components/ui/modal-dialog";
-
-interface User {
-  id: string
-  username: string
-  full_name: string
-  email: string
-  is_admin: boolean
-}
 
 interface UserFormProps {
   user: User | null;

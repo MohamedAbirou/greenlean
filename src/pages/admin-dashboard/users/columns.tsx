@@ -1,14 +1,6 @@
+import type { User } from "@/shared/types/user";
 import { Edit, Trash } from "lucide-react";
 
-export type User = {
-  id: string;
-  full_name: string;
-  email: string;
-  username: string;
-  is_admin: boolean;
-  role?: "super_admin" | "admin";
-  created_at: string;
-};
 
 export const userColumns = ({
   currentUserId,

@@ -2,7 +2,8 @@
 import { queryKeys } from "@/lib/queryKeys";
 import { userColumns } from "@/pages/admin-dashboard/users/columns";
 import { useCurrentUserQuery } from "@/shared/hooks/Queries/useCurrentUserQuery";
-import { useUsersQuery, type User } from "@/shared/hooks/Queries/useUsers";
+import { useUsersQuery } from "@/shared/hooks/Queries/useUsers";
+import type { User } from "@/shared/types/user";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";

@@ -1,16 +1,7 @@
 import { queryKeys } from "@/lib/queryKeys";
 import { supabase } from "@/lib/supabase/client";
+import type { User } from "@/shared/types/user";
 import { useQuery } from "@tanstack/react-query";
-
-export interface User {
-  id: string;
-  username: string;
-  full_name: string;
-  email: string;
-  created_at: string;
-  is_admin: boolean;
-  role?: "admin" | "super_admin";
-}
 
 const fetchUsers = async (): Promise<User[]> => {
   const { data, error } = await supabase

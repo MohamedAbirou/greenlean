@@ -1,4 +1,4 @@
-export interface ChallengeRequirements {
+interface ChallengeRequirements {
   target: number;
   metric?: string;
   timeframe?: string;
@@ -37,11 +37,16 @@ export interface Challenge {
   created_at: string;
 }
 
+export interface UserRewards {
+  points: number;
+  badges: Badge[];
+}
+
 export interface Badge {
   id: string;
   name: string;
   description: string;
   icon: string;
   color: string;
-  created_at: string;
+  earned_at: string;
 }

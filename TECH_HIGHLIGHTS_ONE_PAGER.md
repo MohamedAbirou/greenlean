@@ -75,7 +75,7 @@
 ### Infrastructure
 - **Vercel** - Frontend hosting (Edge Network)
 - **Vercel Analytics** - User analytics + Core Web Vitals
-- **Render/Heroku** - ML service containerized
+- **Railway** - ML service containerized
 - **Supabase Cloud** - Managed PostgreSQL
 - **GitHub** - Version control
 
@@ -91,7 +91,7 @@
 6. **Meal Logging System** (track adherence, calories, macros)
 7. **Workout Logging** (sets, reps, weights, notes)
 8. **Water Intake Tracker** (glasses/ml with daily goals)
-9. **Progress Snapshots** (weight, measurements, photos)
+9. **Progress Snapshots** (weight, measurements)
 10. **Challenge System** (daily, weekly, streak, goal-based)
 11. **Points & Badges** (gamification, rewards)
 12. **Streak Tracking** with expiration warnings

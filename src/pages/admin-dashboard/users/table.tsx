@@ -1,7 +1,8 @@
 "use client";
 
 import { DataTable } from "@/shared/components/data-table/data-table";
-import { userColumns, type User } from "./columns";
+import type { User } from "@/shared/types/user";
+import { userColumns } from "./columns";
 
 export default function UsersTable({
   users,
