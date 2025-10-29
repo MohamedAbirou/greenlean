@@ -49,4 +49,5 @@ export interface Badge {
   icon: string;
   color: string;
   earned_at: string;
+  created_at: string;
 }

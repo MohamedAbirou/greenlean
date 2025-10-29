@@ -1,11 +1,11 @@
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { Spinner } from "@/shared/components/ui/spinner";
-import type { RegistrationData } from "@/shared/types/registration";
 import { calculateAge, COUNTRIES } from "@/shared/utils/countryUtils";
 import { motion } from "framer-motion";
 import { Calendar, Check, Globe, Mail, Ruler, User, Weight } from "lucide-react";
 import React from "react";
+import type { RegistrationData } from "../types";
 
 interface SummaryStepProps {
   data: RegistrationData;

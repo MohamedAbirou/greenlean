@@ -3,7 +3,8 @@
  * Tab navigation for dashboard sections
  */
 
-import type { DashboardTab } from "../types";
+import type { DashboardTab } from "@/shared/types/dashboard";
+
 
 interface DashboardTabsProps {
   activeTab: DashboardTab;

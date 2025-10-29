@@ -3,9 +3,9 @@
  * Clean, modular dashboard implementation
  */
 
+import type { DashboardTab } from "@/shared/types/dashboard";
 import { useState } from "react";
 import { useAuth } from "../features/auth";
-import type { DashboardTab } from "../features/dashboard";
 import {
   BetaBanner,
   DashboardEmpty,

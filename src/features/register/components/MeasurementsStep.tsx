@@ -1,11 +1,11 @@
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import type { RegistrationData } from "@/shared/types/registration";
 import { getUnitSystemForCountry } from "@/shared/utils/countryUtils";
 import { motion } from "framer-motion";
 import { Ruler, Weight } from "lucide-react";
 import React, { useEffect } from "react";
+import type { RegistrationData } from "../types";
 
 interface MeasurementsStepProps {
   data: RegistrationData;

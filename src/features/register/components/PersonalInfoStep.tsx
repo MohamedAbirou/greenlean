@@ -9,11 +9,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-import type { RegistrationData } from "@/shared/types/registration";
 import { calculateAge, COUNTRIES } from "@/shared/utils/countryUtils";
 import { motion } from "framer-motion";
 import { Calendar } from "lucide-react";
 import React from "react";
+import type { RegistrationData } from "../types";
 
 interface PersonalInfoStepProps {
   data: RegistrationData;

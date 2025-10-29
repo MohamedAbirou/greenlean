@@ -7,10 +7,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-import type { RegistrationData } from "@/shared/types/registration";
 import { motion } from "framer-motion";
 import { Briefcase } from "lucide-react";
 import React from "react";
+import type { RegistrationData } from "../types";
 
 interface OccupationStepProps {
   data: RegistrationData;
