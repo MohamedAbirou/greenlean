@@ -26,13 +26,13 @@ const LifestyleItem = React.memo<{
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay }}
-    className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-md p-5 border border-purple-200/50 dark:border-purple-800/50 hover:shadow-lg transition-all"
+    className="bg-background backdrop-blur-sm rounded-md p-5 border border-purple-200/50 dark:border-purple-800/50 hover:shadow-lg transition-all"
   >
-    <h4 className="font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+    <h4 className="font-bold text-foreground mb-2 flex items-center gap-2">
       <Icon className="h-5 w-5 text-purple-600 dark:text-purple-400" />
       {title}
     </h4>
-    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+    <p className="text-sm text-muted-foreground leading-relaxed">
       {content}
     </p>
   </motion.div>
@@ -52,19 +52,19 @@ const ExerciseList = React.memo<{
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay }}
-    className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-md p-5 border border-blue-200/50 dark:border-blue-800/50"
+    className="bg-background backdrop-blur-sm rounded-md p-5 border border-blue-200/50 dark:border-blue-800/50"
   >
     <div className="flex items-center gap-2 mb-4">
       <div className={`bg-gradient-to-r ${iconColor} p-2 rounded-lg`}>
         <Icon className="h-5 w-5 text-white" />
       </div>
-      <h4 className="font-bold text-slate-900 dark:text-white">{title}</h4>
+      <h4 className="font-bold text-foreground">{title}</h4>
     </div>
     <ul className="space-y-2">
       {exercises.map((exercise, index) => (
         <li
           key={index}
-          className="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-300"
+          className="flex items-start gap-2 text-sm text-muted-foreground"
         >
           <div
             className={`w-1.5 h-1.5 rounded-full ${bulletColor} mt-1.5 flex-shrink-0`}
@@ -161,16 +161,16 @@ export const LifestylePanel: React.FC<LifestylePanelProps> = React.memo(
     return (
       <div className="space-y-6">
         {lifestyle && lifestyleItems.length > 0 && (
-          <div className="bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-rose-500/10 rounded-md p-8 border border-purple-200/50 dark:border-purple-800/50 backdrop-blur-sm">
+          <div className="bg-stat-purple rounded-md p-8 border border-purple-200/50 dark:border-purple-800/50 backdrop-blur-sm">
             <div className="flex items-center gap-4 mb-6">
-              <div className="bg-gradient-to-br from-purple-600 to-pink-600 p-4 rounded-md shadow-lg">
+              <div className="bg-progress-purple-pink p-4 rounded-md shadow-lg">
                 <Coffee className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
+                <h3 className="text-2xl font-bold text-foreground">
                   Lifestyle Integration
                 </h3>
-                <p className="text-slate-600 dark:text-slate-400">
+                <p className="text-muted-foreground">
                   Fitness tips that fit your life
                 </p>
               </div>
@@ -185,16 +185,16 @@ export const LifestylePanel: React.FC<LifestylePanelProps> = React.memo(
         )}
 
         {exerciseLibrary && exerciseLocations.length > 0 && (
-          <div className="bg-gradient-to-br from-blue-500/10 via-cyan-500/10 to-teal-500/10 rounded-md p-8 border border-blue-200/50 dark:border-blue-800/50 backdrop-blur-sm">
+          <div className="bg-stat-blue rounded-md p-8 border border-blue-200/50 dark:border-blue-800/50 backdrop-blur-sm">
             <div className="flex items-center gap-4 mb-6">
-              <div className="bg-gradient-to-br from-blue-600 to-cyan-600 p-4 rounded-md shadow-lg">
+              <div className="bg-progress-blue-cyan p-4 rounded-md shadow-lg">
                 <MapPin className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
+                <h3 className="text-2xl font-bold text-foreground">
                   Exercise Library by Location
                 </h3>
-                <p className="text-slate-600 dark:text-slate-400">
+                <p className="text-muted-foreground">
                   Workout anywhere, anytime
                 </p>
               </div>

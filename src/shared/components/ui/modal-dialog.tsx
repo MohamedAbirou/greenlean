@@ -4,11 +4,13 @@
 import { cn } from "@/lib/utils";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
+import { X } from "lucide-react";
 import * as React from "react";
 
 interface ModalDialogProps {
@@ -48,17 +50,18 @@ export function ModalDialog({
         )}
       >
         {(title || description) && (
-          <DialogHeader className="p-3 border-b sticky top-0 rounded-t-xl bg-background z-10">
-            {title && (
-              <DialogTitle className="text-xl font-semibold">
-                {title}
-              </DialogTitle>
-            )}
-            {description && (
-              <DialogDescription className="text-card-foreground">
-                {description}
-              </DialogDescription>
-            )}
+          <DialogHeader className="flex items-start justify-between p-3 border-b sticky top-0 rounded-t-xl bg-background z-10">
+            <div>
+              {title && <DialogTitle className="text-xl font-semibold">{title}</DialogTitle>}
+              {description && (
+                <DialogDescription className="text-card-foreground">
+                  {description}
+                </DialogDescription>
+              )}
+            </div>
+              <DialogClose className="absolute right-3 top-3">
+                <X className="w-5 h-5" />
+              </DialogClose>
           </DialogHeader>
         )}
         <div className="p-3 overflow-y-auto">{children}</div>

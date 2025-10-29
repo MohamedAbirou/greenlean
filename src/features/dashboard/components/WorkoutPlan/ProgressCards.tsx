@@ -45,7 +45,7 @@ export const ProgressCard: React.FC<ProgressCardProps> = React.memo(
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
-      className={`relative overflow-hidden rounded-xl bg-gradient-to-br ${bgClass} p-6 border border-slate-200/20 dark:border-slate-800/20 backdrop-blur-sm`}
+      className={`relative overflow-hidden rounded-xl bg-gradient-to-br ${bgClass} p-6 border border-border backdrop-blur-sm`}
     >
       <div className="flex items-center justify-between mb-4">
         <div
@@ -58,7 +58,7 @@ export const ProgressCard: React.FC<ProgressCardProps> = React.memo(
             <div className={`text-2xl font-bold ${colorClass}`}>
               {percentage.toFixed(0)}%
             </div>
-            <div className="text-xs text-slate-600 dark:text-slate-400">
+            <div className="text-xs text-foreground/80">
               Complete
             </div>
           </div>
@@ -69,31 +69,31 @@ export const ProgressCard: React.FC<ProgressCardProps> = React.memo(
         )}
       </div>
 
-      <p className="text-sm text-slate-600 dark:text-slate-400 mb-2 font-medium">
+      <p className="text-sm text-foreground/80 mb-2 font-medium">
         {label}
       </p>
 
-      <p className="text-3xl font-bold text-slate-900 dark:text-white mb-3">
+      <p className="text-3xl font-bold text-foreground mb-3">
         {value}
         {target && (
-          <span className="text-lg text-slate-500 dark:text-slate-400 font-normal ml-1">
+          <span className="text-lg text-muted-foreground font-normal ml-1">
             / {target}
           </span>
         )}
         {subtitle && (
-          <span className="block text-sm text-slate-500 dark:text-slate-400 font-normal">
+          <span className="block text-sm text-muted-foreground font-normal">
             {subtitle}
           </span>
         )}
       </p>
 
       {percentage !== undefined && (
-        <div className="h-3 bg-white/50 dark:bg-slate-800/50 rounded-full overflow-hidden">
+        <div className="h-3 bg-background rounded-full overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${Math.min(percentage, 100)}%` }}
             transition={{ duration: 1, ease: "easeOut" }}
-            className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full"
+            className={`h-full ${iconStyle} rounded-full`}
           />
         </div>
       )}
@@ -148,7 +148,7 @@ export const ProgressCards: React.FC<ProgressCardsProps> = React.memo(
           subtitle={progress.subtitle}
           colorClass={progress.color}
           bgClass={progress.bg}
-          iconStyle="from-indigo-600 to-purple-600"
+          iconStyle="bg-progress-indigo-purple"
           percentage={progress.percentage}
           delay={0}
         />
@@ -161,7 +161,7 @@ export const ProgressCards: React.FC<ProgressCardsProps> = React.memo(
           subtitle={burned.subtitle}
           colorClass={burned.color}
           bgClass={burned.bg}
-          iconStyle="from-orange-600 to-red-600"
+          iconStyle="bg-progress-orange-red"
           delay={0.1}
         />
         <ProgressCard
@@ -173,7 +173,7 @@ export const ProgressCards: React.FC<ProgressCardsProps> = React.memo(
           subtitle={streak.subtitle}
           colorClass={streak.color}
           bgClass={streak.bg}
-          iconStyle="from-green-600 to-emerald-600"
+          iconStyle="bg-progress-green-emerald"
           delay={0.2}
         />
         <ProgressCard
@@ -185,7 +185,7 @@ export const ProgressCards: React.FC<ProgressCardsProps> = React.memo(
           subtitle={time.subtitle}
           colorClass={time.color}
           bgClass={time.bg}
-          iconStyle="from-blue-600 to-cyan-600"
+          iconStyle="bg-progress-blue-cyan"
           delay={0.3}
         />
       </div>

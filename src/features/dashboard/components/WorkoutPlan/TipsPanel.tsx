@@ -52,14 +52,14 @@ export const TipsPanel: React.FC<TipsPanelProps> = React.memo(
         {tips && (
           <>
             <div className="flex items-center gap-4 mb-6">
-              <div className="bg-gradient-to-br from-purple-600 to-pink-600 p-4 rounded-md shadow-lg">
+              <div className="bg-progress-purple-pink p-4 rounded-md shadow-lg">
                 <Lightbulb className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
+                <h3 className="text-2xl font-bold text-foreground">
                   Personalized Tips
                 </h3>
-                <p className="text-slate-600 dark:text-slate-400">
+                <p className="text-muted-foreground">
                   Tailored advice for your fitness journey
                 </p>
               </div>
@@ -72,9 +72,9 @@ export const TipsPanel: React.FC<TipsPanelProps> = React.memo(
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-rose-500/10 rounded-md p-6 border border-purple-200/50 dark:border-purple-800/50 backdrop-blur-sm hover:shadow-lg transition-all"
+                  className="bg-stat-indigo rounded-md p-6 border border-purple-200/50 dark:border-purple-800/50 backdrop-blur-sm hover:shadow-lg transition-all"
                 >
-                  <p className="text-slate-800 dark:text-slate-200 leading-relaxed">
+                  <p className="text-foreground/80 leading-relaxed">
                     {tip}
                   </p>
                 </motion.div>
@@ -84,8 +84,8 @@ export const TipsPanel: React.FC<TipsPanelProps> = React.memo(
         )}
 
         {summary && (
-          <div className="bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-md p-6 border border-indigo-200/50 dark:border-indigo-800/50">
-            <h4 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+          <div className="bg-stat-indigo rounded-md p-6 border border-indigo-200/50 dark:border-indigo-800/50">
+            <h4 className="font-bold text-foreground mb-4 flex items-center gap-2">
               <Info className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
               Weekly Summary
             </h4>
@@ -98,10 +98,10 @@ export const TipsPanel: React.FC<TipsPanelProps> = React.memo(
                     <stat.icon
                       className={`h-6 w-6 text-${stat.color}-600 dark:text-${stat.color}-400 mx-auto mb-2`}
                     />
-                    <p className="text-3xl font-bold text-slate-900 dark:text-white">
+                    <p className="text-3xl font-bold text-foreground">
                       {stat.value}
                     </p>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                    <p className="text-sm text-muted-foreground">
                       {stat.label}
                     </p>
                   </div>

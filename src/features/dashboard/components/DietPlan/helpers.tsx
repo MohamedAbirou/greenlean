@@ -12,24 +12,24 @@ export const getMealIcon = (mealType: string) => {
 export const getMealGradient = (mealType: string) => {
   const type = mealType.toLowerCase();
   if (type.includes("breakfast"))
-    return "from-amber-500/20 via-orange-500/20 to-yellow-500/20";
+    return "bg-stat-orange";
   if (type.includes("lunch"))
-    return "from-blue-500/20 via-cyan-500/20 to-sky-500/20";
+    return "bg-stat-blue";
   if (type.includes("dinner"))
-    return "from-purple-500/20 via-pink-500/20 to-rose-500/20";
-  return "from-green-500/20 via-emerald-500/20 to-teal-500/20";
+    return "bg-stat-purple";
+  return "bg-stat-green";
 };
 
 export const getDifficultyColor = (difficulty: string) => {
   switch (difficulty?.toLowerCase()) {
     case "easy":
-      return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
+      return "badge-green";
     case "medium":
-      return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
+      return "badge-yellow";
     case "advanced":
-      return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+      return "badge-red";
     default:
-      return "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400";
+      return "badge-gray";
   }
 };
 

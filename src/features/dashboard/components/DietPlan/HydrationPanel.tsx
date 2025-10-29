@@ -17,13 +17,13 @@ export const HydrationPanel: React.FC<HydrationPanelProps> = ({
 }) => {
   if (!hydrationPlan) return null;
   return (
-    <div className="bg-gradient-to-br from-blue-500/10 via-cyan-500/10 to-sky-500/10 rounded-md p-8 border border-blue-200/50 dark:border-blue-800/50 backdrop-blur-sm">
+    <div className="bg-stat-blue rounded-md p-8 border border-blue-200/50 dark:border-blue-800/50 backdrop-blur-sm">
       <div className="flex items-center gap-4 mb-6">
-        <div className="bg-gradient-to-br from-blue-600 to-cyan-600 p-4 rounded-md shadow-lg">
+        <div className="bg-progress-blue-cyan p-4 rounded-md shadow-lg">
           <Droplet className="h-8 w-8 text-white" />
         </div>
         <div>
-          <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
+          <h3 className="text-2xl font-bold text-foreground/80">
             Daily Hydration Plan
           </h3>
           <p className="text-lg text-blue-600 dark:text-blue-400 font-semibold">
@@ -34,7 +34,7 @@ export const HydrationPanel: React.FC<HydrationPanelProps> = ({
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-3">
-          <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <h4 className="font-bold text-foreground/80 flex items-center gap-2">
             <Timer className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             Optimal Timing
           </h4>
@@ -44,12 +44,12 @@ export const HydrationPanel: React.FC<HydrationPanelProps> = ({
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="flex items-center gap-3 bg-white/60 dark:bg-slate-800/60 p-4 rounded-md border border-blue-200/50 dark:border-blue-800/50"
+              className="flex items-center gap-3 bg-background p-4 rounded-md border border-blue-200/50 dark:border-blue-800/50"
             >
-              <div className="bg-gradient-to-br from-blue-500 to-cyan-500 p-2 rounded-lg">
+              <div className="bg-progress-blue-cyan p-2 rounded-lg">
                 <Check className="h-4 w-4 text-white" />
               </div>
-              <p className="text-sm text-slate-700 dark:text-slate-300">
+              <p className="text-sm text-foreground/90">
                 {time}
               </p>
             </motion.div>
@@ -60,10 +60,10 @@ export const HydrationPanel: React.FC<HydrationPanelProps> = ({
           <div className="flex items-start gap-3 mb-4">
             <Info className="h-5 w-5 text-cyan-600 dark:text-cyan-400 flex-shrink-0 mt-1" />
             <div>
-              <h4 className="font-bold text-slate-900 dark:text-white mb-2">
+              <h4 className="font-bold text-foreground/80 mb-2">
                 Electrolytes
               </h4>
-              <p className="text-sm text-slate-700 dark:text-slate-300">
+              <p className="text-sm text-foreground/90">
                 {hydrationPlan.electrolyte_needs}
               </p>
             </div>
@@ -72,7 +72,7 @@ export const HydrationPanel: React.FC<HydrationPanelProps> = ({
             <p className="text-xs font-semibold text-cyan-600 dark:text-cyan-400">
               Signs you need more water:
             </p>
-            <ul className="text-xs text-slate-600 dark:text-slate-400 space-y-1">
+            <ul className="text-xs text-foreground/60 space-y-1">
               <li>• Dark yellow urine</li>
               <li>• Dry mouth or lips</li>
               <li>• Headaches or fatigue</li>

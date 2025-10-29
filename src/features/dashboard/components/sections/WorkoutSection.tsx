@@ -41,37 +41,37 @@ const INITIAL_WORKOUT_LOG: WorkoutLog = {
 const TABS = [
   {
     name: "overview",
-    bg: "from-indigo-600 to-purple-600",
+    bg: "bg-progress-indigo-purple",
     color: "text-white",
     ringColor: "ring-indigo-500/50",
   },
   {
     name: "weekly",
-    bg: "from-blue-600 to-cyan-600",
+    bg: "bg-progress-blue-cyan",
     color: "text-white",
     ringColor: "ring-blue-500/50",
   },
   {
     name: "progress",
-    bg: "from-green-600 to-emerald-600",
+    bg: "bg-progress-green-emerald",
     color: "text-white",
     ringColor: "ring-green-500/50",
   },
   {
     name: "lifestyle",
-    bg: "from-purple-600 to-pink-600",
+    bg: "bg-progress-purple-pink",
     color: "text-white",
     ringColor: "ring-purple-500/50",
   },
   {
     name: "nutrition",
-    bg: "from-pink-600 to-rose-600",
+    bg: "bg-progress-purple-pink",
     color: "text-white",
     ringColor: "ring-pink-500/50",
   },
   {
     name: "tips",
-    bg: "from-orange-600 to-red-600",
+    bg: "bg-progress-orange-red",
     color: "text-white",
     ringColor: "ring-orange-500/50",
   },
@@ -189,30 +189,30 @@ export const WorkoutSection: React.FC<WorkoutSectionProps> = memo(({ userId }) =
         label: "Sessions Complete",
         percentage: stats.weeklyProgress,
         subtitle: `of ${stats.weeklyTarget} days`,
-        color: "text-indigo-600 dark:text-indigo-400",
-        bg: "from-indigo-500/10 via-purple-500/10 to-pink-500/10",
+        color: "text-gradient-indigo-purple",
+        bg: "bg-stat-indigo",
       },
       burned: {
         value: stats.weeklyCaloriesBurned,
         label: "Calories Burned",
         subtitle: "This week",
-        color: "text-orange-600 dark:text-orange-400",
-        bg: "from-orange-500/10 via-red-500/10 to-pink-500/10",
+        color: "text-gradient-orange-red",
+        bg: "bg-stat-orange",
       },
       streak: {
         value: stats.currentStreak,
         label: "Workout Streak",
         subtitle: "Consecutive days",
-        color: "text-green-600 dark:text-green-400",
-        bg: "from-green-500/10 via-emerald-500/10 to-teal-500/10",
+        color: "text-gradient-green-emerald",
+        bg: "bg-stat-green",
       },
       time: {
         value: stats.weeklyTotalTime,
         label: "Total Time (min)",
         subtitle: "This week",
-        color: "text-blue-600 dark:text-blue-400",
-        bg: "from-blue-500/10 via-cyan-500/10 to-sky-500/10",
-      },
+        color: "text-gradient-blue-cyan",
+        bg: "bg-stat-blue",
+        },
     }),
     [stats]
   );
@@ -223,7 +223,7 @@ export const WorkoutSection: React.FC<WorkoutSectionProps> = memo(({ userId }) =
       <div className="mx-auto space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
+            <h2 className="text-3xl font-bold text-gradient-indigo-purple mb-2">
               Your AI Workout Plan
             </h2>
             <p className="text-slate-600 dark:text-slate-400">
@@ -268,7 +268,7 @@ export const WorkoutSection: React.FC<WorkoutSectionProps> = memo(({ userId }) =
   // Empty state - no plan exists
   if (hasNoPlan) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 p-6">
+      <div className="min-h-screen bg-page-slate-blue p-6">
         <div className="max-w-4xl mx-auto text-center py-12">
           <div className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm rounded-md p-12 border border-slate-200/50 dark:border-slate-700/50">
             <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
@@ -287,7 +287,7 @@ export const WorkoutSection: React.FC<WorkoutSectionProps> = memo(({ userId }) =
     <div className="mx-auto space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
+          <h2 className="text-3xl font-bold text-gradient-indigo-purple mb-2">
             Your AI Workout Plan
           </h2>
           <p className="text-slate-600 dark:text-slate-400">
@@ -297,7 +297,7 @@ export const WorkoutSection: React.FC<WorkoutSectionProps> = memo(({ userId }) =
         <button
           onClick={handleOpenModal}
           disabled={isLoggingWorkout}
-          className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-md font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-6 py-3 bg-progress-indigo-purple text-white rounded-md font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus className="h-5 w-5" /> {isLoggingWorkout ? "Logging..." : "Log Workout"}
         </button>

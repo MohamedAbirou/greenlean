@@ -25,66 +25,66 @@ export const OverviewPanel: React.FC<OverviewPanelProps> = React.memo(
           icon: Activity,
           label: "Workout Days",
           value: summary?.total_workout_days,
-          color: "from-indigo-600 to-purple-600",
-          textColor: "text-indigo-600 dark:text-indigo-400",
-          bgColor: "from-indigo-500/10 to-purple-500/10",
+          color: "bg-progress-indigo-purple",
+          textColor: "text-gradient-indigo-purple",
+          bgColor: "bg-stat-indigo",
         },
         {
           icon: Heart,
           label: "Rest Days",
           value: summary?.rest_days,
-          color: "from-green-600 to-emerald-600",
-          textColor: "text-green-600 dark:text-green-400",
-          bgColor: "from-green-500/10 to-emerald-500/10",
+          color: "bg-progress-green-emerald",
+          textColor: "text-gradient-green-emerald",
+          bgColor: "bg-stat-green",
         },
         {
           icon: Dumbbell,
           label: "Strength Days",
           value: summary?.strength_days,
-          color: "from-orange-600 to-red-600",
-          textColor: "text-orange-600 dark:text-orange-400",
-          bgColor: "from-orange-500/10 to-red-500/10",
+          color: "bg-progress-orange-red",
+          textColor: "text-foreground/90",
+          bgColor: "bg-stat-orange",
         },
         {
           icon: Zap,
           label: "Cardio Days",
           value: summary?.cardio_days,
-          color: "from-blue-600 to-cyan-600",
-          textColor: "text-blue-600 dark:text-blue-400",
-          bgColor: "from-blue-500/10 to-cyan-500/10",
+          color: "bg-progress-blue-cyan",
+          textColor: "text-gradient-blue-cyan",
+          bgColor: "bg-stat-blue",
         },
         {
           icon: Clock,
           label: "Total Minutes",
           value: summary?.total_time_minutes,
-          color: "from-purple-600 to-pink-600",
-          textColor: "text-purple-600 dark:text-purple-400",
-          bgColor: "from-purple-500/10 to-pink-500/10",
+            color: "bg-progress-purple-pink",
+          textColor: "text-gradient-purple-pink",
+          bgColor: "bg-stat-purple",
         },
         {
           icon: Target,
           label: "Total Exercises",
           value: summary?.total_exercises,
-          color: "from-pink-600 to-rose-600",
-          textColor: "text-pink-600 dark:text-pink-400",
-          bgColor: "from-pink-500/10 to-rose-500/10",
+          color: "bg-progress-purple-pink",
+          textColor: "text-gradient-purple-pink",
+          bgColor: "bg-stat-purple",
         },
         {
           icon: TrendingUp,
           label: "Difficulty",
           value: summary?.difficulty_level,
-          color: "from-yellow-600 to-orange-600",
-          textColor: "text-yellow-600 dark:text-yellow-400",
-          bgColor: "from-yellow-500/10 to-orange-500/10",
+          color: "bg-progress-yellow-amber",
+          textColor: "text-gradient-yellow-amber",
+          bgColor: "bg-stat-yellow",
           isText: true,
         },
         {
           icon: Flame,
           label: "Est. Weekly Calories",
           value: summary?.estimated_weekly_calories_burned,
-          color: "from-red-600 to-orange-600",
-          textColor: "text-red-600 dark:text-red-400",
-          bgColor: "from-red-500/10 to-orange-500/10",
+          color: "bg-progress-orange-red",
+          textColor: "text-foreground/90",
+          bgColor: "bg-stat-orange",
         },
       ],
       [summary]
@@ -95,14 +95,14 @@ export const OverviewPanel: React.FC<OverviewPanelProps> = React.memo(
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4 mb-6">
-          <div className="bg-gradient-to-br from-indigo-600 to-purple-600 p-4 rounded-md shadow-lg">
+          <div className="bg-progress-indigo-purple p-4 rounded-md shadow-lg">
             <Calendar className="h-8 w-8 text-white" />
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
+            <h3 className="text-2xl font-bold text-foreground/90">
               Weekly Overview
             </h3>
-            <p className="text-slate-600 dark:text-slate-400">
+            <p className="text-muted-foreground">
               Complete breakdown of your training week
             </p>
           </div>
@@ -130,7 +130,7 @@ export const OverviewPanel: React.FC<OverviewPanelProps> = React.memo(
                     stat.value
                   )}
                 </p>
-                <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                <p className="text-xs text-muted-foreground font-medium">
                   {stat.label}
                 </p>
               </div>
@@ -144,17 +144,17 @@ export const OverviewPanel: React.FC<OverviewPanelProps> = React.memo(
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-md p-6 border border-indigo-200/50 dark:border-indigo-800/50 backdrop-blur-sm"
+              className="bg-stat-indigo rounded-md p-6 border border-indigo-200/50 dark:border-indigo-800/50 backdrop-blur-sm"
             >
               <div className="flex items-center gap-3 mb-3">
-                <div className="bg-gradient-to-br from-indigo-600 to-purple-600 p-2 rounded-lg">
+                <div className="bg-progress-indigo-purple p-2 rounded-lg">
                   <Dumbbell className="h-5 w-5 text-white" />
                 </div>
-                <h4 className="font-bold text-slate-900 dark:text-white">
+                <h4 className="font-bold text-foreground/90">
                   Training Split
                 </h4>
               </div>
-              <p className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed">
+              <p className="text-muted-foreground text-sm leading-relaxed">
                 {summary.training_split}
               </p>
             </motion.div>
@@ -171,11 +171,11 @@ export const OverviewPanel: React.FC<OverviewPanelProps> = React.memo(
                 <div className="bg-gradient-to-br from-green-600 to-emerald-600 p-2 rounded-lg">
                   <TrendingUp className="h-5 w-5 text-white" />
                 </div>
-                <h4 className="font-bold text-slate-900 dark:text-white">
+                <h4 className="font-bold text-foreground/90">
                   Progression Strategy
                 </h4>
               </div>
-              <p className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed">
+              <p className="text-muted-foreground text-sm leading-relaxed">
                 {summary.progression_strategy}
               </p>
             </motion.div>

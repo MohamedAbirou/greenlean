@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/features/auth";
 import ChallengeCard from "@/features/challenges/components/ChallengeCard";
 import { canUpdateProgress, IconMap } from "@/features/challenges/utils/progress";
@@ -26,8 +25,7 @@ interface UserRewards {
 function getNextExpiration(type: string) {
   const now = new Date();
   if (type === "daily") return new Date(now.getTime() + 24 * 60 * 60 * 1000);
-  if (type === "weekly")
-    return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  if (type === "weekly") return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
   return null;
 }
 
@@ -91,9 +89,7 @@ const Challenges: React.FC = () => {
     async (challengeId: string) => {
       setJoiningId(challengeId);
       try {
-        const challenge = (challengesData || []).find(
-          (c) => c.id === challengeId
-        );
+        const challenge = (challengesData || []).find((c) => c.id === challengeId);
         if (!challenge) return;
 
         const { error } = await supabase.from("challenge_participants").insert({
@@ -165,9 +161,7 @@ const Challenges: React.FC = () => {
     async (challengeId: string, newProgress: number) => {
       setUpdatingId(challengeId);
       try {
-        const challenge = (challengesData || []).find(
-          (c) => c.id === challengeId
-        );
+        const challenge = (challengesData || []).find((c) => c.id === challengeId);
         if (!challenge) return;
 
         const { data: participant } = await supabase
@@ -180,33 +174,36 @@ const Challenges: React.FC = () => {
         if (!participant) return;
 
         // check if user can update
-        if (
-          !canUpdateProgress(challenge.type, participant.last_progress_date)
-        ) {
+        if (!canUpdateProgress(challenge.type, participant.last_progress_date)) {
           toast.error("🚫 You already logged progress for this period!");
           return;
         }
 
         const isCompleting = newProgress >= challenge.requirements.target;
 
-        // Update progress first
+        // Prepare the update payload
+        const updatePayload: Record<string, any> = {
+          progress: { current: newProgress },
+          completed: isCompleting,
+          completion_date: isCompleting ? new Date().toISOString() : null,
+          streak_count: newProgress,
+          last_progress_date: new Date().toISOString(),
+          streak_expires_at: isCompleting
+            ? null // 🟢 if completed, streak stops — no expiration countdown
+            : getNextExpiration(challenge.type),
+          streak_warning_sent: false,
+        };
+
+        // Update challenge progress
         const { error: updateError } = await supabase
           .from("challenge_participants")
-          .update({
-            progress: { current: newProgress },
-            completed: isCompleting,
-            completion_date: isCompleting ? new Date().toISOString() : null,
-            streak_count: newProgress,
-            last_progress_date: new Date().toISOString(),
-            streak_expires_at: getNextExpiration(challenge.type),
-            streak_warning_sent: false,
-          })
+          .update(updatePayload)
           .eq("challenge_id", challengeId)
           .eq("user_id", user?.id);
 
         if (updateError) throw updateError;
 
-        // If completing the challenge, update rewards and trigger confetti
+        // If completing the challenge, update rewards and notifications
         if (isCompleting) {
           const { data: currentRewards } = await supabase
             .from("user_rewards")
@@ -217,10 +214,7 @@ const Challenges: React.FC = () => {
           if (currentRewards) {
             const updateBadges = [...(currentRewards.badges || [])];
 
-            if (
-              challenge.badge &&
-              !updateBadges.find((b) => b.id === challenge.badge!.id)
-            ) {
+            if (challenge.badge && !updateBadges.find((b) => b.id === challenge.badge!.id)) {
               updateBadges.push({
                 id: challenge.badge.id,
                 name: challenge.badge.name,
@@ -230,48 +224,55 @@ const Challenges: React.FC = () => {
               });
             }
 
-            const { error: rewardError } = await supabase
+            const rewardPromise = supabase
               .from("user_rewards")
               .update({
-                points: currentRewards.points + challenge.points,
+                points: currentRewards.points + (challenge.points || 0),
                 badges: updateBadges,
                 updated_at: new Date().toISOString(),
               })
               .eq("user_id", user?.id);
 
-            if (rewardError) throw rewardError;
+            // Prepare notification promises in parallel
+            const notifications: Promise<any>[] = [];
 
-            //* Notify user
             if (challenge.badge) {
+              notifications.push(
+                createNotification({
+                  recipient_id: user?.id || "",
+                  sender_id: "",
+                  type: "reward",
+                  entity_id: challenge.id,
+                  entity_type: "reward",
+                  message: `🏆 You earned the ${challenge.badge.name} badge`,
+                })
+              );
               toast.success(`🏆 You earned the ${challenge.badge.name} badge`);
-              await createNotification({
-                recipient_id: user?.id || "",
-                sender_id: null,
-                type: "reward",
-                entity_id: challenge.id,
-                entity_type: "reward",
-                message: `🏆 You earned the ${challenge.badge.name} badge`,
-              });
             }
 
             if (challenge.points) {
+              notifications.push(
+                createNotification({
+                  recipient_id: user?.id || "",
+                  sender_id: "",
+                  type: "reward",
+                  entity_id: challenge.id,
+                  entity_type: "reward",
+                  message: `🎉 +${challenge.points} points`,
+                })
+              );
               toast.success(`🎉 +${challenge.points} points`);
-              await createNotification({
-                recipient_id: "",
-                sender_id: "",
-                type: "reward",
-                entity_id: challenge.id,
-                entity_type: "reward",
-                message: `🎉 +${challenge.points} points`,
-              });
             }
 
-            // Trigger confetti animation
+            // Run reward + notifications concurrently
+            await Promise.all([rewardPromise, ...notifications]);
+
+            // Trigger confetti after success
             triggerConfetti();
           }
         }
 
-        // Refresh data
+        // Refresh challenges + rewards in parallel
         await Promise.all([refetchChallenges(), fetchUserRewards()]);
       } catch (error) {
         console.error("Error updating progress:", error);
@@ -285,16 +286,12 @@ const Challenges: React.FC = () => {
   const filteredChallenges = useMemo(() => {
     return (challengesData || [])
       .filter((challenge) => {
-        const matchesType =
-          activeFilter === "all" || challenge.type === activeFilter;
+        const matchesType = activeFilter === "all" || challenge.type === activeFilter;
         const matchesDifficulty =
-          difficultyFilter === "all" ||
-          challenge.difficulty === difficultyFilter;
+          difficultyFilter === "all" || challenge.difficulty === difficultyFilter;
 
         // Find participant status for this user
-        const participant = challenge.participants?.find(
-          (p) => p.user_id === user?.id
-        );
+        const participant = challenge.participants?.find((p) => p.user_id === user?.id);
 
         const isCompleted = participant?.completed;
         const isJoined = !!participant;
@@ -310,15 +307,9 @@ const Challenges: React.FC = () => {
       .sort((a, b) => {
         switch (sortBy) {
           case "newest":
-            return (
-              new Date(b.created_at).getTime() -
-              new Date(a.created_at).getTime()
-            );
+            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
           case "oldest":
-            return (
-              new Date(a.created_at).getTime() -
-              new Date(b.created_at).getTime()
-            );
+            return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
           case "points_high":
             return b.points - a.points;
           case "points_low":
@@ -337,14 +328,7 @@ const Challenges: React.FC = () => {
             return 0;
         }
       });
-  }, [
-    activeFilter,
-    challengesData,
-    difficultyFilter,
-    sortBy,
-    statusFilter,
-    user?.id,
-  ]);
+  }, [activeFilter, challengesData, difficultyFilter, sortBy, statusFilter, user?.id]);
 
   if (isLoading) {
     return (
@@ -356,7 +340,7 @@ const Challenges: React.FC = () => {
 
   return (
     <LazyMotion features={domAnimation}>
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:bg-gradient-to-br dark:from-gray-950 dark:via-purple-950 dark:to-blue-950 pt-24 pb-16">
+      <div className="min-h-screen bg-page-purple-blue pt-24 pb-16">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
           {/* Enhanced Header */}
           <m.div
@@ -364,15 +348,15 @@ const Challenges: React.FC = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
             viewport={{ once: true }}
-            className="relative bg-gradient-to-br from-white via-purple-50 to-blue-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-purple-900/50 dark:to-blue-900/50 rounded-lg shadow-2xl border border-purple-200/50 dark:border-purple-700/50 p-8 overflow-hidden"
+            className="relative bg-gradient-to-br from-card via-purple-50/50 to-blue-50/50 dark:from-card dark:via-purple-900/30 dark:to-blue-900/30 rounded-lg shadow-2xl border border-purple-300/40 dark:border-purple-700/50 p-8 overflow-hidden"
           >
             {/* Static Background Blobs - Only one animated */}
             <div
-              className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-yellow-300/30 to-purple-300/30 dark:from-yellow-400/20 dark:to-purple-400/20 rounded-full blur-3xl animate-pulse"
+              className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-yellow-200/20 to-purple-200/20 dark:from-yellow-400/20 dark:to-purple-400/20 rounded-full blur-3xl animate-pulse"
               style={{ transform: "translateZ(0)", willChange: "opacity" }}
             />
             <div
-              className="absolute bottom-0 left-0 w-72 h-72 bg-gradient-to-tr from-blue-300/30 to-pink-300/30 dark:from-blue-400/20 dark:to-pink-400/20 rounded-full blur-3xl"
+              className="absolute bottom-0 left-0 w-72 h-72 bg-gradient-to-tr from-blue-200/20 to-pink-200/20 dark:from-blue-400/20 dark:to-pink-400/20 rounded-full blur-3xl"
               style={{ transform: "translateZ(0)" }}
             />
 
@@ -384,14 +368,14 @@ const Challenges: React.FC = () => {
                   whileHover={{ scale: 1.1, rotate: 5 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-2xl blur-lg opacity-60" />
-                  <div className="relative bg-gradient-to-br from-yellow-400 to-amber-500 rounded-lg p-4 shadow-xl">
+                  <div className="absolute inset-0 bg-progress-yellow-amber rounded-2xl blur-lg opacity-60" />
+                  <div className="relative bg-progress-yellow-amber rounded-lg p-4 shadow-xl">
                     <Trophy className="h-10 w-10 text-white" />
                   </div>
                 </m.div>
 
                 <div>
-                  <h1 className="text-4xl font-black bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 dark:from-purple-400 dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent pb-3">
+                  <h1 className="text-4xl font-black text-gradient-purple-pink pb-3">
                     Workout Challenges
                   </h1>
                   <p className="text-foreground/90 flex items-center gap-2">
@@ -405,13 +389,13 @@ const Challenges: React.FC = () => {
               <div className="flex flex-col sm:flex-row items-center gap-4">
                 {/* Points */}
                 <div className="relative group cursor-pointer transition-transform duration-200 hover:scale-105 hover:-translate-y-1">
-                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-2xl blur-md opacity-40 group-hover:opacity-60 transition-opacity" />
-                  <div className="relative bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/40 dark:to-amber-900/40 border-2 border-yellow-400/50 dark:border-yellow-500/50 rounded-lg px-6 py-4 shadow-xl">
+                  <div className="absolute inset-0 bg-progress-yellow-amber rounded-2xl blur-md opacity-40 group-hover:opacity-60 transition-opacity" />
+                  <div className="relative badge-yellow border-2 rounded-lg px-6 py-4 shadow-xl">
                     <p className="text-xs font-bold text-yellow-700 dark:text-yellow-300 uppercase tracking-wider mb-1">
                       Total Points
                     </p>
                     <div className="flex items-baseline gap-2">
-                      <p className="text-4xl font-black bg-gradient-to-r from-yellow-600 to-amber-600 dark:from-yellow-400 dark:to-amber-400 bg-clip-text text-transparent">
+                      <p className="text-4xl font-black text-gradient-yellow-amber">
                         {userRewards?.points.toLocaleString()}
                       </p>
                       <LucideIcons.Sparkles className="h-5 w-5 text-yellow-500 mb-1 animate-pulse" />
@@ -421,18 +405,15 @@ const Challenges: React.FC = () => {
 
                 {/* Badges */}
                 <div className="relative group cursor-pointer transition-transform duration-200 hover:scale-105 hover:-translate-y-1">
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-blue-500 rounded-2xl blur-md opacity-40 group-hover:opacity-60 transition-opacity" />
-                  <div className="relative bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/40 dark:to-blue-900/40 border-2 border-purple-400/50 dark:border-purple-500/50 rounded-lg px-6 py-4 shadow-xl min-w-[240px]">
+                  <div className="absolute inset-0 bg-progress-indigo-purple rounded-2xl blur-md opacity-40 group-hover:opacity-60 transition-opacity" />
+                  <div className="relative badge-purple border-2 rounded-lg px-6 py-4 shadow-xl min-w-[240px]">
                     <p className="text-xs font-bold text-purple-600 dark:text-purple-300 uppercase tracking-wider mb-2">
                       Badges Earned
                     </p>
-                    {userRewards?.badges.length === 0 && (
-                      <p className="text-foreground">.....</p>
-                    )}
+                    {userRewards?.badges.length === 0 && <p className="text-foreground">.....</p>}
                     <div className="flex flex-wrap gap-2">
                       {userRewards?.badges.map((badge, index) => {
-                        const IconComponent =
-                          IconMap[badge.icon] || LucideIcons.Star;
+                        const IconComponent = IconMap[badge.icon] || LucideIcons.Star;
 
                         return (
                           <div
@@ -445,9 +426,7 @@ const Challenges: React.FC = () => {
                             }}
                           >
                             <IconComponent className="w-4 h-4" />
-                            <span className="max-w-[90px] truncate">
-                              {badge.name}
-                            </span>
+                            <span className="max-w-[90px] truncate">{badge.name}</span>
                           </div>
                         );
                       })}
@@ -459,7 +438,7 @@ const Challenges: React.FC = () => {
           </m.div>
 
           {/* Enhanced Filters */}
-          <div className="bg-white/80 dark:bg-gray-900/80 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4">
+          <div className="bg-background rounded-lg shadow-xl border border-border p-4">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               {/* Left Side: Type & Difficulty Filters */}
               <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3">
@@ -467,7 +446,7 @@ const Challenges: React.FC = () => {
                 <select
                   value={activeFilter}
                   onChange={(e) => setActiveFilter(e.target.value)}
-                  className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm font-medium hover:border-purple-400 dark:hover:border-purple-500 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 min-w-[140px]"
+                  className="px-4 py-2 rounded-lg border border-border bg-card text-foreground text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary min-w-[140px]"
                 >
                   <option value="all">All Types</option>
                   <option value="daily">Daily</option>
@@ -480,7 +459,7 @@ const Challenges: React.FC = () => {
                 <select
                   value={difficultyFilter}
                   onChange={(e) => setDifficultyFilter(e.target.value)}
-                  className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm font-medium hover:border-purple-400 dark:hover:border-purple-500 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 min-w-[160px]"
+                  className="px-4 py-2 rounded-lg border border-border bg-card text-foreground text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary min-w-[160px]"
                 >
                   <option value="all">All Difficulties</option>
                   <option value="beginner">Beginner</option>
@@ -501,11 +480,11 @@ const Challenges: React.FC = () => {
                     key={status.value}
                     onClick={() => setStatusFilter(status.value)}
                     className={`
-                    px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200
+                    px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer duration-200
                     ${
                       statusFilter === status.value
-                        ? "bg-purple-500 text-white shadow-lg scale-105"
-                        : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        ? "bg-primary text-white shadow-lg scale-105"
+                        : "bg-card hover:bg-card/80 text-foreground"
                     }
                   `}
                   >
@@ -519,7 +498,7 @@ const Challenges: React.FC = () => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm font-medium hover:border-purple-400 dark:hover:border-purple-500 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 lg:min-w-[180px]"
+                className="px-4 py-2 rounded-lg border border-border bg-card text-foreground text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary lg:min-w-[180px]"
               >
                 <option value="newest">🕒 Newest</option>
                 <option value="oldest">⏳ Oldest</option>
@@ -535,19 +514,17 @@ const Challenges: React.FC = () => {
           <AnimatePresence mode="popLayout">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredChallenges.map((challenge, index) => (
-                <>
-                  <ChallengeCard
-                    key={challenge.id}
-                    index={index}
-                    challenge={challenge}
-                    isJoining={joiningId === challenge.id}
-                    isQuitting={quittingId === challenge.id}
-                    updatingProgress={updatingId === challenge.id}
-                    updateProgress={updateProgress}
-                    quitChallenge={quitChallenge}
-                    joinChallenge={joinChallenge}
-                  />
-                </>
+                <ChallengeCard
+                  key={challenge.id}
+                  index={index}
+                  challenge={challenge}
+                  isJoining={joiningId === challenge.id}
+                  isQuitting={quittingId === challenge.id}
+                  updatingProgress={updatingId === challenge.id}
+                  updateProgress={updateProgress}
+                  quitChallenge={quitChallenge}
+                  joinChallenge={joinChallenge}
+                />
               ))}
             </div>
           </AnimatePresence>

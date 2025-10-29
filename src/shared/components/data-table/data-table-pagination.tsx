@@ -7,34 +7,27 @@ interface DataTablePaginationProps<TData> {
   table: Table<TData>;
 }
 
-export function DataTablePagination<TData>({
-  table,
-}: DataTablePaginationProps<TData>) {
+export function DataTablePagination<TData>({ table }: DataTablePaginationProps<TData>) {
   return (
-    <div className="flex items-center justify-between p-2">
+    <div className="flex flex-col md:flex-row gap-2 items-center justify-between overflow-auto">
       <div className="text-sm text-foreground">
-        Page {table.getState().pagination.pageIndex + 1} of{" "}
-        {table.getPageCount()} • {table.getFilteredRowModel().rows.length}{" "}
-        result(s)
+        Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()} •{" "}
+        {table.getFilteredRowModel().rows.length} result(s)
       </div>
 
+      <select
+        className="border rounded px-2 py-1 text-sm bg-background"
+        value={table.getState().pagination.pageSize}
+        onChange={(e) => table.setPageSize(Number(e.target.value))}
+      >
+        {[5, 10, 20, 50].map((size) => (
+          <option key={size} value={size} className="bg-card">
+            Show {size}
+          </option>
+        ))}
+      </select>
       <div className="flex items-center gap-2">
-        <select
-          className="border rounded px-2 py-1 text-sm bg-background"
-          value={table.getState().pagination.pageSize}
-          onChange={(e) => table.setPageSize(Number(e.target.value))}
-        >
-          {[5, 10, 20, 50].map((size) => (
-            <option key={size} value={size} className="bg-card">
-              Show {size}
-            </option>
-          ))}
-        </select>
-
-        <Button
-          onClick={() => table.setPageIndex(0)}
-          disabled={!table.getCanPreviousPage()}
-        >
+        <Button onClick={() => table.setPageIndex(0)} disabled={!table.getCanPreviousPage()}>
           « First
         </Button>
         <Button

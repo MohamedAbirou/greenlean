@@ -3,13 +3,13 @@ import { Activity, Dumbbell, Target, Wind } from "lucide-react";
 export const getDifficultyColor = (difficulty: string) => {
   switch (difficulty?.toLowerCase()) {
     case "beginner":
-      return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
+      return "badge-green text-green-700";
     case "intermediate":
-      return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
+      return "badge-yellow text-yellow-700";
     case "advanced":
-      return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+      return "badge-red text-red-700";
     default:
-      return "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400";
+      return "badge-gray text-gray-700";
   }
 };
 
@@ -31,14 +31,14 @@ export const getCategoryIcon = (category: string) => {
 export const getIntensityColor = (intensity: string) => {
   switch (intensity?.toLowerCase()) {
     case "low":
-      return "from-green-500/20 to-emerald-500/20";
+      return "badge-green";
     case "moderate":
-      return "from-yellow-500/20 to-orange-500/20";
+      return "badge-yellow";
     case "moderate-high":
-      return "from-orange-500/20 to-red-500/20";
+      return "badge-orange";
     case "high":
-      return "from-red-500/20 to-pink-500/20";
+      return "badge-red";
     default:
-      return "from-blue-500/20 to-cyan-500/20";
+      return "badge-blue";
   }
 };

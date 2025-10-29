@@ -24,7 +24,7 @@ export const MealTabs: React.FC<MealTabsProps> = ({
   return (
     <>
       <nav
-        className="flex overflow-auto gap-2 bg-white/50 dark:bg-slate-900/50 p-2 rounded-md backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 mb-4"
+        className="flex overflow-auto gap-2 bg-background p-2 rounded-md backdrop-blur-sm border border-border mb-4"
         role="tablist"
       >
         {tabs.map((tab, index) => (
@@ -35,12 +35,12 @@ export const MealTabs: React.FC<MealTabsProps> = ({
             aria-selected={currentTab === tab.name}
             tabIndex={currentTab === tab.name ? 0 : -1}
             onClick={() => onTabChange(tab.name)}
-            className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-all outline-none focus:ring-2 ${
+            className={`flex-1 px-4 py-3 cursor-pointer rounded-lg font-semibold transition-all outline-none focus:ring-2 ${
               tab.ringColor
             } ${
               currentTab === tab.name
                 ? `bg-gradient-to-r ${tab.bg} text-white shadow-lg`
-                : "text-slate-600 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800/50"
+                : "text-muted-foreground hover:bg-secondary"
             }`}
           >
             {tab.name.charAt(0).toUpperCase() + tab.name.slice(1)}

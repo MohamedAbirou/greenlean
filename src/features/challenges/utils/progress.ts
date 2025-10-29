@@ -1,4 +1,16 @@
-import { Brain, CircleCheck, Droplet, Dumbbell, Flame, Footprints, type LucideProps, Repeat, Sunrise, Target, Trophy } from "lucide-react";
+import {
+  Brain,
+  CircleCheck,
+  Droplet,
+  Dumbbell,
+  Flame,
+  Footprints,
+  type LucideProps,
+  Repeat,
+  Sunrise,
+  Target,
+  Trophy,
+} from "lucide-react";
 
 export const IconMap: Record<string, React.ComponentType<LucideProps>> = {
   target: Target,
@@ -13,10 +25,7 @@ export const IconMap: Record<string, React.ComponentType<LucideProps>> = {
   flame: Flame,
 };
 
-export const canUpdateProgress = (
-  challengeType: string,
-  lastProgressDate: string | null
-) => {
+export const canUpdateProgress = (challengeType: string, lastProgressDate: string | null) => {
   if (!lastProgressDate) return true;
 
   const lastDate = new Date(lastProgressDate);
@@ -25,18 +34,16 @@ export const canUpdateProgress = (
   switch (challengeType) {
     case "daily":
       return (
-        lastDate.getFullYear() !== now.getFullYear() ||
-        lastDate.getMonth() !== now.getMonth() ||
-        lastDate.getDate() !== now.getDate()
+        lastDate.getUTCFullYear() !== now.getUTCFullYear() ||
+        lastDate.getUTCMonth() !== now.getUTCMonth() ||
+        lastDate.getUTCDate() !== now.getUTCDate()
       );
+
     case "weekly": {
       // Check if last progress was in the same week
       const getWeekNumber = (d: Date) => {
         const oneJan = new Date(d.getFullYear(), 0, 1);
-        return Math.ceil(
-          ((d.getTime() - oneJan.getTime()) / 86400000 + oneJan.getDay() + 1) /
-            7
-        );
+        return Math.ceil(((d.getTime() - oneJan.getTime()) / 86400000 + oneJan.getDay() + 1) / 7);
       };
       return getWeekNumber(lastDate) !== getWeekNumber(now);
     }

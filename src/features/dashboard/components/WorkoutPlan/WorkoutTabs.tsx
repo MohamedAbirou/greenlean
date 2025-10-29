@@ -1,6 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import React from "react";
-import { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 
 export interface WorkoutTabsProps {
   currentTab: string;
@@ -25,12 +24,12 @@ const TabButton = React.memo<{
     aria-selected={isActive}
     tabIndex={isActive ? 0 : -1}
     onClick={onClick}
-    className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-all outline-none focus:ring-2 ${
+    className={`flex-1 px-4 py-3 cursor-pointer rounded-lg font-semibold transition-all outline-none focus:ring-2 ${
       tab.ringColor
     } ${
       isActive
         ? `bg-gradient-to-r ${tab.bg} text-white shadow-lg`
-        : "text-slate-600 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800/50"
+        : "text-muted-foreground hover:bg-secondary"
     }`}
   >
     {tab.name.charAt(0).toUpperCase() + tab.name.slice(1)}
@@ -54,7 +53,7 @@ export const WorkoutTabs: React.FC<WorkoutTabsProps> = React.memo(
     return (
       <>
         <nav
-          className="flex overflow-auto gap-2 bg-white/50 dark:bg-slate-900/50 p-2 rounded-md backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 mb-4"
+          className="flex overflow-auto gap-2 bg-background p-2 rounded-md backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 mb-4"
           role="tablist"
         >
           {tabs.map((tab) => (

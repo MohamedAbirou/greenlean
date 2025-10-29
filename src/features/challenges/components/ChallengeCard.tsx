@@ -1,11 +1,11 @@
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { Challenge } from "@/shared/types/challenge";
 import { m } from "framer-motion";
 import * as LucideIcons from "lucide-react";
 import { Clock, Trophy, Users } from "lucide-react";
 import { memo, useCallback, useMemo } from "react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../../../shared/components/ui/tooltip";
-import Countdown from "./Countdown";
 import { IconMap } from "../utils/progress";
+import Countdown from "./Countdown";
 
 interface ChallengeCardProps {
   challenge: Challenge;
@@ -19,18 +19,15 @@ interface ChallengeCardProps {
 }
 
 const difficultyColors = {
-  beginner: "from-green-400 to-emerald-500",
-  intermediate: "from-blue-400 to-cyan-500",
-  advanced: "from-purple-500 to-pink-500",
+  beginner: "bg-progress-green-emerald",
+  intermediate: "bg-progress-blue-cyan",
+  advanced: "bg-progress-purple-pink",
 };
 
 const difficultyBadges = {
-  beginner:
-    "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-400 dark:border-green-600",
-  intermediate:
-    "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-400 dark:border-blue-600",
-  advanced:
-    "bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-400 dark:border-purple-600",
+  beginner: "badge-green border",
+  intermediate: "badge-blue border",
+  advanced: "badge-purple border",
 };
 
 const challengeIcons = {
@@ -63,8 +60,7 @@ const ChallengeCard = memo(
     );
 
     const difficultyColor = useMemo(
-      () =>
-        difficultyColors[challenge.difficulty] || "from-gray-400 to-gray-500",
+      () => difficultyColors[challenge.difficulty] || "from-gray-400 to-gray-500",
       [challenge.difficulty]
     );
 
@@ -78,19 +74,14 @@ const ChallengeCard = memo(
     const progress = useMemo(
       () =>
         challenge.user_progress
-          ? (challenge.user_progress.progress.current /
-              challenge.requirements.target) *
-            100
+          ? (challenge.user_progress.progress.current / challenge.requirements.target) * 100
           : 0,
       [challenge.user_progress, challenge.requirements.target]
     );
 
     // OPTIMIZED: useCallback for event handlers
     const handleUpdateProgress = useCallback(() => {
-      updateProgress(
-        challenge.id,
-        challenge.user_progress?.progress.current + 1
-      );
+      updateProgress(challenge.id, challenge.user_progress?.progress.current + 1);
     }, [challenge.id, challenge.user_progress?.progress, updateProgress]);
 
     const handleQuitChallenge = useCallback(() => {
@@ -109,7 +100,7 @@ const ChallengeCard = memo(
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: index * 0.1 }}
         viewport={{ once: true }}
-        className="relative bg-white dark:bg-gray-900 rounded-md shadow-xl overflow-hidden border border-border transition-all duration-300 hover:border-purple-400/50 dark:hover:border-purple-500/50 hover:shadow-2xl group"
+        className="relative bg-card rounded-md shadow-xl overflow-hidden border border-border transition-all duration-300 hover:border-purple-500/40 dark:hover:border-purple-500/50 hover:shadow-2xl group"
         style={{ transform: "translateZ(0)" }}
       >
         {/* Gradient Header */}
@@ -128,13 +119,9 @@ const ChallengeCard = memo(
                 </div>
                 <div className="flex flex-col md:flex-row items-start w-full md:block">
                   <div className="flex items-center justify-between w-full">
-                    <h3 className="font-bold text-foreground mb-1 truncate">
-                      {challenge.title}
-                    </h3>
+                    <h3 className="font-bold text-foreground mb-1 truncate">{challenge.title}</h3>
                     {challenge.user_progress?.streak_expires_at && (
-                      <Countdown
-                        expiry={challenge.user_progress?.streak_expires_at}
-                      />
+                      <Countdown expiry={challenge.user_progress?.streak_expires_at} />
                     )}
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
@@ -147,22 +134,20 @@ const ChallengeCard = memo(
                     {challenge.user_progress &&
                       !challenge.user_progress.completed &&
                       challenge.user_progress.streak_count > 0 && (
-                        <span className="flex items-center font-bold text-xs px-2 py-0.5 rounded-full border-2 border-red-800/50 dark:border-red-500/50 text-red-700 dark:text-red-500 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/40 dark:to-red-900/40">
+                        <span className="flex items-center font-bold text-xs px-2 py-0.5 rounded-full border-2 badge-orange">
                           <LucideIcons.Flame size={17} />
                           {challenge.user_progress.streak_count}
                         </span>
                       )}
 
-                    <div className="flex items-center gap-1 bg-yellow-100 dark:bg-yellow-900/40 px-2 py-0.5 rounded-full border-2 border-yellow-400/50 dark:border-yellow-500/50">
-                      <LucideIcons.Sparkles className="h-3 w-3 text-yellow-500 animate-pulse" />
-                      <span className="font-black text-yellow-700 dark:text-yellow-300 text-xs">
-                        {challenge.points}
-                      </span>
+                    <div className="flex items-center gap-1 badge-yellow px-2 py-0.5 rounded-full border-2">
+                      <LucideIcons.Sparkles className="h-3 w-3 text-yellow-600 dark:text-yellow-400 animate-pulse" />
+                      <span className="font-black text-xs">{challenge.points}</span>
                     </div>
 
                     {challenge.badge && (
                       <div
-                        className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-bold cursor-pointer border-2 shadow-md"
+                        className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-bold border-2 shadow-md"
                         style={{
                           backgroundColor: `${challenge.badge.color}20`,
                           borderColor: challenge.badge.color,
@@ -180,9 +165,7 @@ const ChallengeCard = memo(
             </div>
 
             {/* Description */}
-            <p className="text-foreground/80 text-sm truncate">
-              {challenge.description}
-            </p>
+            <p className="text-foreground/80 text-sm truncate">{challenge.description}</p>
           </div>
 
           {/* Stats */}
@@ -196,12 +179,35 @@ const ChallengeCard = memo(
               </div>
               <div className="flex items-center space-x-1 text-sm text-foreground/80">
                 <Users className="h-4 w-4" />
-                <span className="font-semibold">
-                  {challenge.participants_count}
-                </span>
+                <span className="font-semibold">{challenge.participants_count}</span>
               </div>
               <div className="text-sm text-primary">
-                <Tooltip>
+                <Popover>
+                  <PopoverTrigger className="flex items-center space-x-1">
+                    <LucideIcons.Info className="h-4 w-4" />
+                    <span className="font-semibold">More details</span>
+                  </PopoverTrigger>
+                  <PopoverContent className="bg-card text-foreground p-2 w-64">
+                    <div className="text-sm">
+                      <p className="font-bold">Challenge Details</p>
+                      <hr className="my-1" />
+                      <ul className="space-y-1 text-foreground/80">
+                        <li>
+                          <strong>Type:</strong> {challenge.type}
+                        </li>
+                        <li>
+                          <strong>Target:</strong> {challenge.requirements.target}{" "}
+                          {challenge.requirements.metric}
+                        </li>
+                        <li>
+                          <strong>End Date:</strong>{" "}
+                          {new Date(challenge.end_date).toLocaleDateString()}
+                        </li>
+                      </ul>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                {/* <Tooltip>
                   <TooltipTrigger className="flex items-center space-x-1">
                     <LucideIcons.Info className="h-4 w-4" />
                     <span className="font-semibold">More details</span>
@@ -228,7 +234,7 @@ const ChallengeCard = memo(
                       </ul>
                     </div>
                   </TooltipContent>
-                </Tooltip>
+                </Tooltip> */}
               </div>
             </div>
 
@@ -239,17 +245,14 @@ const ChallengeCard = memo(
               <div className="space-y-2">
                 <div>
                   <div className="flex justify-between text-sm mb-2">
-                    <span className="font-semibold text-foreground/90">
-                      Progress
-                    </span>
+                    <span className="font-semibold text-foreground/90">Progress</span>
                     <span className="font-black text-foreground">
-                      {challenge.user_progress.progress.current} /{" "}
-                      {challenge.requirements.target}
+                      {challenge.user_progress.progress.current} / {challenge.requirements.target}
                     </span>
                   </div>
-                  <div className="relative w-full bg-background rounded-full h-2 overflow-hidden">
+                  <div className="relative w-full bg-muted/50 rounded-full h-2 overflow-hidden">
                     <div
-                      className={`absolute inset-0 origin-left bg-gradient-to-r ${difficultyColor} rounded-full transition-transform duration-500 ease-out`}
+                      className={`absolute inset-0 origin-left ${difficultyColor} rounded-full transition-transform duration-500 ease-out`}
                       style={{
                         transform: `scaleX(${Math.min(progress, 100) / 100})`,
                         willChange: "transform",
@@ -262,7 +265,7 @@ const ChallengeCard = memo(
                   <div className="flex gap-2">
                     <button
                       onClick={handleUpdateProgress}
-                      className={`w-3/5 py-2 bg-gradient-to-r ${difficultyColor} text-white rounded-md font-bold shadow-lg transition-all duration-200 hover:shadow-xl active:scale-95 flex items-center justify-center gap-2 cursor-pointer`}
+                      className={`w-3/5 py-2 ${difficultyColor} text-white rounded-md font-bold shadow-lg transition-all duration-200 hover:shadow-xl active:scale-95 flex items-center justify-center gap-2 cursor-pointer`}
                       style={{ transform: "translateZ(0)" }}
                     >
                       {updatingProgress ? (
@@ -287,7 +290,7 @@ const ChallengeCard = memo(
                     </button>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center p-1 bg-gradient-to-r from-green-400 to-emerald-500 text-white rounded-md font-bold shadow-lg">
+                  <div className="flex items-center justify-center p-1 bg-progress-green-emerald text-white rounded-md font-bold shadow-lg">
                     <LucideIcons.CheckCircle2 className="h-5 w-5 mr-2" />
                     Challenge Completed!
                   </div>
@@ -296,7 +299,7 @@ const ChallengeCard = memo(
             ) : (
               <button
                 onClick={handleJoinChallenge}
-                className="w-full py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-md font-bold shadow-lg transition-all duration-200 hover:shadow-xl active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-2 bg-progress-indigo-purple text-white rounded-md font-bold shadow-lg transition-all duration-200 hover:shadow-xl active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
                 style={{ transform: "translateZ(0)" }}
               >
                 {isJoining ? (
@@ -318,8 +321,7 @@ const ChallengeCard = memo(
       prevProps.challenge.id === nextProps.challenge.id &&
       prevProps.challenge.user_progress?.progress.current ===
         nextProps.challenge.user_progress?.progress.current &&
-      prevProps.challenge.user_progress?.completed ===
-        nextProps.challenge.user_progress?.completed
+      prevProps.challenge.user_progress?.completed === nextProps.challenge.user_progress?.completed
     );
   }
 );

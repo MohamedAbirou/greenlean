@@ -77,31 +77,31 @@ const WorkoutDay = React.memo<{
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.05 * index }}
-        className={`rounded-md bg-gradient-to-br ${intensityColor} border border-white/20 dark:border-slate-700/20 overflow-hidden backdrop-blur-sm shadow-lg hover:shadow-xl transition-all`}
+        className={`rounded-md ${intensityColor} border border-border overflow-hidden backdrop-blur-sm shadow-lg hover:shadow-xl transition-all`}
       >
         <button
           onClick={toggleDay}
-          className="w-full p-6 flex items-center justify-between hover:bg-white/10 transition-colors"
+          className="w-full p-6 flex items-center justify-between hover:bg-card/10 transition-colors"
         >
           <div className="flex items-center gap-4">
-            <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm p-4 rounded-md shadow-lg">
+            <div className="bg-background backdrop-blur-sm p-4 rounded-md shadow-lg">
               <Calendar className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
             </div>
             <div className="text-left">
               <div className="flex items-center gap-3 mb-1">
-                <h4 className="font-bold text-slate-900 dark:text-white text-lg">
+                <h4 className="font-bold text-foreground text-lg">
                   {workout.day}
                 </h4>
                 {workout.optional && (
-                  <span className="px-2 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-full text-xs font-semibold">
+                  <span className="px-2 py-1 bg-stat-blue text-foreground rounded-full text-xs font-semibold">
                     Optional
                   </span>
                 )}
               </div>
-              <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">
+              <p className="text-sm text-muted-foreground font-medium">
                 {workout.workout_type}
               </p>
-              <div className="flex items-center gap-3 mt-2 text-xs text-slate-600 dark:text-slate-400">
+              <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <MapPin className="h-3 w-3" />
                   {workout.training_location}
@@ -116,7 +116,7 @@ const WorkoutDay = React.memo<{
           </div>
           <div className="flex items-center gap-6">
             <div className="text-right hidden sm:block">
-              <div className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 font-semibold">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground font-semibold">
                 <Clock className="h-4 w-4" />
                 {workout.duration_minutes} min
               </div>
@@ -126,14 +126,14 @@ const WorkoutDay = React.memo<{
                   {workout.estimated_calories_burned} cal
                 </div>
               )}
-              <div className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+              <div className="text-xs text-muted-foreground mt-1">
                 {workout.intensity} intensity
               </div>
             </div>
             {isExpanded ? (
-              <ChevronUp className="h-6 w-6 text-slate-700 dark:text-slate-300" />
+              <ChevronUp className="h-6 w-6 text-muted-foreground" />
             ) : (
-              <ChevronDown className="h-6 w-6 text-slate-700 dark:text-slate-300" />
+              <ChevronDown className="h-6 w-6 text-muted-foreground" />
             )}
           </div>
         </button>
@@ -149,8 +149,8 @@ const WorkoutDay = React.memo<{
             >
               {/* Warmup */}
               {workout.warmup && (
-                <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 backdrop-blur-sm rounded-md p-5 border border-blue-200/50 dark:border-blue-800/50">
-                  <h5 className="font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                <div className="bg-stat-blue backdrop-blur-sm rounded-md p-5 border border-blue-200/50 dark:border-blue-800/50">
+                  <h5 className="font-bold text-foreground mb-3 flex items-center gap-2">
                     <Wind className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     Warm-up ({workout.warmup.duration_minutes} min)
                   </h5>
@@ -158,7 +158,7 @@ const WorkoutDay = React.memo<{
                     {workout.warmup.activities.map((activity, actIndex) => (
                       <div
                         key={actIndex}
-                        className="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-300"
+                        className="flex items-start gap-2 text-sm text-muted-foreground"
                       >
                         <Check className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                         <span>{activity}</span>
@@ -171,7 +171,7 @@ const WorkoutDay = React.memo<{
               {/* Exercises */}
               {workout.exercises && workout.exercises.length > 0 && (
                 <div className="space-y-3">
-                  <h5 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <h5 className="font-bold text-foreground flex items-center gap-2">
                     <Dumbbell className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                     Exercises ({workout.exercises.length})
                   </h5>
@@ -182,14 +182,14 @@ const WorkoutDay = React.memo<{
                     return (
                       <div
                         key={exIndex}
-                        className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-md border border-slate-200/50 dark:border-slate-700/50 overflow-hidden"
+                        className="bg-background backdrop-blur-sm rounded-md border border-border overflow-hidden"
                       >
                         <button
                           onClick={() => toggleExercise(exIndex)}
-                          className="w-full p-4 flex items-start justify-between hover:bg-white/70 dark:hover:bg-slate-800/70 transition-colors"
+                          className="w-full p-4 flex items-start justify-between hover:bg-background dark:hover:bg-background transition-colors"
                         >
                           <div className="flex items-start gap-3 flex-1">
-                            <div className="flex items-center space-x-1 bg-gradient-to-br from-indigo-600 to-purple-600 p-2 rounded-lg shadow-md">
+                            <div className="flex items-center space-x-1 bg-progress-indigo-purple p-2 rounded-lg shadow-md">
                               {getCategoryIcon(exercise.category)}
                               <div className="text-white text-xs font-bold">
                                 {exIndex + 1}
@@ -197,7 +197,7 @@ const WorkoutDay = React.memo<{
                             </div>
                             <div className="text-left">
                               <div className="flex items-center gap-2 mb-1">
-                                <h6 className="font-semibold text-slate-900 dark:text-white">
+                                <h6 className="font-semibold text-foreground">
                                   {exercise.name}
                                 </h6>
                                 <span
@@ -208,7 +208,7 @@ const WorkoutDay = React.memo<{
                                   {exercise.difficulty}
                                 </span>
                               </div>
-                              <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
+                              <div className="flex items-center gap-3 text-sm text-muted-foreground">
                                 <span className="font-semibold">
                                   {exercise.sets} sets × {exercise.reps}
                                 </span>
@@ -219,16 +219,16 @@ const WorkoutDay = React.memo<{
                                 </span>
                               </div>
                               {exercise.tempo && (
-                                <div className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                                <div className="text-xs text-muted-foreground/80 mt-1">
                                   Tempo: {exercise.tempo}
                                 </div>
                               )}
                             </div>
                           </div>
                           {isExerciseExpanded ? (
-                            <ChevronUp className="h-5 w-5 text-slate-600 dark:text-slate-400 flex-shrink-0" />
+                            <ChevronUp className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                           ) : (
-                            <ChevronDown className="h-5 w-5 text-slate-600 dark:text-slate-400 flex-shrink-0" />
+                            <ChevronDown className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                           )}
                         </button>
 
@@ -247,7 +247,7 @@ const WorkoutDay = React.memo<{
                                   <Info className="h-3 w-3" />
                                   Instructions
                                 </p>
-                                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                                <p className="text-sm text-muted-foreground leading-relaxed">
                                   {exercise.instructions}
                                 </p>
                               </div>
@@ -257,7 +257,7 @@ const WorkoutDay = React.memo<{
                                 {exercise.muscle_groups &&
                                   exercise.muscle_groups.length > 0 && (
                                     <div>
-                                      <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">
+                                      <p className="text-xs font-semibold text-muted-foreground mb-2">
                                         Target Muscles
                                       </p>
                                       <div className="flex flex-wrap gap-2">
@@ -265,7 +265,7 @@ const WorkoutDay = React.memo<{
                                           (muscle, mIndex) => (
                                             <span
                                               key={mIndex}
-                                              className="px-3 py-1 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-full text-xs font-semibold text-slate-700 dark:text-slate-300 border border-indigo-200/50 dark:border-indigo-800/50"
+                                              className="px-3 py-1 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-full text-xs font-semibold text-muted-foreground border border-indigo-200/50 dark:border-indigo-800/50"
                                             >
                                               {muscle}
                                             </span>
@@ -279,7 +279,7 @@ const WorkoutDay = React.memo<{
                                 {exercise.equipment_needed &&
                                   exercise.equipment_needed.length > 0 && (
                                     <div>
-                                      <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">
+                                      <p className="text-xs font-semibold text-muted-foreground mb-2">
                                         Equipment Needed
                                       </p>
                                       <div className="flex flex-wrap gap-2">
@@ -287,7 +287,7 @@ const WorkoutDay = React.memo<{
                                           (equip, eIndex) => (
                                             <span
                                               key={eIndex}
-                                              className="px-3 py-1 bg-white/70 dark:bg-slate-900/70 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 border border-slate-200/50 dark:border-slate-700/50"
+                                              className="px-3 py-1 bg-background rounded-lg text-xs font-medium text-muted-foreground border border-border"
                                             >
                                               {equip}
                                             </span>
@@ -305,7 +305,7 @@ const WorkoutDay = React.memo<{
                                         <TrendingUp className="h-3 w-3" />
                                         Progression
                                       </p>
-                                      <p className="text-xs text-slate-700 dark:text-slate-300">
+                                      <p className="text-xs text-muted-foreground">
                                         {exercise.progression}
                                       </p>
                                     </div>
@@ -316,7 +316,7 @@ const WorkoutDay = React.memo<{
                                         <AlertCircle className="h-3 w-3" />
                                         Safety
                                       </p>
-                                      <p className="text-xs text-slate-700 dark:text-slate-300">
+                                      <p className="text-xs text-muted-foreground">
                                         {exercise.safety_notes}
                                       </p>
                                     </div>
@@ -336,10 +336,10 @@ const WorkoutDay = React.memo<{
                                           exercise.alternatives
                                         ).map(([key, value]) => (
                                           <div key={key} className="text-xs">
-                                            <span className="font-semibold text-slate-600 dark:text-slate-400 capitalize">
+                                            <span className="font-semibold text-muted-foreground capitalize">
                                               {key}:
                                             </span>
-                                            <span className="text-slate-700 dark:text-slate-300 ml-1">
+                                            <span className="text-muted-foreground ml-1">
                                               {value}
                                             </span>
                                           </div>
@@ -359,8 +359,8 @@ const WorkoutDay = React.memo<{
 
               {/* Cooldown */}
               {workout.cooldown && (
-                <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 backdrop-blur-sm rounded-md p-5 border border-green-200/50 dark:border-green-800/50">
-                  <h5 className="font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                <div className="bg-stat-green backdrop-blur-sm rounded-md p-5 border border-green-200/50 dark:border-green-800/50">
+                  <h5 className="font-bold text-foreground mb-3 flex items-center gap-2">
                     <Heart className="h-5 w-5 text-green-600 dark:text-green-400" />
                     Cool-down ({workout.cooldown.duration_minutes} min)
                   </h5>
@@ -368,7 +368,7 @@ const WorkoutDay = React.memo<{
                     {workout.cooldown.activities.map((activity, actIndex) => (
                       <div
                         key={actIndex}
-                        className="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-300"
+                        className="flex items-start gap-2 text-sm text-muted-foreground"
                       >
                         <Check className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
                         <span>{activity}</span>
@@ -382,12 +382,12 @@ const WorkoutDay = React.memo<{
               {(workout.success_criteria ||
                 workout.if_low_energy ||
                 workout.rpe_target) && (
-                <div className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 rounded-md p-5 border border-yellow-200/50 dark:border-yellow-800/50">
-                  <h5 className="font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                <div className="bg-stat-orange rounded-md p-5 border border-yellow-200/50 dark:border-yellow-800/50">
+                  <h5 className="font-bold text-foreground mb-3 flex items-center gap-2">
                     <Sparkles className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
                     Workout Notes
                   </h5>
-                  <div className="space-y-2 text-sm text-slate-700 dark:text-slate-300">
+                  <div className="space-y-2 text-sm text-muted-foreground">
                     {workout.rpe_target && (
                       <p>
                         <strong>Target Intensity:</strong> RPE{" "}
@@ -442,14 +442,14 @@ export const WorkoutList: React.FC<WorkoutListProps> = React.memo(
     return (
       <>
         <div className="flex items-center gap-3 mb-6">
-          <div className="bg-gradient-to-br from-indigo-600 to-purple-600 p-3 rounded-md shadow-lg">
+          <div className="bg-progress-blue-cyan p-3 rounded-md shadow-lg">
             <Activity className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
+            <h3 className="text-2xl font-bold text-foreground/90">
               Weekly Workout Schedule
             </h3>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
+            <p className="text-sm text-muted-foreground">
               {weeklyPlan.length} workout days •{" "}
               {planData.weekly_summary?.total_time_minutes} total minutes
             </p>

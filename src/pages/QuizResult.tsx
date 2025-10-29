@@ -1,5 +1,7 @@
 import { useAuth } from "@/features/auth";
+import type { QuizAnswers } from "@/features/quiz";
 import { supabase } from "@/lib/supabase";
+import { parseWeightAnswer } from "@/shared/utils/unitConversion";
 import { motion } from "framer-motion";
 import { Activity, ArrowLeft, Calendar, Flame, Loader, Scale } from "lucide-react";
 import React, { useEffect, useState } from "react";
@@ -8,9 +10,7 @@ import { Link, useParams } from "react-router-dom";
 interface QuizResult {
   id: string;
   created_at: string;
-  answers: {
-    [key: number]: string | number;
-  };
+  answers: QuizAnswers;
   calculations: {
     bmi: number;
     bmr: number;
@@ -85,6 +85,9 @@ const QuizResult: React.FC = () => {
   };
 
   const bmiStatus = getBMIStatus(result.calculations.bmi);
+
+  // we gonna use result.answers.country to get the unit system
+  const unitSystem = result.answers?.country === "US" ? "imperial" : "metric";
 
   return (
     <div className="min-h-screen pt-24 pb-16 bg-background">
@@ -161,7 +164,7 @@ const QuizResult: React.FC = () => {
                     <span className="text-foreground/80">Activity Level</span>
                   </div>
                   <div className="text-lg font-semibold text-foreground">
-                    {result.answers[6] as string}
+                    {result.answers?.exerciseFrequency}
                   </div>
                 </div>
               </div>
@@ -172,15 +175,15 @@ const QuizResult: React.FC = () => {
                   <div className="space-y-4">
                     <div>
                       <div className="text-sm text-foreground/70">Primary Goal</div>
-                      <div className="text-foreground">{result.answers[8] as string}</div>
+                      <div className="text-foreground">{result.answers?.mainGoal}</div>
                     </div>
                     <div>
                       <div className="text-sm text-foreground/70">Target Weight</div>
-                      <div className="text-foreground">{result.answers[5]} kg</div>
+                      <div className="text-foreground">{parseWeightAnswer(result.answers?.targetWeight, unitSystem).displayValue}</div>
                     </div>
                     <div>
                       <div className="text-sm text-foreground/70">Exercise Preference</div>
-                      <div className="text-foreground">{result.answers[12] as string}</div>
+                      <div className="text-foreground">{result.answers?.preferredExercise?.join(", ")}</div>
                     </div>
                   </div>
                 </div>
@@ -192,16 +195,18 @@ const QuizResult: React.FC = () => {
                   <div className="space-y-4">
                     <div>
                       <div className="text-sm text-foreground/70">Dietary Restrictions</div>
-                      <div className="text-foreground">{result.answers[7] as string}</div>
+                      <div className="text-foreground">{result.answers?.dietaryStyle}</div>
                     </div>
                     <div>
                       <div className="text-sm text-foreground/70">Meals per Day</div>
-                      <div className="text-foreground">{result.answers[9] as string}</div>
+                      <div className="text-foreground">{result.answers?.mealsPerDay}</div>
                     </div>
-                    <div>
-                      <div className="text-sm text-foreground/70">Health Conditions</div>
-                      <div className="text-foreground">{result.answers[10] as string}</div>
-                    </div>
+                    {result?.answers?.healthConditions && (
+                      <div>
+                        <div className="text-sm text-foreground/70">Health Conditions</div>
+                        <div className="text-foreground">{result.answers.healthConditions?.join(", ")}</div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

@@ -24,25 +24,25 @@ interface DietPlanSectionProps {
 const TABS = [
   {
     name: "Meals",
-    bg: "from-primary to-emerald-600",
+    bg: "bg-progress-green-emerald",
     color: "text-white",
     ringColor: "focus:ring-emerald-500/50",
   },
   {
     name: "Hydration",
-    bg: "from-blue-600 to-cyan-600",
+    bg: "bg-progress-blue-cyan",
     color: "text-blue-600 dark:text-blue-400",
     ringColor: "focus:ring-blue-500/50",
   },
   {
     name: "Shopping",
-    bg: "from-primary to-emerald-600",
+    bg: "bg-progress-green-emerald",
     color: "text-green-600 dark:text-green-400",
     ringColor: "focus:ring-green-500/50",
   },
   {
     name: "Tips",
-    bg: "from-purple-500 to-pink-500",
+    bg: "bg-progress-purple-pink",
     color: "text-purple-600 dark:text-purple-400",
     ringColor: "focus:ring-purple-500/50",
   },
@@ -124,7 +124,7 @@ export const DietPlanSection: React.FC<DietPlanSectionProps> = memo(({ userId, c
       <div className="mx-auto space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-emerald-600 bg-clip-text text-transparent mb-2">
+            <h2 className="text-3xl font-bold text-gradient-green-emerald mb-2">
               Your Personalized Meal Plan
             </h2>
             <p className="text-slate-600 dark:text-slate-400">
@@ -169,7 +169,7 @@ export const DietPlanSection: React.FC<DietPlanSectionProps> = memo(({ userId, c
   // Empty state - no plan exists
   if (hasNoPlan) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 p-6">
+      <div className="min-h-screen bg-page-slate-blue p-6">
         <div className="max-w-4xl mx-auto text-center py-12">
           <div className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm rounded-md p-12 border border-slate-200/50 dark:border-slate-700/50">
             <Plus className="h-16 w-16 text-primary mx-auto mb-4" />
@@ -190,7 +190,7 @@ export const DietPlanSection: React.FC<DietPlanSectionProps> = memo(({ userId, c
     <div className="mx-auto space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-emerald-600 bg-clip-text text-transparent mb-2">
+          <h2 className="text-3xl font-bold text-gradient-green-emerald mb-2">
             Your Personalized Meal Plan
           </h2>
           <p className="text-slate-600 dark:text-slate-400">
@@ -199,7 +199,7 @@ export const DietPlanSection: React.FC<DietPlanSectionProps> = memo(({ userId, c
         </div>
         <button
           onClick={() => setShowLogModal(true)}
-          className="px-6 py-3 bg-gradient-to-r from-primary to-emerald-600 text-white rounded-md font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all flex items-center gap-2"
+          className="px-6 py-3 bg-progress-green-emerald text-white rounded-md font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all flex items-center gap-2"
         >
           <Plus className="h-5 w-5" /> Log Meal
         </button>

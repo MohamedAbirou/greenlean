@@ -39,10 +39,10 @@ export const MealList: React.FC<MealListProps> = ({
           <ChefHat className="h-6 w-6 text-white" />
         </div>
         <div>
-          <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
+          <h3 className="text-2xl font-bold text-foreground">
             Today's Meals
           </h3>
-          <p className="text-sm text-slate-600 dark:text-slate-400">
+          <p className="text-sm text-foreground/70">
             {dietPlanData?.meals.length} meals •{" "}
             {dietPlanData?.daily_totals.calories} total calories •{"  "}✓ Macros
             match targets within ±5%
@@ -53,9 +53,9 @@ export const MealList: React.FC<MealListProps> = ({
         {meals.map((meal, index) => (
           <div
             key={index}
-            className={`rounded-md bg-gradient-to-br ${getMealGradient(
+            className={`rounded-md ${getMealGradient(
               meal.meal_type
-            )} border border-white/20 dark:border-slate-700/20 overflow-hidden backdrop-blur-sm shadow-lg hover:shadow-xl transition-all`}
+            )} border border-border overflow-hidden backdrop-blur-sm shadow-lg hover:shadow-xl transition-all`}
           >
             {/* Top summary row */}
             <button
@@ -69,7 +69,7 @@ export const MealList: React.FC<MealListProps> = ({
               aria-expanded={expandedMeal === meal.meal_type}
             >
               <div className="flex items-center gap-4">
-                <div className="bg-white/80 dark:bg-slate-800/80 p-4 rounded-md shadow-lg">
+                <div className="bg-background p-4 rounded-md shadow-lg">
                   {getMealIcon(meal.meal_type)}
                 </div>
                 <div className="text-left">
@@ -85,29 +85,29 @@ export const MealList: React.FC<MealListProps> = ({
                       {meal?.difficulty}
                     </span>
                   </div>
-                  <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">
+                  <p className="text-sm text-foreground/80 font-medium">
                     {meal.meal_name}
                   </p>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                  <p className="text-xs text-secondary-foreground mt-1">
                     {meal.meal_timing}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-6">
                 <div className="text-right hidden sm:block">
-                  <div className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 font-semibold">
+                  <div className="flex items-center gap-2 text-sm text-foreground/80 font-semibold">
                     <Clock className="h-4 w-4" />
                     {meal.prep_time_minutes} min
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 font-semibold mt-1">
+                  <div className="flex items-center gap-2 text-sm text-foreground/80 font-semibold mt-1">
                     <Flame className="h-4 w-4 text-orange-500" />
                     {meal.total_calories} cal
                   </div>
                 </div>
                 {expandedMeal === meal.meal_type ? (
-                  <ChevronUp className="h-6 w-6 text-slate-700 dark:text-slate-300" />
+                  <ChevronUp className="h-6 w-6 text-foreground/80" />
                 ) : (
-                  <ChevronDown className="h-6 w-6 text-slate-700 dark:text-slate-300" />
+                  <ChevronDown className="h-6 w-6 text-foreground/80" />
                 )}
               </div>
             </button>
@@ -136,7 +136,7 @@ export const MealList: React.FC<MealListProps> = ({
 
                   {/* Ingredients */}
                   <div className="bg-background/60 rounded-md p-5 border border-border/50">
-                    <h5 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                    <h5 className="font-bold text-foreground/90 mb-4 flex items-center gap-2">
                       <ShoppingCart className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                       Ingredients
                     </h5>
@@ -147,26 +147,26 @@ export const MealList: React.FC<MealListProps> = ({
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: foodIndex * 0.05 }}
-                          className="flex items-center justify-between bg-white/70 dark:bg-slate-900/70 p-4 rounded-lg hover:bg-white dark:hover:bg-slate-900/90 transition-all border border-slate-200/50 dark:border-slate-700/50 group"
+                          className="flex items-center justify-between bg-background p-4 rounded-lg hover:bg-card transition-all border border-border group"
                         >
                           <div className="flex items-center gap-3 flex-1">
                             <div className="bg-gradient-to-br from-green-500 to-emerald-500 p-2 rounded-lg shadow-md group-hover:scale-110 transition-transform">
                               <Check className="h-4 w-4 text-white" />
                             </div>
                             <div>
-                              <p className="font-semibold text-slate-900 dark:text-white">
+                              <p className="font-semibold text-foreground">
                                 {food.name}
                               </p>
-                              <p className="text-sm text-slate-600 dark:text-slate-400">
+                              <p className="text-sm text-foreground-50">
                                 {food.portion} • {food.grams}g
                               </p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold text-slate-900 dark:text-white">
+                            <p className="font-bold text-foreground">
                               {food.calories} cal
                             </p>
-                            <p className="text-xs text-slate-600 dark:text-slate-400">
+                            <p className="text-xs text-foreground-50">
                               P:{food.protein}g C:{food.carbs}g F:
                               {food.fats}g
                             </p>
@@ -178,7 +178,7 @@ export const MealList: React.FC<MealListProps> = ({
 
                   {/* Recipe Instructions */}
                   <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 backdrop-blur-sm rounded-md p-5 border border-blue-200/50 dark:border-blue-800/50">
-                    <h5 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                    <h5 className="font-bold text-foreground mb-4 flex items-center gap-2">
                       <ChefHat className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                       How to Prepare
                     </h5>
@@ -188,7 +188,7 @@ export const MealList: React.FC<MealListProps> = ({
                           <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 text-white flex items-center justify-center text-xs font-bold">
                             {stepIndex + 1}
                           </div>
-                          <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed flex-1">
+                          <p className="text-sm text-foreground/80 leading-relaxed flex-1">
                             {step.replace(/^\d+\.\s*/, "")}
                           </p>
                         </div>
@@ -203,7 +203,7 @@ export const MealList: React.FC<MealListProps> = ({
                         {meal.tips.map((tip, tipIndex) => (
                           <p
                             key={tipIndex}
-                            className="text-xs text-slate-600 dark:text-slate-400 mb-1"
+                            className="text-xs text-foreground-50 mb-1"
                           >
                             • {tip}
                           </p>
@@ -216,46 +216,46 @@ export const MealList: React.FC<MealListProps> = ({
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                     <div className="bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-md p-4 text-center border border-orange-200/50 dark:border-orange-800/50">
                       <Flame className="h-6 w-6 text-orange-600 dark:text-orange-400 mx-auto mb-2" />
-                      <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                      <p className="text-xs text-foreground-50 font-medium">
                         Calories
                       </p>
-                      <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                      <p className="text-2xl font-bold text-foreground">
                         {meal.total_calories}
                       </p>
                     </div>
                     <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-md p-4 text-center border border-green-200/50 dark:border-green-800/50">
                       <TrendingUp className="h-6 w-6 text-green-600 dark:text-green-400 mx-auto mb-2" />
-                      <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                      <p className="text-xs text-foreground-50 font-medium">
                         Protein
                       </p>
-                      <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                      <p className="text-2xl font-bold text-foreground">
                         {meal.total_protein}g
                       </p>
                     </div>
                     <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-md p-4 text-center border border-blue-200/50 dark:border-blue-800/50">
                       <Zap className="h-6 w-6 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
-                      <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                      <p className="text-xs text-foreground-50 font-medium">
                         Carbs
                       </p>
-                      <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                      <p className="text-2xl font-bold text-foreground">
                         {meal.total_carbs}g
                       </p>
                     </div>
                     <div className="bg-gradient-to-br from-yellow-500/20 to-amber-500/20 rounded-md p-4 text-center border border-yellow-200/50 dark:border-yellow-800/50">
                       <Heart className="h-6 w-6 text-yellow-600 dark:text-yellow-400 mx-auto mb-2" />
-                      <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                      <p className="text-xs text-foreground-50 font-medium">
                         Fats
                       </p>
-                      <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                      <p className="text-2xl font-bold text-foreground">
                         {meal.total_fats}g
                       </p>
                     </div>
                     <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-md p-4 text-center border border-purple-200/50 dark:border-purple-800/50">
                       <Apple className="h-6 w-6 text-purple-600 dark:text-purple-400 mx-auto mb-2" />
-                      <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                      <p className="text-xs text-foreground-50 font-medium">
                         Fiber
                       </p>
-                      <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                      <p className="text-2xl font-bold text-foreground">
                         {meal.total_fiber}g
                       </p>
                     </div>

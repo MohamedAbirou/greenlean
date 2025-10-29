@@ -35,8 +35,8 @@ export const ProgressCards: React.FC<ProgressCardsProps> = ({
           ? `${calorieStats.remaining} kcal remaining`
           : undefined,
       style:
-        "from-orange-500/10 via-red-500/10 to-pink-500/10 p-6 border border-orange-200/20 dark:border-orange-800/20",
-      iconStyle: "from-orange-500 to-red-500",
+        "p-6 bg-stat-orange border border-orange-200/50 dark:border-orange-800/30",
+      iconStyle: "bg-progress-orange-red",
       color: "text-orange-600 dark:text-orange-400",
       delay: 0,
     },
@@ -52,9 +52,9 @@ export const ProgressCards: React.FC<ProgressCardsProps> = ({
           ? `${proteinStats.remaining} g remaining`
           : undefined,
       style:
-        "from-green-500/10 via-emerald-500/10 to-teal-500/10 p-6 border border-green-200/20 dark:border-green-800/20",
-      iconStyle: "from-green-500 to-emerald-500",
-      color: "text-green-600 dark:text-green-400",
+        "p-6 bg-stat-green border border-green-200/50 dark:border-green-800/30",
+      iconStyle: "bg-progress-green-emerald",
+      color: "text-gradient-green-emerald",
       delay: 0.1,
     },
     {
@@ -69,9 +69,9 @@ export const ProgressCards: React.FC<ProgressCardsProps> = ({
           ? `${carbsStats.remaining} g remaining`
           : undefined,
       style:
-        "from-blue-500/10 via-cyan-500/10 to-sky-500/10 p-6 border border-blue-200/20 dark:border-blue-800/20",
-      iconStyle: "from-blue-500 to-cyan-500",
-      color: "text-blue-600 dark:text-blue-400",
+        "p-6 bg-stat-blue border border-blue-200/50 dark:border-blue-800/30",
+      iconStyle: "bg-progress-blue-cyan",
+      color: "text-gradient-blue-cyan",
       delay: 0.2,
     },
     {
@@ -86,9 +86,9 @@ export const ProgressCards: React.FC<ProgressCardsProps> = ({
           ? `${fatsStats.remaining} g remaining`
           : undefined,
       style:
-        "from-yellow-500/10 via-amber-500/10 to-orange-500/10 p-6 border border-yellow-200/20 dark:border-yellow-800/20",
-      iconStyle: "from-yellow-500 to-amber-500",
-      color: "text-yellow-600 dark:text-yellow-400",
+        "p-6 bg-stat-yellow border border-yellow-200/50 dark:border-yellow-800/30",
+      iconStyle: "bg-progress-yellow-amber",
+      color: "text-gradient-yellow-amber",
       delay: 0.3,
     },
   ];
@@ -115,30 +115,30 @@ export const ProgressCards: React.FC<ProgressCardsProps> = ({
                 <div className={`text-2xl font-bold ${card.color}`}>
                   {card.percentage.toFixed(0)}%
                 </div>
-                <div className="text-xs text-slate-600 dark:text-slate-400">
+                <div className="text-xs text-muted-foreground">
                   Progress
                 </div>
               </div>
             </div>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-2 font-medium">
+            <p className="text-sm text-muted-foreground mb-2 font-medium">
               {card.label}
             </p>
-            <p className="text-3xl font-bold text-slate-900 dark:text-white mb-3">
+            <p className="text-3xl font-bold text-foreground mb-3">
               {card.value}
-              <span className="text-lg text-slate-500 dark:text-slate-400 font-normal">
+              <span className="text-lg text-muted-foreground font-normal">
                 {" "}
                 / {card.target}
               </span>
             </p>
-            <div className="h-3 bg-white/50 dark:bg-slate-800/50 rounded-full overflow-hidden">
+            <div className="h-3 bg-background rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${Math.min(card.percentage, 100)}%` }}
                 transition={{ duration: 1, ease: "easeOut" }}
-                className="h-full bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 rounded-full"
+                className={`h-full ${card.iconStyle} rounded-full`}
               />
             </div>
-            <div className="mt-2 text-xs text-slate-600 dark:text-slate-400">
+            <div className="mt-2 text-xs text-muted-foreground">
               {card.footer} kcal remaining
             </div>
           </motion.div>
