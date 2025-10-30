@@ -11,3 +11,4 @@ pydantic==2.5.0
 python-dotenv==1.0.0
 python-multipart==0.0.6
 packaging>=24.0
+stripe==11.5.0
