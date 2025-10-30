@@ -39,8 +39,8 @@ const AdminDashboard: React.FC = () => {
 
   // Fetch dashboard data
   const { data: metrics, isLoading: metricsLoading } = useDashboardMetrics(dateRange);
-  const { data: recentActivity, isLoading: activityLoading } = useRecentActivity(10);
-  const { data: topUsers, isLoading: topUsersLoading } = useTopUsers(10);
+  const { data: recentActivity } = useRecentActivity(10);
+  const { data: topUsers } = useTopUsers(10);
   const { data: funnelData, isLoading: funnelLoading } = useConversionFunnel(dateRange);
   const { data: systemHealth, isLoading: healthLoading } = useSystemHealth();
 
@@ -86,7 +86,7 @@ const AdminDashboard: React.FC = () => {
           <AnalyticsTab
             funnelData={funnelData || []}
             metrics={metrics}
-            dateRange={dateRange}
+            // dateRange={dateRange}
             isLoading={funnelLoading}
           />
         );

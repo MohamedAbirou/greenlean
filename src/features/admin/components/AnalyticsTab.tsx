@@ -3,14 +3,14 @@ import { ArrowDownRight } from "lucide-react";
 interface AnalyticsTabProps {
   funnelData: { stage: string; count: number; percent: number }[];
   metrics: any;
-  dateRange: string;
+  // dateRange: string;
   isLoading: boolean;
 }
 
 export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
   funnelData,
   metrics,
-  dateRange,
+  // dateRange,
   isLoading,
 }) => {
   if (isLoading) {

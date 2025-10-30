@@ -206,15 +206,15 @@ export class AnalyticsService {
       })),
       ...(mealPlans.data || []).map((p) => ({
         type: "plan_generated",
-        user: p.profiles?.email || "Unknown",
+        user: p.profiles?.find((p) => p.email)?.email || "Unknown",
         plan: "Meal Plan",
         time: this.getTimeAgo(p.created_at),
         timestamp: new Date(p.created_at).getTime(),
       })),
       ...(challenges.data || []).map((c) => ({
         type: "challenge_completed",
-        user: c.profiles?.email || "Unknown",
-        challenge: c.challenges?.title || "Challenge",
+        user: c.profiles?.find((p) => p.email)?.email || "Unknown",
+        challenge: c.challenges?.find((c) => c.title)?.title || "Challenge",
         time: this.getTimeAgo(c.completion_date),
         timestamp: new Date(c.completion_date).getTime(),
       })),
@@ -235,14 +235,16 @@ export class AnalyticsService {
 
     return (
       data?.map((u) => ({
-        name: u.profiles?.full_name || u.profiles?.username || "Unknown",
-        email: u.profiles?.email || "",
+        name:
+          u.profiles?.find((p) => p.full_name)?.full_name ||
+          u.profiles?.find((p) => p.username)?.username ||
+          "Unknown",
+        email: u.profiles?.find((p) => p.email)?.email || "",
         points: u.points,
-        status: u.profiles?.plan_id || "free",
+        status: u.profiles?.find((p) => p.plan_id)?.plan_id || "free",
       })) || []
     );
   }
-
 
   /**
    * Get system health - SIMPLIFIED (remove non-existent tables)
@@ -261,11 +263,11 @@ export class AnalyticsService {
         .order("created_at", { ascending: false })
         .limit(10),
     ]);
-  
+
     const errors = errorsRes.data || [];
 
     const storageUsed = await AnalyticsService.calcStorageUsed();
-  
+
     return {
       apiUptime: uptimeRes.data || 0,
       avgResponseTime: respTimeRes.data || 0,
@@ -276,7 +278,6 @@ export class AnalyticsService {
       recentErrors: errors,
     };
   }
-
 
   // ========== HELPER FUNCTIONS ==========
   private static getTimeAgo(date: string): string {
@@ -304,7 +305,7 @@ export class AnalyticsService {
   private static async calcStorageUsed() {
     const buckets = ["avatars", "uploads", "documents"]; // change to your buckets
     let totalBytes = 0;
-  
+
     for (const bucket of buckets) {
       // List all files in each bucket
       const { data: files, error } = await supabase.storage.from(bucket).list("", {
@@ -312,21 +313,20 @@ export class AnalyticsService {
         offset: 0,
         sortBy: { column: "name", order: "asc" },
       });
-  
+
       if (error) {
         console.error(`Error listing files in bucket ${bucket}:`, error);
         continue;
       }
-  
+
       // Sum up file sizes
       for (const file of files || []) {
         totalBytes += file.metadata?.size || 0;
       }
     }
-  
+
     // Convert bytes → MB (or GB)
     const totalMB = totalBytes / (1024 * 1024);
     return Math.round(totalMB * 100) / 100; // e.g. 67.42 MB
   }
-  
 }

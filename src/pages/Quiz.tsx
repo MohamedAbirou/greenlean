@@ -47,7 +47,7 @@ const Quiz: React.FC = () => {
     allowed,
     planId,
     loading: planLoading,
-    refresh: refreshPlan,
+    // refresh: refreshPlan,
   } = usePlan();
   const [showUpgrade, setShowUpgrade] = useState(false);
 
