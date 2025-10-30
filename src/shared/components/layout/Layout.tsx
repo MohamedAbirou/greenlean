@@ -1,9 +1,9 @@
-import { useThemeStore } from '@/store/themeStore';
-import { motion } from 'framer-motion';
-import React, { useEffect, useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
-import Footer from './Footer';
-import Navbar from './Navbar';
+import { useThemeStore } from "@/store/themeStore";
+import { motion } from "framer-motion";
+import React, { useEffect, useState } from "react";
+import { Outlet, useLocation } from "react-router-dom";
+import Footer from "./Footer";
+import Navbar from "./Navbar";
 
 const Layout: React.FC = () => {
   const location = useLocation();
@@ -18,23 +18,25 @@ const Layout: React.FC = () => {
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
     };
   }, [scrolled]);
 
   useEffect(() => {
     if (isDarkMode) {
-      document.documentElement.classList.add('dark');
+      document.documentElement.classList.add("dark");
     } else {
-      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove("dark");
     }
   }, [isDarkMode]);
 
+  const { pathname } = useLocation();
+
   return (
-    <div className={`flex flex-col min-h-screen ${isDarkMode ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
-      <Navbar scrolled={scrolled} />
+    <div className={`flex flex-col min-h-screen ${isDarkMode ? "dark bg-gray-900" : "bg-gray-50"}`}>
+      {pathname !== "/admin" && <Navbar scrolled={scrolled} />}
       <main className="flex-grow">
         <motion.div
           key={location.pathname}
@@ -46,7 +48,7 @@ const Layout: React.FC = () => {
           <Outlet />
         </motion.div>
       </main>
-      <Footer />
+      {pathname !== "/admin" && <Footer />}
     </div>
   );
 };

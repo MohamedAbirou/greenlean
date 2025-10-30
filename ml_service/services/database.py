@@ -295,5 +295,29 @@ class DatabaseService:
             log_database_operation("UPDATE", "quiz_results", success=False)
             return False
 
+    # In db_service
+    async def set_user_plan(self, user_id: str, plan_id: str, stripe_customer_id: str = None):
+        # Start with the first positional placeholder
+        q = "UPDATE profiles SET plan_id = $1"
+        params = [plan_id]
+
+        # Add stripe_customer_id if provided
+        if stripe_customer_id:
+            q += ", stripe_customer_id = $2"
+            params.append(stripe_customer_id)
+            q += " WHERE id = $3"
+            params.append(user_id)
+        else:
+            q += " WHERE id = $2"
+            params.append(user_id)
+
+        async with self.pool.acquire() as conn:
+            await conn.execute(q, *params)
+
+    async def lookup_user_by_stripe(self, stripe_customer_id: str):
+        q = "SELECT id FROM profiles WHERE stripe_customer_id = $1"
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow(q, stripe_customer_id)
+            return row["id"] if row else None
 
 db_service = DatabaseService()

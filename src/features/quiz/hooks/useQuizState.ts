@@ -175,6 +175,7 @@ export const useQuizState = () => {
     // Computed
     isLoading: authLoading || loadingProfile,
     isAuthenticated: !!user,
+    user,
 
     // Actions
     setHeightUnit,

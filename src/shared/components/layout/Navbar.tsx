@@ -1,6 +1,8 @@
+import { usePlan } from "@/core/providers/AppProviders";
 import { AuthModal, useAuth } from "@/features/auth";
 import { supabase } from "@/lib/supabase/client";
 import { useNotifications } from "@/shared/hooks/useNotifications";
+import { triggerStripeCheckout } from "@/shared/hooks/useStripe";
 import { useThemeStore } from "@/store/themeStore";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, Moon, Sun, UserCircle, X } from "lucide-react";
@@ -8,6 +10,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import NotificationsDropdown from "../NotificationsDropdown";
 import { Button } from "../ui/button";
+import { ModalDialog } from "../ui/modal-dialog";
 import { UserMenu } from "../UserMenu";
 
 interface NavbarProps {
@@ -28,6 +31,8 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
   const { isDarkMode, toggleTheme } = useThemeStore();
   const { user, signOut } = useAuth();
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll } = useNotifications();
+  const { planName, aiGenQuizCount, allowed, planId } = usePlan();
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -99,6 +104,22 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
         {profile?.full_name || user?.email?.split("@")[0]}
       </p>
       <p className="text-xs text-foreground/70 truncate">{user?.email}</p>
+      <div className="flex items-center justify-between">
+        <span className={
+            "inline-flex items-center px-2 py-0.5 rounded bg-muted text-xs text-muted-foreground font-semibold w-fit mt-0.5 mb-0.5 border border-muted-foreground/30 gap-2 " +
+            (planId === "free" ? "badge-yellow" : "badge-green")
+          }>
+          {planName}
+          <span>
+            {aiGenQuizCount}/{allowed} AI plans
+          </span>
+        </span>
+        {planId === "free" && (
+          <Button size="sm" onClick={() => setShowUpgrade(true)}>
+            Upgrade
+          </Button>
+        )}
+      </div>
     </>
   );
 
@@ -237,6 +258,24 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
           )}
         </AnimatePresence>
       </header>
+      <ModalDialog
+        open={showUpgrade}
+        onOpenChange={setShowUpgrade}
+        title="Upgrade for More AI Plans"
+        description="Unlock up to 50 plans/month, priority support, and more!"
+        size="md"
+      >
+        <div className="space-y-4 text-center">
+          <div className="p-4 bg-muted rounded-lg">
+            <p className="font-semibold">Your current plan: <span className="inline-block px-2 rounded-full text-white bg-primary text-xs">{planName}</span></p>
+            <span className="text-foreground text-sm">{aiGenQuizCount}/{allowed} AI generations used this period.</span>
+          </div>
+          <button onClick={() => triggerStripeCheckout(user?.id || "")} className="mt-2 w-full rounded bg-primary hover:bg-primary/90 text-white px-4 py-2 font-semibold text-base transition">
+            Upgrade Now
+          </button>
+          <p className="text-xs mt-2 text-muted-foreground">Billing handled securely via Stripe.</p>
+        </div>
+      </ModalDialog>
     </>
   );
 };

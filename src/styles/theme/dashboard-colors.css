@@ -69,6 +69,10 @@
   --badge-blue-bg: oklch(0.96 0.03 240);
   --badge-blue-text: oklch(0.45 0.18 240);
   --badge-blue-border: oklch(0.75 0.12 240);
+
+  --badge-red-bg: oklch(0.96 0.03 30);
+  --badge-red-text: oklch(0.45 0.18 30);
+  --badge-red-border: oklch(0.75 0.12 30);
   
   --badge-green-bg: oklch(0.96 0.03 145);
   --badge-green-text: oklch(0.40 0.18 148);
@@ -194,6 +198,10 @@
   --badge-blue-bg: oklch(0.25 0.04 240 / 0.3);
   --badge-blue-text: oklch(0.75 0.13 240);
   --badge-blue-border: oklch(0.50 0.18 240);
+
+  --badge-red-bg: oklch(0.25 0.04 30 / 0.3);
+  --badge-red-text: oklch(0.75 0.13 30);
+  --badge-red-border: oklch(0.62 0.16 30);
   
   --badge-green-bg: oklch(0.25 0.04 145 / 0.3);
   --badge-green-text: oklch(0.75 0.15 148);
@@ -291,6 +299,12 @@
   background-color: var(--badge-blue-bg);
   color: var(--badge-blue-text);
   border-color: var(--badge-blue-border);
+}
+
+.badge-red {
+  background-color: var(--badge-red-bg);
+  color: var(--badge-red-text);
+  border-color: var(--badge-red-border);
 }
 
 .badge-green {

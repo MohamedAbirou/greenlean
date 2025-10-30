@@ -40,10 +40,10 @@ export const challengeColumns = ({
       const diff = row.original.difficulty;
       const color =
         diff === "beginner"
-          ? "bg-green-100 text-green-800"
+          ? "badge-green"
           : diff === "intermediate"
-          ? "bg-yellow-100 text-yellow-800"
-          : "bg-red-100 text-red-800";
+          ? "badge-yellow"
+          : "badge-red";
       return (
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${color}`}>
           {diff}
@@ -85,10 +85,10 @@ export const challengeColumns = ({
       const c = row.original;
       return (
         <div
-          className={`${cellClassName} flex items-center gap-1 bg-yellow-100 dark:bg-yellow-900/40 px-2 rounded-full border-2 border-yellow-400/50 dark:border-yellow-500/50`}
+          className={`${cellClassName} flex items-center gap-1 badge-yellow px-2 rounded-full border-2`}
         >
-          <Sparkles className="w-6 h-6 text-yellow-500 animate-pulse" />
-          <span className="font-black text-yellow-700 dark:text-yellow-300 text-xs">
+          <Sparkles className="w-6 h-6  animate-pulse" />
+          <span className="font-black text-xs">
             {c.points}
           </span>
         </div>

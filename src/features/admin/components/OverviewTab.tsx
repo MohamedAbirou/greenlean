@@ -1,119 +1,222 @@
-
-import { useDashboardQuery } from "@/shared/hooks/Queries/useDashboard";
-import Chart from "chart.js/auto";
-import { Award, Loader, Star, TrendingUp, Users } from "lucide-react";
-import { useEffect, useRef } from "react";
-import ChartCard from "./ChartCard";
+import {
+  Activity,
+  Award,
+  DollarSign,
+  FileText,
+  Target,
+  TrendingUp,
+  Trophy,
+  UserCheck,
+  Users,
+  UserX,
+} from "lucide-react";
 import StatCard from "./StatCard";
 
+interface OverviewTabProps {
+  data: any;
+  recentActivity: any[];
+  topUsers: any[];
+  dateRange: string;
+  onDateRangeChange: (range: "7d" | "30d" | "90d" | "1y") => void;
+  isLoading: boolean;
+}
 
-const OverviewTab = () => {
-  const participationChartRef = useRef<HTMLCanvasElement>(null);
-  const completionChartRef = useRef<HTMLCanvasElement>(null);
+export const OverviewTab: React.FC<OverviewTabProps> = ({
+  data,
+  recentActivity,
+  topUsers,
+  dateRange,
+  onDateRangeChange,
+  isLoading,
+}) => {
+  if (!data) return <div>Loading...</div>;
 
-  const { data: stats, isLoading } = useDashboardQuery();
-
-  useEffect(() => {
-    if (!stats) return;
-    if (stats && participationChartRef.current && completionChartRef.current) {
-      const participationCtx = participationChartRef.current.getContext("2d");
-      const completionCtx = completionChartRef.current.getContext("2d");
-
-      if (participationCtx && completionCtx) {
-        // Destroy existing charts if they exist
-        Chart.getChart(participationChartRef.current)?.destroy();
-        Chart.getChart(completionChartRef.current)?.destroy();
-
-        // User Activity Line Chart
-        new Chart(participationCtx, {
-          type: "line",
-          data: {
-            labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-            datasets: [
-              {
-                label: "Daily Active Users",
-                data: stats.dailyActiveUsers,
-                borderColor: "#10B981",
-                tension: 0.4,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            plugins: { legend: { position: "bottom" } },
-          },
-        });
-
-        // Challenge Completion Doughnut Chart
-        new Chart(completionCtx, {
-          type: "doughnut",
-          data: {
-            labels: ["Completed", "In Progress"],
-            datasets: [
-              {
-                data: [stats.completionRate, 100 - stats.completionRate],
-                backgroundColor: ["#10B981", "#E5E7EB"],
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            plugins: { legend: { position: "bottom" } },
-          },
-        });
-      }
-    }
-  }, [stats]);
-
-  if (isLoading || !stats) {
-    return (
-      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
-        <Loader className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+  if (isLoading) {
+    return <div>Loading...</div>;
   }
 
   return (
     <div className="space-y-6">
-      {/* Stats Grid */}
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold">Dashboard Overview</h2>
+          <p className="text-muted-foreground mt-1">
+            Real-time insights into your platform performance
+          </p>
+        </div>
+        <select
+          value={dateRange}
+          onChange={(e) => onDateRangeChange(e.target.value as any)}
+          className="px-4 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        >
+          <option value="7d">Last 7 days</option>
+          <option value="30d">Last 30 days</option>
+          <option value="90d">Last 90 days</option>
+          <option value="1y">Last year</option>
+        </select>
+      </div>
+
+      {/* Key Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
-          icon={<Users className="h-8 w-8 text-green-500" />}
-          label="Total Participants"
-          value={stats.totalParticipants}
+          icon={DollarSign}
+          label="Monthly Recurring Revenue"
+          value={`$${data?.revenue?.monthly?.toLocaleString()}`}
+          change={`+${data?.revenue?.growth?.toFixed(1)}%`}
+          trend="up"
+          color="bg-green-500"
+          subtext={`ARR: $${data?.revenue?.arr?.toLocaleString()}`}
         />
         <StatCard
-          icon={<TrendingUp className="h-8 w-8 text-blue-500" />}
-          label="Active Users"
-          value={stats.activeUsers}
+          icon={Users}
+          label="Total Users"
+          value={data?.users?.total?.toLocaleString()}
+          change={`+${data?.users?.newThisMonth}`}
+          trend="up"
+          color="bg-blue-500"
+          subtext={`${data?.users?.active} active users`}
         />
         <StatCard
-          icon={<Award className="h-8 w-8 text-purple-500" />}
-          label="Points Awarded"
-          value={stats.pointsAwarded}
+          icon={TrendingUp}
+          label="Active Subscriptions"
+          value={data?.subscriptions?.active}
+          change={`${data?.subscriptions?.churnRate?.toFixed(1)}% churn`}
+          trend="down"
+          color="bg-purple-500"
+          subtext={`${data?.subscriptions?.trial} on trial`}
         />
         <StatCard
-          icon={<Star className="h-8 w-8 text-yellow-500" />}
-          label="Badges Earned"
-          value={stats.badgesEarned}
+          icon={Target}
+          label="Conversion Rate"
+          value="8.4%"
+          change="+1.2%"
+          trend="up"
+          color="bg-orange-500"
+          subtext="Visitor → Paid"
         />
       </div>
 
-      {/* Charts */}
-      <div className="flex flex-col sm:flex-row items-start justify-around rounded-xl shadow-md bg-card gap-4">
-        <ChartCard
-          title="User Activity"
-          canvasRef={participationChartRef}
-          className="w-full sm:w-1/2"
+      {/* Secondary Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard
+          icon={FileText}
+          label="Plans Generated"
+          value={data?.plans?.mealPlansGenerated + data?.plans?.workoutPlansGenerated}
+          change="+234"
+          trend="up"
+          color="bg-cyan-500"
+          subtext="This week"
         />
-        <ChartCard
-          title="Challenge Completion"
-          canvasRef={completionChartRef}
-          className="w-full sm:w-1/4"
+        <StatCard
+          icon={Trophy}
+          label="Active Challenges"
+          value={data?.challenges?.active}
+          change={`${data?.challenges?.avgCompletionRate}% completion`}
+          color="bg-amber-500"
+          subtext={`${data?.challenges?.totalParticipants} participants`}
         />
+        <StatCard
+          icon={Activity}
+          label="Daily Active Users"
+          value={data?.engagement?.dau}
+          change="+12%"
+          trend="up"
+          color="bg-pink-500"
+          subtext={`${data?.engagement?.avgSessionDuration} min avg session`}
+        />
+        <StatCard
+          icon={Award}
+          label="Lifetime Value"
+          value={`$${data?.subscriptions?.ltv}`}
+          change="+$45"
+          trend="up"
+          color="bg-indigo-500"
+          subtext="Per user"
+        />
+      </div>
+
+      {/* Recent Activity & Top Users */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Activity */}
+        <div className="bg-card rounded-xl p-6 border border-border">
+          <h3 className="text-lg font-semibold mb-4">Recent Activity</h3>
+          <div className="space-y-4">
+            {recentActivity && recentActivity.length > 0 ? (
+              recentActivity.map((activity, idx) => {
+                const IconMap = {
+                  user_signup: UserCheck,
+                  plan_generated: FileText,
+                  subscription_upgraded: TrendingUp,
+                  challenge_completed: Trophy,
+                  user_churned: UserX,
+                };
+                const Icon = IconMap[activity.type as keyof typeof IconMap] || Activity;
+
+                return (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-4 py-2 border-b border-border last:border-0"
+                  >
+                    <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center">
+                      <Icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{activity.user}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {activity.type.replace(/_/g, " ")}
+                        {activity.plan && ` - ${activity.plan}`}
+                        {activity.challenge && ` - ${activity.challenge}`}
+                      </p>
+                    </div>
+                    <span className="text-xs text-muted-foreground">{activity.time}</span>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-4">No recent activity</p>
+            )}
+          </div>
+        </div>
+
+        {/* Top Users */}
+        <div className="bg-card rounded-xl p-6 border border-border">
+          <h3 className="text-lg font-semibold mb-4">Top Users</h3>
+          <div className="space-y-3">
+            {topUsers && topUsers.length > 0 ? (
+              topUsers.map((user, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between py-2 border-b border-border last:border-0"
+                >
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <span className="text-lg font-bold text-muted-foreground w-6">{idx + 1}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{user.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold">{user.points} pts</p>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full ${
+                        user.status === "pro"
+                          ? "bg-primary/10 text-primary"
+                          : "bg-accent text-muted-foreground"
+                      }`}
+                    >
+                      {user.status}
+                    </span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-4">No users data</p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
 };
-
 export default OverviewTab;

@@ -4,10 +4,12 @@ FastAPI application with async background plan generation.
 
 import asyncio
 import time
+import os
+import stripe
 from contextlib import asynccontextmanager
 from typing import Dict, Any
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Header
 from fastapi.middleware.cors import CORSMiddleware
 
 from config.settings import settings
@@ -38,7 +40,6 @@ async def lifespan(app: FastAPI):
     await db_service.close()
     logger.info("Application shutdown complete")
 
-
 app = FastAPI(
     title=settings.APP_TITLE,
     description=settings.APP_DESCRIPTION,
@@ -53,7 +54,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 @app.get("/health")
 async def health_check() -> Dict[str, Any]:
@@ -335,6 +335,211 @@ async def get_plan_status(user_id: str) -> Dict[str, Any]:
     except Exception as e:
         log_error(e, "Plan status check", user_id)
         raise HTTPException(status_code=500, detail=str(e))
+
+# STRIPE
+@app.post("/api/stripe/create-checkout-session")
+async def create_checkout_session(request: Request):
+    """Create a checkout session for a user"""
+
+    try:
+        data = await request.json()
+        user_id = data["user_id"]  # from auth/session/cookie
+        # success_url = data.get("success_url", "https://greenlean.vercel.app/account?stripe=success")
+        # cancel_url = data.get("cancel_url", "https://greenlean.vercel.app/account?stripe=cancel")
+        success_url = data.get("success_url", "http://localhost:5173/account?stripe=success")
+        cancel_url = data.get("cancel_url", "http://localhost:5173/account?stripe=cancel")
+        # You may hardcode your pro plan price_id or product for now:
+        price_id = os.getenv("STRIPE_PRICE_ID")
+
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            mode="subscription",
+            line_items=[{"price": price_id, "quantity": 1}],
+            success_url=success_url,
+            cancel_url=cancel_url,
+            client_reference_id=user_id,
+            metadata={"user_id": user_id}
+        )
+
+        log_api_response("/generate-plans", data["user_id"], True)
+
+        return {"session_url": checkout_session.url}
+    except Exception as e:
+        log_api_response("/api/stripe/create-checkout-session", data["user_id"], False)
+        log_error(e, "Create checkout session", data["user_id"])
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/stripe/webhook")
+async def stripe_webhook(request: Request, stripe_signature: str = Header(None)):
+    """Stripe webhook endpoint"""
+
+    payload = await request.body()
+    sig_header = stripe_signature or request.headers.get("Stripe-Signature")
+    webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
+    event = None
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
+    except Exception as e:
+        logger.error(f"Stripe webhook error: {e}")
+        return {"error": str(e)}
+
+    # Subscription created or upgraded
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+        user_id = session["client_reference_id"]
+        customer_id = session["customer"]
+        # Update user profile plan and stripe_customer_id
+        await db_service.set_user_plan(user_id, "pro", customer_id)
+    elif event["type"] == "customer.subscription.deleted":
+        # Downgrade user to free
+        user_id = event["data"]["object"]["client_reference_id"] or await db_service.lookup_user_by_stripe(event["data"]["object"]["customer"])
+        await db_service.set_user_plan(user_id, "free")
+    # Add more Stripe event types as needed
+
+    return {"status": "success"}
+
+
+# ANALYTICS ENDPOINTS
+@app.get("/api/admin/saas-metrics")
+async def get_saas_metrics():
+    # MRR and revenue
+    subs = stripe.Subscription.list(status="all", limit=100)  # adjust limit as needed
+    invoices = stripe.Invoice.list(limit=100)  # for all-time revenue
+
+    active_subs = [s for s in subs.auto_paging_iter() if s.status in ("active", "trialing", "past_due")]
+    canceled_subs = [s for s in subs.auto_paging_iter() if s.status == "canceled"]
+
+    mrr = sum(
+        item["plan"]["amount"] for s in active_subs for item in s["items"]["data"]
+        if item["plan"]["interval"] == "month"
+    ) / 100  # in dollars
+
+    all_earnings = sum(i.amount_paid for i in invoices.auto_paging_iter()) / 100
+
+    from datetime import datetime, timedelta, timezone
+
+    now = datetime.now(timezone.utc)
+    start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    last_30 = now - timedelta(days=30)
+
+    earnings_this_month = sum(
+        i.amount_paid for i in invoices.auto_paging_iter() if datetime.fromtimestamp(i.created, tz=timezone.utc) >= start_of_month
+    ) / 100
+    earnings_last_30 = sum(
+        i.amount_paid for i in invoices.auto_paging_iter() if datetime.fromtimestamp(i.created, tz=timezone.utc) >= last_30
+    ) / 100
+
+    # Subscribers by month (for past 12 months, for chart)
+    by_month = {}
+    for s in subs.auto_paging_iter():
+        dt = datetime.fromtimestamp(s.created, tz=timezone.utc)
+        label = dt.strftime("%Y-%m")
+        by_month[label] = by_month.get(label, 0) + 1
+
+    # New this month, churn this month
+    new_this_month = sum(
+        1 for s in subs.auto_paging_iter()
+        if datetime.fromtimestamp(s.created, tz=timezone.utc) >= start_of_month and s.status in ("active", "trialing")
+    )
+    churned_this_month = sum(
+        1 for s in subs.auto_paging_iter()
+        if s.canceled_at and datetime.fromtimestamp(s.canceled_at, tz=timezone.utc) >= start_of_month
+    )
+
+    recent_canceled = [
+        {
+            "customer_email": s.customer_email,
+            "canceled_at": s.canceled_at,
+            "plan": s["plan"]["nickname"] if s["plan"] else "",
+        }
+        for s in canceled_subs
+    ][:20]
+
+    return {
+        "mrr": mrr,
+        "totalEarnings": all_earnings,
+        "earningsThisMonth": earnings_this_month,
+        "earningsLast30Days": earnings_last_30,
+        "activeSubscribers": len(active_subs),
+        "totalSubscribers": len(list(subs.auto_paging_iter())),
+        "newSubsThisMonth": new_this_month,
+        "churnedThisMonth": churned_this_month,
+        "subscribersByMonth": by_month,
+        "recentCanceled": recent_canceled
+    }
+
+@app.get("/api/admin/subscribers")
+async def get_all_subscribers(
+    status: str = None,
+    plan_id: str = None,
+    created_after: int = None,    # unix timestamp
+    created_before: int = None    # unix timestamp
+):
+    """
+    Returns all subscribers, with full plan/item info and filtering:
+    - status: Filter subscriptions by status
+    - plan_id: Only users on a given Stripe price_id
+    - created_after, created_before: Filter by creation time (unix timestamp)
+    """
+    subs = stripe.Subscription.list(
+        status="all",
+        limit=100,
+        expand=["data.customer", "data.items.data.price"]
+    )
+
+    user_data = []
+    for s in subs.auto_paging_iter():
+        # Apply status filter
+        if status and s.get("status") != status:
+            continue
+        # Apply plan and date filters (check all items)
+        if plan_id or created_after or created_before:
+            match = False
+            for item in s.get("items", {}).get("data", []):
+                price = item.get("price", {})
+                if plan_id and price.get("id") == plan_id:
+                    match = True
+                if created_after and s.get("created") < int(created_after):
+                    continue
+                if created_before and s.get("created") > int(created_before):
+                    continue
+            if plan_id and not match:
+                continue
+
+        # Customer email
+        customer_email = None
+        if isinstance(s.customer, dict):
+            customer_email = s.customer.get("email")
+        elif hasattr(s.customer, "email"):
+            customer_email = s.customer.email
+
+        # Gather all plan/item details
+        plans = []
+        for item in s.get("items", {}).get("data", []):
+            price = item.get("price", {})
+            plans.append({
+                "price_id": price.get("id"),
+                "nickname": price.get("nickname"),
+                "amount": price.get("unit_amount"),
+                "currency": price.get("currency"),
+                "interval": price.get("recurring", {}).get("interval"),
+                "quantity": item.get("quantity"),
+            })
+
+        user_entry = {
+            "customer_id": s.get("customer"),
+            "subscription_id": s.get("id"),
+            "email": customer_email,
+            "status": s.get("status"),
+            "created": s.get("created"),
+            "current_period_end": s.get("current_period_end"),
+            "canceled_at": s.get("canceled_at"),
+            "is_active": s.get("status") in ("active", "trialing", "past_due"),
+            "plans": plans,
+        }
+        user_data.append(user_entry)
+
+    return {"subscribers": user_data}
 
 
 # Keep legacy endpoints for backward compatibility

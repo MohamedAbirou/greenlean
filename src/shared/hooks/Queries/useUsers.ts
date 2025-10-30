@@ -12,6 +12,8 @@ const fetchUsers = async (): Promise<User[]> => {
       full_name,
       email,
       created_at,
+      stripe_customer_id,
+      plan_id,
       admin_users(role)
     `)
     .order("updated_at", { ascending: false });

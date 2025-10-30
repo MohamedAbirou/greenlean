@@ -1,20 +1,17 @@
-import type { User } from "@/shared/types/user";
-import { Edit, Trash } from "lucide-react";
-
+import type { AdminUser } from "@/features/admin/hooks/useUsers";
+import { Button } from "@/shared/components/ui/button";
 
 export const userColumns = ({
-  currentUserId,
-  onEdit,
-  onDelete,
+  openCancelModal,
+  openPlanChangeModal,
 }: {
-  currentUserId?: string;
-  onEdit: (user: User) => void;
-  onDelete: (userId: string) => void;
+  openCancelModal?: (subscriptionId: string) => void;
+  openPlanChangeModal?: (subscriptionId: string) => void;
 }) => [
   {
     accessorKey: "full_name",
     header: "Name",
-    cell: ({ row }: { row: { original: User } }) => {
+    cell: ({ row }: { row: { original: AdminUser } }) => {
       const user = row.original;
       return (
         <div className="flex items-center gap-3">
@@ -30,56 +27,140 @@ export const userColumns = ({
     },
   },
   {
-    accessorKey: "role",
-    header: "Status",
-    cell: ({ row }: { row: { original: User } }) => {
-      const u = row.original;
-      const isSuper = u.role === "super_admin";
-      const isAdmin = u.is_admin;
-      const badgeClass = isSuper
-        ? "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300"
-        : isAdmin
-        ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300"
-        : "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300";
+    accessorKey: "plan",
+    header: "Plan",
+    cell: ({ row }: { row: { original: AdminUser } }) => {
       return (
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${badgeClass}`}
-        >
-          {isSuper ? "Super Admin" : isAdmin ? "Admin" : "User"}
+        <span className="badge-blue px-2 py-1 rounded-full text-xs font-medium">
+          {row.original.plan}
         </span>
       );
     },
   },
   {
-    accessorKey: "created_at",
-    header: "Created",
-    cell: ({ row }: { row: { original: User } }) => (
+    accessorKey: "stripe_plan_nickname",
+    header: "Plan Name",
+    cell: ({ row }: { row: { original: AdminUser } }) => (
+      <span className="text-sm font-medium">
+        {row.original.stripe_plan_nickname || "-"}
+      </span>
+    ),
+  },
+  {
+    accessorKey: "stripe_plan_amount",
+    header: "Amount",
+    cell: ({ row }: { row: { original: AdminUser } }) => {
+      const a = row.original.stripe_plan_amount;
+      const cur = row.original.stripe_plan_currency?.toUpperCase() || "USD";
+      return a ? `${a} ${cur}` : "-";
+    },
+  },
+  {
+    accessorKey: "stripe_plan_interval",
+    header: "Interval",
+    cell: ({ row }: { row: { original: AdminUser } }) => (
+      <span className="text-xs ">{row.original.stripe_plan_interval || "-"}</span>
+    ),
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }: { row: { original: AdminUser } }) => {
+      const s = row.original.status;
+      const color =
+        s === "active" || s === "trialing"
+          ? "bg-green-100 text-green-800"
+          : s === "canceled"
+          ? "bg-red-100 text-red-800"
+          : "bg-blue-100 text-blue-800";
+      return <span className={`px-2 py-1 rounded-full text-xs font-semibold ${color}`}>{s}</span>;
+    },
+  },
+  {
+    accessorKey: "stripe_customer_id",
+    header: "Stripe Customer",
+    cell: ({ row }: { row: { original: AdminUser } }) => {
+      const id = row.original.stripe_customer_id;
+      return id ? (
+        <a
+          href={`https://dashboard.stripe.com/customers/${id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline text-primary"
+        >
+          {id.slice(0, 6) + "..."}
+        </a>
+      ) : (
+        <span className="text-muted-foreground">—</span>
+      );
+    },
+  },
+  {
+    accessorKey: "joined",
+    header: "Joined",
+    cell: ({ row }: { row: { original: AdminUser } }) => (
       <span className="text-sm">
-        {new Date(row.original.created_at).toLocaleDateString()}
+        {row.original.joined ? new Date(row.original.joined).toLocaleDateString() : "—"}
+      </span>
+    ),
+  },
+  {
+    accessorKey: "canceled_at",
+    header: "Canceled",
+    cell: ({ row }: { row: { original: AdminUser } }) => (
+      <span className="text-sm">
+        {row.original.canceled_at ? new Date(row.original.canceled_at).toLocaleDateString() : "—"}
       </span>
     ),
   },
   {
     id: "actions",
     header: "Actions",
-    cell: ({ row }: { row: { original: User } }) => {
+    cell: ({ row }: { row: { original: AdminUser } }) => {
       const user = row.original;
       return (
-        <div className="flex gap-2">
-          <button
-            onClick={() => onEdit(user)}
-            className="p-2 hover:bg-card rounded-lg"
+        <div className="flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => openCancelModal?.(user.subscription_id || "")}
+            disabled={!user.subscription_id}
+            title={user.subscription_id ? "Cancel subscription" : "No subscription"}
           >
-            <Edit className="h-5 w-5 text-foreground" />
-          </button>
-          {user.id !== currentUserId && (
-            <button
-              onClick={() => onDelete(user.id)}
-              className="p-2 hover:bg-destructive/30 rounded-lg"
-            >
-              <Trash className="h-5 w-5 text-destructive" />
-            </button>
-          )}
+            Cancel
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => openPlanChangeModal?.(user.subscription_id || "")}
+            disabled={!user.subscription_id}
+            title={user.subscription_id ? "Change Plan" : "No subscription"}
+          >
+            Change Plan
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() =>
+              window.open(
+                "https://dashboard.stripe.com/customers/" + user.stripe_customer_id,
+                "_blank"
+              )
+            }
+            disabled={!user.stripe_customer_id}
+            title={user.stripe_customer_id ? "View in Stripe" : "No Stripe info"}
+          >
+            Stripe
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => window.open(`mailto:${user.email}`)}
+            title={user.email ? `Email ${user.email}` : "No email"}
+            disabled={!user.email}
+          >
+            Email
+          </Button>
         </div>
       );
     },

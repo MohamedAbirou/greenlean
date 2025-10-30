@@ -1,9 +1,9 @@
+import { IconMap } from "@/features/challenges/utils/progress";
 import { useRewardsQuery, type Reward } from "@/shared/hooks/Queries/useRewards";
 import { Edit, Loader, Search, Star, StarIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Input } from "../../../shared/components/ui/input";
 import RewardForm from "./RewardForm";
-import { IconMap } from "@/features/challenges/utils/progress";
 
 const RewardsTab = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -82,15 +82,15 @@ const RewardsTab = () => {
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center gap-2 p-3 bg-primary/30 rounded-lg">
+              <div className="flex items-center gap-2 p-3 badge-green rounded-lg">
                 <Star className="h-5 w-5 text-primary" />
                 <span className="font-medium text-primary">{reward.points} Points</span>
               </div>
 
               {reward.badges && reward.badges.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-medium text-foreground mb-2">Badges Earned</h4>
-                  <div className="flex flex-wrap gap-2">
+                  <h4 className="text-sm font-medium text-foreground/80 mb-2">Badges Earned</h4>
+                  <div className="flex gap-2 overflow-auto truncate">
                     {reward.badges.map((badge) => {
                       const BadgeIconComponent = IconMap[badge?.icon ?? "star"] || StarIcon;
 

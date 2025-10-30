@@ -7,11 +7,10 @@ import type { DashboardTab } from "@/shared/types/dashboard";
 import { useState } from "react";
 import { useAuth } from "../features/auth";
 import {
-  BetaBanner,
   DashboardEmpty,
   DashboardLoading,
   DashboardTabs,
-  useDashboardData,
+  useDashboardData
 } from "../features/dashboard";
 import { DietPlanSection } from "../features/dashboard/components/sections/DietPlanSection";
 import { OverviewSection } from "../features/dashboard/components/sections/OverviewSection";
@@ -39,9 +38,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen pt-24 pb-16 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <BetaBanner />
-
-        <DashboardTabs activeTab={activeTab} onTabChange={setActiveTab} primaryBg="bg-primary" />
+        <DashboardTabs activeTab={activeTab} onTabChange={setActiveTab} primaryBg="bg-primary" userId={user?.id || ""} />
 
         {activeTab === "overview" && (
           <OverviewSection answers={answers} calculations={calculations} bmiStatus={bmiStatus!} />

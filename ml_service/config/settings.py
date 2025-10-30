@@ -1,6 +1,7 @@
 """Environment configuration and settings management"""
 
 import os
+import stripe
 from typing import Optional
 from dotenv import load_dotenv
 
@@ -25,6 +26,13 @@ class Settings:
         self.DB_PORT: Optional[str] = os.getenv("port")
         self.DB_NAME: Optional[str] = os.getenv("dbname")
 
+        # Stripe Configuration
+        self.STRIPE_SECRET_KEY: str = os.getenv("STRIPE_SECRET_KEY", "")
+        self.STRIPE_WEBHOOK_SECRET: str = os.getenv("STRIPE_WEBHOOK_SECRET", "")
+        self.STRIPE_PRICE_ID: str = os.getenv("STRIPE_PRICE_ID", "")
+
+        stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+
         # Application Configuration
         self.APP_TITLE: str = "AI Health & Fitness ML Service"
         self.APP_DESCRIPTION: str = "Machine learning service for personalized meal and workout plan generation"
@@ -35,9 +43,9 @@ class Settings:
         # CORS Configuration
         self.ALLOWED_ORIGINS: list = [
             "http://localhost:5173",
+            "http://localhost:8000",
             "https://rsufjeprivwzzygrbvdb.supabase.co",
-            "https://greenlean.vercel.app/",
-            "*"
+            "https://greenlean.vercel.app/"
         ]
 
         # Database Pool Configuration
