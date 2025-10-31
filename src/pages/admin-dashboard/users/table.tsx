@@ -16,7 +16,12 @@ export default function UsersTable() {
   }
   return (
     <DataTable
-      columns={userColumns({})}
+      columns={userColumns({
+        openCancelModal: () => {},
+        openPlanChangeModal: () => {},
+        onEdit: () => {},
+        onDelete: () => {},
+      })}
       data={users}
       filterKey="email"
     />

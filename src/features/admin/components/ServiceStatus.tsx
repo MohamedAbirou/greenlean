@@ -2,8 +2,15 @@ import { ML_SERVICE_URL } from "@/features/quiz";
 import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
 
+interface ServiceStatusItem {
+  service: string;
+  status: string;
+  latency: string;
+  details?: string;
+}
+
 export default function ServiceStatus() {
-  const [services, setServices] = useState([]);
+  const [services, setServices] = useState<ServiceStatusItem[]>([]);
 
   useEffect(() => {
     async function checkServices() {
@@ -68,7 +75,7 @@ export default function ServiceStatus() {
         results.push({ service: "Storage", status: "down", latency: "—" });
       }
 
-      setServices(results);
+      setServices(results as ServiceStatusItem[]);
     }
 
     checkServices();

@@ -41,7 +41,6 @@ const Quiz: React.FC = () => {
 
   const { submitQuiz, isSubmitting } = useQuizSubmission();
   const {
-    planName,
     aiGenQuizCount,
     allowed,
     planId,

@@ -31,7 +31,7 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
   const { isDarkMode, toggleTheme } = useThemeStore();
   const { user, signOut } = useAuth();
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll } = useNotifications();
-  const { planName, aiGenQuizCount, allowed, planId } = usePlan();
+  const { planName, aiGenQuizCount, allowed } = usePlan();
   const [showUpgrade, setShowUpgrade] = useState(false);
 
   useEffect(() => {

@@ -238,7 +238,6 @@ export default function SubscriptionsTab({ currentUserId }: { currentUserId: str
         <DataTable
           columns={subscriptionColumns({
             onCancel: (subscription_id) => setCancelTarget(subscription_id),
-            onResendInvoice: (invoice_id) => setResendInvoiceTarget(invoice_id),
             onApplyCoupon: (subscription_id) => setCouponTarget(subscription_id),
             onExtendTrial: (subscription_id) => setTrialTarget(subscription_id),
           })}

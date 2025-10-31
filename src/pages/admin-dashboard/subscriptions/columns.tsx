@@ -35,14 +35,12 @@ interface StripeSubscriber {
 
 interface SubscriptionColumnsProps {
   onCancel: (subscription_id: string) => void;
-  onResendInvoice: (invoice_id: string) => void;
   onApplyCoupon: (subscription_id: string) => void;
   onExtendTrial: (subscription_id: string) => void;
 }
 
 export const subscriptionColumns = ({
   onCancel,
-  onResendInvoice,
   onApplyCoupon,
   onExtendTrial,
 }: SubscriptionColumnsProps): ColumnDef<StripeSubscriber>[] => [
