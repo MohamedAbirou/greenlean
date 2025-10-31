@@ -7,6 +7,7 @@ import {
   Calendar,
   Flame,
   Heart,
+  Percent,
   Scale,
   Target,
   TrendingUp,
@@ -96,6 +97,19 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
       iconBg: "bg-purple-500/10 dark:bg-purple-500/20",
       iconColor: "text-purple-600 dark:text-purple-400",
     },
+    // Show Body Fat Percentage IF it exists in calculations!
+    ...(calculations.bodyFatPercentage ? [
+      {
+        icon: Percent,
+        label: "Body Fat Percentage",
+        value: `${calculations.bodyFatPercentage}%`,
+        subtitle: "body fat percentage",
+        color: "red",
+        bgGradient: "bg-stat-red",
+        iconBg: "bg-red-500/10 dark:bg-red-500/20",
+        iconColor: "text-red-600 dark:text-red-400",
+      }
+    ] : []),
   ];
 
   const macroData = [
@@ -128,7 +142,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
   return (
     <div className="space-y-6">
       {/* Hero Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {statCards.map((stat, index) => (
           <motion.div
             key={stat.label}

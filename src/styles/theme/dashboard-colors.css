@@ -115,7 +115,7 @@
   );
   --gradient-indigo: linear-gradient(135deg, oklch(0.92 0.04 280) 0%, oklch(0.95 0.03 280) 100%);
   --gradient-yellow: linear-gradient(135deg, oklch(0.92 0.04 95) 0%, oklch(0.95 0.03 95) 100%);
-
+  --gradient-red: linear-gradient(135deg, oklch(0.92 0.04 30) 0%, oklch(0.95 0.03 30) 100%);
   /* Header Gradients - Light Mode (Vibrant) */
   --gradient-blue-cyan: linear-gradient(135deg, oklch(0.55 0.2 240) 0%, oklch(0.6 0.16 210) 100%);
   --gradient-green-emerald: linear-gradient(
@@ -288,7 +288,7 @@
   );
   --gradient-indigo: linear-gradient(135deg, oklch(0.24 0.04 280) 0%, oklch(0.26 0.04 280) 100%);
   --gradient-yellow: linear-gradient(135deg, oklch(0.24 0.04 95) 0%, oklch(0.26 0.04 95) 100%);
-
+  --gradient-red: linear-gradient(135deg, oklch(0.24 0.04 30) 0%, oklch(0.26 0.04 30) 100%);
   /* Header Gradients - Dark Mode (Vibrant) */
   --gradient-blue-cyan: linear-gradient(135deg, oklch(0.57 0.2 240) 0%, oklch(0.62 0.15 210) 100%);
   --gradient-green-emerald: linear-gradient(
@@ -368,6 +368,10 @@
 }
 .bg-stat-yellow {
   background: var(--gradient-yellow);
+}
+
+.bg-stat-red {
+  background: var(--gradient-red);
 }
 
 /* Progress Bars */
