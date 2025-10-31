@@ -8,6 +8,7 @@ import os
 import stripe
 from contextlib import asynccontextmanager
 from typing import Dict, Any
+from datetime import datetime, timedelta, timezone
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Header
 from fastapi.middleware.cors import CORSMiddleware
@@ -344,10 +345,8 @@ async def create_checkout_session(request: Request):
     try:
         data = await request.json()
         user_id = data["user_id"]  # from auth/session/cookie
-        # success_url = data.get("success_url", "https://greenlean.vercel.app/account?stripe=success")
-        # cancel_url = data.get("cancel_url", "https://greenlean.vercel.app/account?stripe=cancel")
-        success_url = data.get("success_url", "http://localhost:5173/account?stripe=success")
-        cancel_url = data.get("cancel_url", "http://localhost:5173/account?stripe=cancel")
+        success_url = data.get("success_url", "https://greenlean.vercel.app/account?stripe=success")
+        cancel_url = data.get("cancel_url", "https://greenlean.vercel.app/account?stripe=cancel")
         # You may hardcode your pro plan price_id or product for now:
         price_id = os.getenv("STRIPE_PRICE_ID")
 
@@ -402,58 +401,96 @@ async def stripe_webhook(request: Request, stripe_signature: str = Header(None))
 # ANALYTICS ENDPOINTS
 @app.get("/api/admin/saas-metrics")
 async def get_saas_metrics():
-    # MRR and revenue
-    subs = stripe.Subscription.list(status="all", limit=100)  # adjust limit as needed
-    invoices = stripe.Invoice.list(limit=100)  # for all-time revenue
+    # Fetch subscriptions and expand items.data.price, which is within the depth limit.
+    # Also expand customer on the latest_invoice to get email.
+    subs_iterator = stripe.Subscription.list(
+        status="all",
+        limit=100,
+        expand=["data.items.data.price", "data.latest_invoice.customer"]
+    ).auto_paging_iter()
 
-    active_subs = [s for s in subs.auto_paging_iter() if s.status in ("active", "trialing", "past_due")]
-    canceled_subs = [s for s in subs.auto_paging_iter() if s.status == "canceled"]
+    invoices_iterator = stripe.Invoice.list(limit=100).auto_paging_iter()
 
+    # Cache for product names to minimize redundant API calls
+    product_cache = {}
+
+    def get_product_name(price_id):
+        if price_id not in product_cache:
+            try:
+                # Retrieve the price and expand the product in a separate call
+                price_with_product = stripe.Price.retrieve(price_id, expand=["product"])
+                product_cache[price_id] = price_with_product.product.name
+            except stripe.error.StripeError as e:
+                print(f"Error retrieving product for price {price_id}: {e}")
+                product_cache[price_id] = "Unknown Plan"
+        return product_cache[price_id]
+
+    # Collect data from iterators once to prevent multiple API calls
+    all_subs = list(subs_iterator)
+    all_invoices = list(invoices_iterator)
+
+    active_subs = [s for s in all_subs if s.status in ("active", "trialing", "past_due")]
+    canceled_subs = [s for s in all_subs if s.status == "canceled"]
+
+    # MRR calculation using the expanded price information
     mrr = sum(
-        item["plan"]["amount"] for s in active_subs for item in s["items"]["data"]
-        if item["plan"]["interval"] == "month"
-    ) / 100  # in dollars
+        item.price.unit_amount for s in active_subs for item in dict(s.items())['items'].data
+        if item.price.recurring and item.price.recurring.interval == "month"
+    ) / 100
 
-    all_earnings = sum(i.amount_paid for i in invoices.auto_paging_iter()) / 100
 
-    from datetime import datetime, timedelta, timezone
+    # Total earnings
+    all_earnings = sum(i.amount_paid for i in all_invoices) / 100
 
     now = datetime.now(timezone.utc)
     start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     last_30 = now - timedelta(days=30)
 
+    # Earnings this month and last 30 days
     earnings_this_month = sum(
-        i.amount_paid for i in invoices.auto_paging_iter() if datetime.fromtimestamp(i.created, tz=timezone.utc) >= start_of_month
+        i.amount_paid for i in all_invoices if datetime.fromtimestamp(i.created, tz=timezone.utc) >= start_of_month
     ) / 100
     earnings_last_30 = sum(
-        i.amount_paid for i in invoices.auto_paging_iter() if datetime.fromtimestamp(i.created, tz=timezone.utc) >= last_30
+        i.amount_paid for i in all_invoices if datetime.fromtimestamp(i.created, tz=timezone.utc) >= last_30
     ) / 100
 
-    # Subscribers by month (for past 12 months, for chart)
+    # Subscribers by month
     by_month = {}
-    for s in subs.auto_paging_iter():
+    for s in all_subs:
         dt = datetime.fromtimestamp(s.created, tz=timezone.utc)
         label = dt.strftime("%Y-%m")
         by_month[label] = by_month.get(label, 0) + 1
 
-    # New this month, churn this month
+    # New this month and churn this month
     new_this_month = sum(
-        1 for s in subs.auto_paging_iter()
+        1 for s in all_subs
         if datetime.fromtimestamp(s.created, tz=timezone.utc) >= start_of_month and s.status in ("active", "trialing")
     )
     churned_this_month = sum(
-        1 for s in subs.auto_paging_iter()
+        1 for s in all_subs
         if s.canceled_at and datetime.fromtimestamp(s.canceled_at, tz=timezone.utc) >= start_of_month
     )
 
-    recent_canceled = [
-        {
-            "customer_email": s.customer_email,
+    # Recent canceled with proper product name retrieval
+    recent_canceled = []
+    for s in canceled_subs:
+        if len(recent_canceled) >= 20:
+            break
+        
+        plan_name = ""
+        items_list = dict(s.items())['items'].data
+        if items_list and items_list[0].price:
+            price_id = items_list[0].price.id
+            plan_name = get_product_name(price_id)
+
+
+        customer_email = s.latest_invoice.customer.email if s.latest_invoice and s.latest_invoice.customer and s.latest_invoice.customer.email else ""
+        
+        recent_canceled.append({
+            "customer_email": customer_email,
             "canceled_at": s.canceled_at,
-            "plan": s["plan"]["nickname"] if s["plan"] else "",
-        }
-        for s in canceled_subs
-    ][:20]
+            "plan": plan_name,
+        })
 
     return {
         "mrr": mrr,
@@ -461,7 +498,7 @@ async def get_saas_metrics():
         "earningsThisMonth": earnings_this_month,
         "earningsLast30Days": earnings_last_30,
         "activeSubscribers": len(active_subs),
-        "totalSubscribers": len(list(subs.auto_paging_iter())),
+        "totalSubscribers": len(all_subs),
         "newSubsThisMonth": new_this_month,
         "churnedThisMonth": churned_this_month,
         "subscribersByMonth": by_month,
@@ -481,65 +518,353 @@ async def get_all_subscribers(
     - plan_id: Only users on a given Stripe price_id
     - created_after, created_before: Filter by creation time (unix timestamp)
     """
-    subs = stripe.Subscription.list(
+    subs_iterator = stripe.Subscription.list(
         status="all",
         limit=100,
         expand=["data.customer", "data.items.data.price"]
-    )
+    ).auto_paging_iter()
+
+    product_cache = {}
+    def get_product_name(price_id):
+        if price_id not in product_cache:
+            try:
+                # Retrieve the price and expand the product in a separate call
+                price_with_product = stripe.Price.retrieve(price_id, expand=["product"])
+                product_cache[price_id] = price_with_product.product.name
+            except stripe.error.StripeError as e:
+                print(f"Error retrieving product for price {price_id}: {e}")
+                product_cache[price_id] = "Unknown Plan"
+        return product_cache[price_id]
 
     user_data = []
-    for s in subs.auto_paging_iter():
-        # Apply status filter
-        if status and s.get("status") != status:
+
+    for s in subs_iterator:
+        # --- filters ---
+        if status and getattr(s, "status", None) != status:
             continue
-        # Apply plan and date filters (check all items)
+
+        try:
+            items_list = dict(s.items())["items"].data
+        except Exception:
+            items_list = []
+
+        # --- Plan/date filtering ---
         if plan_id or created_after or created_before:
             match = False
-            for item in s.get("items", {}).get("data", []):
-                price = item.get("price", {})
-                if plan_id and price.get("id") == plan_id:
+            for item in items_list:
+                price = getattr(item, "price", None)
+                if plan_id and price and getattr(price, "id", None) == plan_id:
                     match = True
-                if created_after and s.get("created") < int(created_after):
+                if created_after and getattr(s, "created", 0) < int(created_after):
                     continue
-                if created_before and s.get("created") > int(created_before):
+                if created_before and getattr(s, "created", 0) > int(created_before):
                     continue
             if plan_id and not match:
                 continue
 
-        # Customer email
-        customer_email = None
-        if isinstance(s.customer, dict):
-            customer_email = s.customer.get("email")
-        elif hasattr(s.customer, "email"):
+        # --- Customer email ---
+        customer_email = ""
+        if hasattr(s.customer, "email"):
             customer_email = s.customer.email
+        elif isinstance(s.customer, dict):
+            customer_email = s.customer.get("email", "")
 
-        # Gather all plan/item details
+        # --- Plan/item details ---
         plans = []
-        for item in s.get("items", {}).get("data", []):
-            price = item.get("price", {})
+        for item in items_list:
+            price = getattr(item, "price", None)
+            if not price:
+                continue
             plans.append({
-                "price_id": price.get("id"),
-                "nickname": price.get("nickname"),
-                "amount": price.get("unit_amount"),
-                "currency": price.get("currency"),
-                "interval": price.get("recurring", {}).get("interval"),
-                "quantity": item.get("quantity"),
+                "price_id": getattr(price, "id", None),
+                "product_name": get_product_name(getattr(price, "id", None)),
+                "product_id": getattr(price.product, "id", None) if hasattr(price, "product") else None,
+                "nickname": getattr(price, "nickname", None),
+                "amount": getattr(price, "unit_amount", None),
+                "currency": getattr(price, "currency", None),
+                "interval": getattr(getattr(price, "recurring", None), "interval", None)
+                if getattr(price, "recurring", None) else None,
+                "quantity": getattr(item, "quantity", None),
             })
 
+        # --- Safely extract subscription info ---
         user_entry = {
-            "customer_id": s.get("customer"),
-            "subscription_id": s.get("id"),
+            "customer_id": getattr(s.customer, "id", s.customer if isinstance(s.customer, str) else None),
+            "subscription_id": getattr(s, "id", None),
             "email": customer_email,
-            "status": s.get("status"),
-            "created": s.get("created"),
-            "current_period_end": s.get("current_period_end"),
-            "canceled_at": s.get("canceled_at"),
-            "is_active": s.get("status") in ("active", "trialing", "past_due"),
+            "status": getattr(s, "status", None),
+            "created": getattr(s, "created", None),
+            "current_period_end": getattr(s, "current_period_end", None),
+            "canceled_at": getattr(s, "canceled_at", None),
+            "is_active": getattr(s, "status", None) in ("active", "trialing", "past_due"),
             "plans": plans,
         }
+
         user_data.append(user_entry)
 
     return {"subscribers": user_data}
+
+@app.post("/api/admin/stripe/cancel-subscription")
+async def cancel_subscription(request: Request):
+    """Cancel a subscription"""
+    try:
+        data = await request.json()
+        subscription_id = data["subscription_id"]
+        user_id = data["user_id"]
+        
+        # Cancel the subscription at period end (or immediately)
+        subscription = stripe.Subscription.modify(
+            subscription_id,
+            cancel_at_period_end=True  # Change to False for immediate cancellation
+        )
+        
+        # Update user plan to free
+        await db_service.set_user_plan(user_id, "free")
+
+        return {"success": True, "subscription": subscription}
+    except Exception as e:
+        logger.error(f"Error cancelling subscription: {e} for user {data['user_id']}")
+        return {"success": False, "error": str(e)}
+
+@app.get("/api/stripe/invoices")
+async def get_invoices(customer_id: str):
+    """Get all invoices for a customer"""
+    try:
+        if not customer_id:
+            return {"success": False, "error": "Missing customer_id"}
+
+        invoices = stripe.Invoice.list(
+            customer=customer_id,
+            limit=100
+        )
+
+        formatted_invoices = []
+        for invoice in invoices.data:
+            formatted_invoices.append({
+                "id": invoice.id,
+                "amount_due": invoice.amount_due,
+                "amount_paid": invoice.amount_paid,
+                "created": invoice.created,
+                "currency": invoice.currency,
+                "hosted_invoice_url": invoice.hosted_invoice_url,
+                "invoice_pdf": invoice.invoice_pdf,
+                "status": invoice.status,
+                "period_start": invoice.period_start,
+                "period_end": invoice.period_end,
+            })
+
+        return {
+            "success": True,
+            "invoices": formatted_invoices
+        }
+    except Exception as e:
+        logger.error(f"Error fetching invoices: {e}")
+        return {"success": False, "error": str(e)}
+
+@app.post("/api/admin/stripe/resend-invoice")
+async def resend_invoice(request: Request):
+    """Resend or share an invoice depending on its type."""
+    try:
+        data = await request.json()
+        invoice_id = data.get("invoice_id")
+        if not invoice_id:
+            return {"success": False, "error": "Missing invoice_id"}
+
+        # Resolve to latest invoice if subscription or customer ID provided
+        if invoice_id.startswith("sub_"):
+            invoices = stripe.Invoice.list(subscription=invoice_id, limit=1)
+        elif invoice_id.startswith("cus_"):
+            invoices = stripe.Invoice.list(customer=invoice_id, limit=1)
+        else:
+            invoices = stripe.Invoice.list(limit=1, starting_after=invoice_id)
+
+        if not invoices.data:
+            return {"success": False, "error": "No invoices found for given ID."}
+
+        invoice = invoices.data[0]
+        invoice = stripe.Invoice.retrieve(invoice.id, expand=["customer"])
+
+        # --- Validation & logic ---
+        customer_email = getattr(invoice.customer, "email", None)
+        collection_method = invoice.collection_method
+        status = invoice.status
+
+        # Check invoice status
+        if status not in ["draft", "open", "paid", "void", "uncollectible"]:
+            return {
+                "success": False,
+                "reason": "invalid_status",
+                "note": f"Invoice status '{status}' cannot be resent.",
+            }
+
+        # 1️⃣ Manual invoice (send_invoice)
+        if collection_method == "send_invoice":
+            if not customer_email:
+                return {
+                    "success": False,
+                    "reason": "missing_email",
+                    "note": "Customer has no email on file. Cannot send invoice.",
+                }
+
+            # Make sure it's finalized
+            if invoice.status == "draft":
+                invoice = stripe.Invoice.finalize_invoice(invoice.id)
+
+            sent_invoice = stripe.Invoice.send_invoice(invoice.id)
+            return {
+                "success": True,
+                "type": "manual_invoice",
+                "note": f"Invoice sent successfully to {customer_email}.",
+                "invoice": sent_invoice,
+            }
+
+        # 2️⃣ Auto-charge invoice (charge_automatically)
+        elif collection_method == "charge_automatically":
+            hosted_url = invoice.hosted_invoice_url or stripe.Invoice.retrieve(invoice.id).hosted_invoice_url
+            return {
+                "success": True,
+                "type": "auto_charge",
+                "note": "This invoice is automatically charged; email not sent. You can share the hosted link manually.",
+                "invoice_url": hosted_url,
+            }
+
+        # 3️⃣ Unknown type
+        else:
+            return {
+                "success": False,
+                "reason": "unknown_method",
+                "note": f"Unsupported collection method '{collection_method}'.",
+            }
+
+    except Exception as e:
+        logger.error(f"Error resending invoice: {e}")
+        return {"success": False, "error": str(e)}
+
+@app.post("/api/admin/stripe/change-plan")
+async def change_plan(request: Request):
+    """Change a subscription's plan"""
+    try:
+        data = await request.json()
+        subscription_id = data["subscription_id"]
+        new_price_id = data["new_price_id"]
+        
+        # Get the subscription
+        subscription = stripe.Subscription.retrieve(subscription_id)
+        
+        # Update the subscription with new price
+        updated_subscription = stripe.Subscription.modify(
+            subscription_id,
+            items=[{
+                'id': subscription['items']['data'][0].id,
+                'price': new_price_id,
+            }],
+            proration_behavior='create_prorations'  # or 'none' to not prorate
+        )
+        
+        return {"success": True, "subscription": updated_subscription}
+    except Exception as e:
+        logger.error(f"Error changing plan: {e}")
+        return {"success": False, "error": str(e)}
+
+@app.post("/api/admin/stripe/apply-coupon")
+async def apply_coupon(request: Request):
+    """Apply a coupon to a subscription"""
+    try:
+        data = await request.json()
+        subscription_id = data["subscription_id"]
+        coupon_id = data["coupon_id"]
+        
+        # Apply the coupon
+        subscription = stripe.Subscription.modify(
+            subscription_id,
+            coupon=coupon_id
+        )
+        
+        return {"success": True, "subscription": subscription}
+    except Exception as e:
+        logger.error(f"Error applying coupon: {e}")
+        return {"success": False, "error": str(e)}
+
+@app.post("/api/admin/stripe/extend-trial")
+async def extend_trial(request: Request):
+    """Extend the trial period of a subscription"""
+    try:
+        data = await request.json()
+        subscription_id = data["subscription_id"]
+        trial_end = data["trial_end"]  # Unix timestamp
+        
+        # Update trial end date
+        subscription = stripe.Subscription.modify(
+            subscription_id,
+            trial_end=trial_end
+        )
+        
+        return {"success": True, "subscription": subscription}
+    except Exception as e:
+        logger.error(f"Error extending trial: {e}")
+        return {"success": False, "error": str(e)}
+
+@app.post("/api/admin/stripe/refund")
+async def create_refund(request: Request):
+    """Create a refund for a payment"""
+    try:
+        data = await request.json()
+        payment_intent_id = data["payment_intent_id"]
+        amount = data.get("amount")  # Optional: partial refund amount in cents
+        
+        refund_params = {"payment_intent": payment_intent_id}
+        if amount:
+            refund_params["amount"] = amount
+        
+        refund = stripe.Refund.create(**refund_params)
+        
+        return {"success": True, "refund": refund}
+    except Exception as e:
+        logger.error(f"Error creating refund: {e}")
+        return {"success": False, "error": str(e)}
+
+@app.get("/api/admin/stripe/customer/{customer_id}")
+async def get_customer_details(customer_id: str):
+    """Get detailed information about a customer"""
+    try:
+        customer = stripe.Customer.retrieve(
+            customer_id,
+            expand=["subscriptions", "invoices"]
+        )
+        
+        # Get payment methods
+        payment_methods = stripe.PaymentMethod.list(
+            customer=customer_id,
+            type="card"
+        )
+        
+        return {
+            "success": True,
+            "customer": customer,
+            "payment_methods": payment_methods.data
+        }
+    except Exception as e:
+        logger.error(f"Error fetching customer: {e}")
+        return {"success": False, "error": str(e)}
+
+@app.post("/api/admin/stripe/update-payment-method")
+async def update_payment_method(request: Request):
+    """Update default payment method for a subscription"""
+    try:
+        data = await request.json()
+        subscription_id = data["subscription_id"]
+        payment_method_id = data["payment_method_id"]
+        
+        subscription = stripe.Subscription.modify(
+            subscription_id,
+            default_payment_method=payment_method_id
+        )
+        
+        return {"success": True, "subscription": subscription}
+    except Exception as e:
+        logger.error(f"Error updating payment method: {e}")
+        return {"success": False, "error": str(e)}
+
 
 
 # Keep legacy endpoints for backward compatibility

@@ -298,7 +298,7 @@ class DatabaseService:
     # In db_service
     async def set_user_plan(self, user_id: str, plan_id: str, stripe_customer_id: str = None):
         # Start with the first positional placeholder
-        q = "UPDATE profiles SET plan_id = $1"
+        q = "UPDATE profiles SET plan_id = $1, plan_renewal_date = NOW() + INTERVAL '1 month'"
         params = [plan_id]
 
         # Add stripe_customer_id if provided

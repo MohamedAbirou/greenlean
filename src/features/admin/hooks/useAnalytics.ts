@@ -10,7 +10,7 @@ export function useDashboardMetrics(dateRange: "7d" | "30d" | "90d" | "1y" = "30
   });
 }
 
-export function useConversionFunnel(dateRange: string) {
+export function useConversionFunnel(dateRange: "7d" | "30d" | "90d" | "1y" = "30d") {
   return useQuery({
     queryKey: ["conversion-funnel", dateRange],
     queryFn: () => AnalyticsService.getConversionFunnel(dateRange),
@@ -42,4 +42,13 @@ export function useSystemHealth() {
     staleTime: 60 * 1000,
     refetchInterval: 60 * 1000,
   });
+}
+
+export function formatBytes(bytes: number) {
+  if (bytes === 0 || bytes == null) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB", "TB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  const size = parseFloat((bytes / Math.pow(k, i)).toFixed(2));
+  return `${size} ${sizes[i]}`;
 }

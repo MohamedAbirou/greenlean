@@ -39,8 +39,6 @@ export function useAdminUsersTable() {
   const { data: profiles = [], isLoading: isLoadingUsers } = useUsersQuery();
   const { data: stripe = { subscribers: [] }, isLoading: isLoadingStripe } = useAllSubscribers();
 
-  console.log("Subscribers: ", stripe.subscribers);
-
   const stripeMap = useMemo(() => {
     return new Map(
       (stripe.subscribers as StripeSubscriber[]).map((sub: StripeSubscriber) => [sub.customer_id, sub])

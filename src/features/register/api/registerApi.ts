@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import { calculateAge, getUnitSystemForCountry } from "@/shared/utils/countryUtils";
+import { calculateAge, getUnitSystemForCountry } from "@/shared/utils/profileUtils";
 import type { RegistrationData } from "../types";
 
 export async function registerUser(data: RegistrationData) {

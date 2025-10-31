@@ -1,7 +1,10 @@
-/**
- * Profile Feature Exports
- */
+// src/features/profile/index.ts
 
-export { ProfileService } from "./api/profileService";
-export { useProfile } from "./hooks/useProfile";
-export type { Profile, ProfileUpdate, AvatarUploadResult } from "./types";
+export * from './components/AvatarUpload';
+export * from './components/InvoicesList';
+export * from './components/ProfileForm';
+export * from './components/SubscriptionCard';
+export * from './hooks/useProfile';
+export * from './hooks/useSubscription';
+export * from './services/profile.service';
+export * from './types/profile.types';

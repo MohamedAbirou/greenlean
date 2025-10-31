@@ -9,6 +9,7 @@ export interface Profile {
   avatar_url: string | null;
   created_at?: string;
   updated_at?: string;
+  plan_renewal_date?: string;
 }
 
 export interface ProfileUpdate {

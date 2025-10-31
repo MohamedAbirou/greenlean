@@ -2,9 +2,18 @@ import { Activity, CheckCircle, FileText } from "lucide-react";
 
 interface PlanQuizTabTabProps {
   metrics: any;
+  isLoading: boolean;
 }
 
-export const PlanQuizTab: React.FC<PlanQuizTabTabProps> = ({ metrics }) => {
+export const PlanQuizTab: React.FC<PlanQuizTabTabProps> = ({ metrics, isLoading }) => {
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>

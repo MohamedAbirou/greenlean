@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-import { calculateAge, COUNTRIES } from "@/shared/utils/countryUtils";
+import { calculateAge, COUNTRIES } from "@/shared/utils/profileUtils";
 import { motion } from "framer-motion";
 import { Calendar } from "lucide-react";
 import React from "react";

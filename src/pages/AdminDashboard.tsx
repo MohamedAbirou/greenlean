@@ -13,16 +13,19 @@ import {
   useTopUsers,
 } from "@/features/admin/hooks/useAnalytics";
 import { useAuth } from "@/features/auth";
-import { Download, Loader, Moon, Search, Settings, Sun } from "lucide-react";
+import { Moon, Settings, Sun, UserCircle } from "lucide-react";
 import React, { useState } from "react";
 
 // Import the new professional dashboard tabs
 import { AnalyticsTab } from "@/features/admin/components/AnalyticsTab";
 import OverviewTab from "@/features/admin/components/OverviewTab";
 import { PlanQuizTab } from "@/features/admin/components/PlanQuizTab";
+import SubscriptionsTab from "@/features/admin/components/SubscriptionsTab";
 import { SystemHealthTab } from "@/features/admin/components/SystemHealthTab";
+import { useProfile } from "@/features/profile";
 import NotificationsDropdown from "@/shared/components/NotificationsDropdown";
 import { Button } from "@/shared/components/ui/button";
+import { UserMenu } from "@/shared/components/UserMenu";
 import { useNotifications } from "@/shared/hooks/useNotifications";
 import { useThemeStore } from "@/store/themeStore";
 
@@ -32,10 +35,9 @@ const AdminDashboard: React.FC = () => {
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll } = useNotifications();
   const { isDarkMode, toggleTheme } = useThemeStore();
 
-  // const [dateRange, setDateRange] = useState("30d");
-
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { isAdmin, isLoading: adminLoading } = useAdminStatus(user?.id);
+  const { profile } = useProfile(user?.id);
 
   // Fetch dashboard data
   const { data: metrics, isLoading: metricsLoading } = useDashboardMetrics(dateRange);
@@ -47,8 +49,8 @@ const AdminDashboard: React.FC = () => {
   // Loading state
   if (adminLoading) {
     return (
-      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
-        <Loader className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex items-center justify-center h-96">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -84,14 +86,15 @@ const AdminDashboard: React.FC = () => {
       case "analytics":
         return (
           <AnalyticsTab
-            funnelData={funnelData || []}
-            metrics={metrics}
-            // dateRange={dateRange}
+            funnelData={funnelData!}
+            metrics={metrics as any}
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
             isLoading={funnelLoading}
           />
         );
       case "plans":
-        return <PlanQuizTab metrics={metrics} />;
+        return <PlanQuizTab metrics={metrics} isLoading={metricsLoading} />;
       case "system":
         return <SystemHealthTab health={systemHealth} isLoading={healthLoading} />;
       case "challenges":
@@ -102,64 +105,82 @@ const AdminDashboard: React.FC = () => {
         return <UsersTab />;
       case "rewards":
         return <RewardsTab />;
+      case "subscriptions":
+        return <SubscriptionsTab currentUserId={user?.id || ""} />;
       default:
         return null;
     }
   };
 
+  const renderAvatar = () => {
+    if (profile?.avatar_url) {
+      return (
+        <img src={profile.avatar_url} alt="Profile" className="w-8 h-8 rounded-full object-cover" />
+      );
+    }
+
+    return <UserCircle size={32} className="text-primary " />;
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+
+  const renderUserMenu = () => (
+    <>
+      <div className="flex items-center justify-between gap-2 overflow-hidden">
+        <p className="text-sm font-medium text-foreground">
+          {profile?.full_name || user?.email?.split("@")[0]}
+        </p>
+        {/* Show role if admin or super admin as Super Admin instead of super_admin */}
+        {profile?.admin_users?.role && (
+          <span
+            className={`badge-${
+              profile?.admin_users?.role === "super_admin" ? "purple" : "green"
+            } px-2 py-1 rounded-full text-xs`}
+          >
+            {profile?.admin_users?.role === "super_admin"
+              ? "Super Admin"
+              : profile?.admin_users?.role}
+          </span>
+        )}
+      </div>
+      <p className="text-xs text-foreground/70 truncate">{user?.email}</p>
+    </>
+  );
+
   return (
     <AdminSidebarLayout activeTab={activeTab} setActiveTab={setActiveTab}>
       {/* Top Bar */}
       <header className="bg-card border-b border-border sticky top-0 z-10">
-        <div className="px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4 flex-1">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Search users, challenges, or data..."
-                className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-sm focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-              />
-            </div>
-          </div>
+        <div className="px-6 py-[7px] flex items-center justify-end gap-3">
+          <NotificationsDropdown
+            notifications={notifications.slice(0, 15)}
+            onNotificationClick={(n) => {
+              markAsRead(n.id);
+            }}
+            markAllAsRead={markAllAsRead}
+            clearAll={clearAll}
+            unreadCount={unreadCount}
+          />
 
-          <div className="flex items-center gap-3">
-            <select
-              value={dateRange}
-              onChange={(e) => setDateRange(e.target.value as "7d" | "30d" | "90d" | "1y")}
-              className="px-3 py-2 bg-background border border-border rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <option value="7d">Last 7 days</option>
-              <option value="30d">Last 30 days</option>
-              <option value="90d">Last 90 days</option>
-              <option value="1y">Last year</option>
-            </select>
-            {/* <button className="relative p-2 hover:bg-accent rounded-sm transition-colors">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1 right-1 h-2 w-2 bg-destructive rounded-full" />
-            </button> */}
-            <NotificationsDropdown
-              notifications={notifications.slice(0, 15)}
-              onNotificationClick={(n) => {
-                markAsRead(n.id);
-              }}
-              markAllAsRead={markAllAsRead}
-              clearAll={clearAll}
-              unreadCount={unreadCount}
-            />
-
-            <Button
-              variant="secondary"
-              onClick={toggleTheme}
-              className={`rounded-full ${isDarkMode && "text-yellow-500"}`}
-            >
-              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-            </Button>
-            <button className="px-4 py-2 bg-primary text-primary-foreground rounded-sm font-medium hover:bg-primary/90 text-sm flex items-center gap-2">
-              <Download className="h-4 w-4" />
-              Export
-            </button>
-          </div>
+          <Button
+            variant="secondary"
+            onClick={toggleTheme}
+            className={`rounded-full ${isDarkMode && "text-yellow-500"}`}
+          >
+            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+          </Button>
+          <UserMenu
+            isAdmin={isAdmin}
+            renderAvatar={renderAvatar}
+            renderUserMenu={renderUserMenu}
+            handleSignOut={handleSignOut}
+          />
         </div>
       </header>
 

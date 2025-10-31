@@ -39,6 +39,17 @@ export const COUNTRIES = [
   { name: "Colombia", code: "CO", flag: "🇨🇴", imperial: false },
 ].sort((a, b) => a.name.localeCompare(b.name));
 
+export const OCCUPATION_OPTIONS = [
+  "Sedentary (desk job or minimal movement)",
+  "Lightly active (some walking or movement during the day)",
+  "Moderately active (on feet often, e.g., retail, teaching)",
+  "Very active (physical or outdoor job)",
+  "Student",
+  "Self-employed / Freelancer",
+  "Retired",
+  "Currently not working",
+];
+
 export const getUnitSystemForCountry = (countryName: string): "metric" | "imperial" => {
   const country = COUNTRIES.find(c => c.name === countryName);
   return country?.imperial ? "imperial" : "metric";

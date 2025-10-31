@@ -3,7 +3,7 @@ import { badgeColumns } from "@/pages/admin-dashboard/badges/columns";
 import { useBadgesQuery } from "@/shared/hooks/Queries/useBadges";
 import type { Badge } from "@/shared/types/challenge";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { DataTable } from "../../../shared/components/data-table/data-table";
@@ -73,7 +73,13 @@ const BadgesTab = () => {
     onError: (err) => toast.error(err.message || "Failed to delete badge"),
   });
 
-  if (isLoading) return <Loader className="h-8 w-8 animate-spin" />;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

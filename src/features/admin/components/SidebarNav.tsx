@@ -3,7 +3,6 @@ import {
   Award,
   BarChart3,
   ChevronLeft,
-  Database,
   DollarSign,
   FileText,
   Gift,
@@ -26,7 +25,6 @@ const navigation = [
   { id: "badges", name: "Badges", icon: Award },
   { id: "rewards", name: "Rewards", icon: Gift },
   { id: "system", name: "System Health", icon: Activity },
-  { id: "database", name: "Database", icon: Database },
   { id: "settings", name: "Settings", icon: Settings },
 ];
 
@@ -80,20 +78,6 @@ const SidebarNav = ({
           );
         })}
       </nav>
-
-      {sidebarOpen && (
-        <div className="w-full p-2 border-t border-border">
-          <div className="flex items-center  gap-3">
-            <div className="h-8 w-8 rounded-full bg-primary text-sm flex items-center justify-center text-white font-semibold">
-              A
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">Admin User</p>
-              <p className="text-xs text-muted-foreground truncate">Super Admin</p>
-            </div>
-          </div>
-        </div>
-      )}
     </aside>
   );
 };

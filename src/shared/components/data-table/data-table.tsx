@@ -70,12 +70,12 @@ export function DataTable<TData, TValue>({
   const filterColumn = filterKey && table.getColumn(filterKey);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-2">
       <div className="flex items-center justify-between gap-2">
         {filterColumn && (
           <input
             placeholder={`Search ${filterKey}...`}
-            className="w-[250px] border border-input bg-background rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-[250px] border border-input bg-background rounded-sm px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             value={(filterColumn.getFilterValue() as string) ?? ""}
             onChange={(e) => filterColumn.setFilterValue(e.target.value)}
           />
@@ -83,7 +83,7 @@ export function DataTable<TData, TValue>({
         <DataTableViewOptions table={table} />
       </div>
 
-      <div className="rounded-xl border bg-background shadow">
+      <div className="bg-background rounded-sm">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (

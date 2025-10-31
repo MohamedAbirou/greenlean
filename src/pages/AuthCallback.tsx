@@ -63,7 +63,7 @@ const AuthCallback = () => {
           } catch (error) {
             console.error('Error completing registration:', error);
             toast.error('Profile update failed. Please complete your profile in settings.');
-            navigate('/profile');
+            navigate('/profile/settings');
           }
         } else {
           const userMetadata = user.user_metadata?.registration_data;
@@ -97,7 +97,7 @@ const AuthCallback = () => {
             } catch (error) {
               console.error('Error completing registration:', error);
               toast.error('Profile update failed. Please complete your profile in settings.');
-              navigate('/profile');
+              navigate('/profile/settings');
             }
           } else {
             toast.success('Email confirmed successfully!');

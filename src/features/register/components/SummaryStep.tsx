@@ -1,7 +1,7 @@
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { Spinner } from "@/shared/components/ui/spinner";
-import { calculateAge, COUNTRIES } from "@/shared/utils/countryUtils";
+import { calculateAge, COUNTRIES } from "@/shared/utils/profileUtils";
 import { motion } from "framer-motion";
 import { Calendar, Check, Globe, Mail, Ruler, User, Weight } from "lucide-react";
 import React from "react";

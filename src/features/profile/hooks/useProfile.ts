@@ -1,58 +1,72 @@
-/**
- * Profile Hook
- * Manages profile data with React Query
- */
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ProfileService } from "../services/profile.service";
+import type { ProfileUpdateData } from "../types/profile.types";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ProfileService } from "../api/profileService";
-import type { ProfileUpdate } from "../types";
-
-export function useProfile(userId?: string) {
+export const useProfile = (userId: string | undefined) => {
   const queryClient = useQueryClient();
 
-  const profileQuery = useQuery({
+  const {
+    data: profile,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["profile", userId],
     queryFn: () => ProfileService.getProfile(userId!),
     enabled: !!userId,
-    staleTime: 5 * 60 * 1000,
   });
 
-  const updateProfileMutation = useMutation({
-    mutationFn: (updates: ProfileUpdate) =>
-      ProfileService.updateProfile(userId!, updates),
+  const updateMutation = useMutation({
+    mutationFn: (updates: ProfileUpdateData) => ProfileService.updateProfile(userId!, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile", userId] });
     },
   });
 
   const uploadAvatarMutation = useMutation({
-    mutationFn: async (file: File) => {
-      const { publicUrl } = await ProfileService.uploadAvatar(userId!, file);
-      await ProfileService.updateAvatar(userId!, publicUrl);
-      return publicUrl;
-    },
+    mutationFn: (file: File) => ProfileService.uploadAvatar(userId!, file),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile", userId] });
     },
-  });
+  }); 
 
   const deleteAvatarMutation = useMutation({
-    mutationFn: (avatarUrl: string) =>
-      ProfileService.deleteAvatar(userId!, avatarUrl),
+    mutationFn: (avatarUrl: string) => ProfileService.deleteAvatar(userId!, avatarUrl),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile", userId] });
     },
   });
 
-  return {
-    profile: profileQuery.data,
-    isLoading: profileQuery.isLoading,
-    isError: profileQuery.isError,
-    error: profileQuery.error,
-    updateProfile: updateProfileMutation.mutateAsync,
-    uploadAvatar: uploadAvatarMutation.mutateAsync,
-    deleteAvatar: deleteAvatarMutation.mutateAsync,
-    isUpdating: updateProfileMutation.isPending,
-    isUploadingAvatar: uploadAvatarMutation.isPending || deleteAvatarMutation.isPending,
+  const calculateAge = (dob: string | Date): number => {
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
   };
-}
+
+  const calculateDOB = (age: number): string => {
+    const today = new Date();
+    const birthYear = today.getFullYear() - age;
+    // Return as YYYY-MM-DD string
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    return `${birthYear}-${month}-${day}`;
+  };
+
+  return {
+    profile,
+    isLoading,
+    error,
+    updateProfile: updateMutation.mutateAsync,
+    calculateAge,
+    calculateDOB,
+    isUpdating: updateMutation.isPending,
+    uploadAvatar: uploadAvatarMutation.mutateAsync,
+    isUploadingAvatar: uploadAvatarMutation.isPending,
+    deleteAvatar: deleteAvatarMutation.mutateAsync,
+    isDeletingAvatar: deleteAvatarMutation.isPending,
+  };
+};

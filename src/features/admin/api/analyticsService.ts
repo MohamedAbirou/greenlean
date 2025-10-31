@@ -119,11 +119,51 @@ export class AnalyticsService {
   }
 
   /**
-   * Get conversion funnel - OPTIMIZED
+   * Get historical revenue data for trends
    */
-  static async getConversionFunnel(dateRange: string) {
+  static async getRevenueHistory(dateRange: "7d" | "30d" | "90d" | "1y" = "30d") {
+    // This would query a historical_metrics table if you create one
+    // For now, return current period data
+    const metrics = await this.getDashboardMetrics(dateRange);
+
+    return [
+      {
+        period: "Current Period",
+        revenue: metrics.revenue.thisMonth,
+        subscriptions: metrics.subscriptions.active,
+        mrr: metrics.revenue.monthly,
+      },
+    ];
+  }
+
+  /**
+   * Get historical user growth data
+   */
+  static async getUserGrowthHistory(dateRange: "7d" | "30d" | "90d" | "1y" = "30d") {
     const now = new Date();
-    const daysAgo = dateRange === "7d" ? 7 : dateRange === "30d" ? 30 : 90;
+    const daysAgo =
+      dateRange === "7d" ? 7 : dateRange === "30d" ? 30 : dateRange === "90d" ? 90 : 365;
+
+    // Query user signups grouped by date
+    const { data } = await supabase
+      .from("profiles")
+      .select("created_at")
+      .gte("created_at", new Date(now.setDate(now.getDate() - daysAgo)).toISOString())
+      .order("created_at", { ascending: true });
+
+    // Group by day/week/month depending on range
+    const groupedData = this.groupByTimePeriod(data || [], dateRange);
+
+    return groupedData;
+  }
+
+  /**
+   * Get conversion funnel
+   */
+  static async getConversionFunnel(dateRange: "7d" | "30d" | "90d" | "1y" = "30d") {
+    const now = new Date();
+    const daysAgo =
+      dateRange === "7d" ? 7 : dateRange === "30d" ? 30 : dateRange === "90d" ? 90 : 365;
     const startDate = new Date(now.setDate(now.getDate() - daysAgo)).toISOString();
 
     // Parallel queries
@@ -173,7 +213,7 @@ export class AnalyticsService {
   }
 
   /**
-   * Get recent activity - OPTIMIZED with single query
+   * Get recent activity
    */
   static async getRecentActivity(limit = 10) {
     // Use a single query with union-like approach
@@ -224,7 +264,7 @@ export class AnalyticsService {
   }
 
   /**
-   * Get top users - already optimized
+   * Get top users
    */
   static async getTopUsers(limit = 10) {
     const { data } = await supabase
@@ -247,24 +287,31 @@ export class AnalyticsService {
   }
 
   /**
-   * Get system health - SIMPLIFIED (remove non-existent tables)
+   * Get system health
    */
   static async getSystemHealth() {
-    const [dbSizeRes, connRes, uptimeRes, respTimeRes, errorsRes] = await Promise.all([
+    const [dbSizeRes, connRes, uptimeRes, respTimeRes] = await Promise.all([
       supabase.rpc("get_db_size"),
       supabase.rpc("get_active_connections"),
+      // get uptime and get avg response time requires admin_logs implementation in the future!
       supabase.rpc("get_uptime"),
       supabase.rpc("get_avg_response_time"),
-      supabase
-        .from("admin_logs")
-        .select("*")
-        .eq("level", "error")
-        .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-        .order("created_at", { ascending: false })
-        .limit(10),
+      // supabase
+      //   .from("admin_logs")
+      //   .select("*")
+      //   .eq("level", "error")
+      //   .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+      //   .order("created_at", { ascending: false })
+      //   .limit(10),
     ]);
 
-    const errors = errorsRes.data || [];
+    let errors = [];
+    // get errors from all the subapase requests above!
+    for (const request of [dbSizeRes, connRes, uptimeRes, respTimeRes]) {
+      if (request.error) {
+        errors.push(request.error);
+      }
+    }
 
     const storageUsed = await AnalyticsService.calcStorageUsed();
 
@@ -328,5 +375,35 @@ export class AnalyticsService {
     // Convert bytes → MB (or GB)
     const totalMB = totalBytes / (1024 * 1024);
     return Math.round(totalMB * 100) / 100; // e.g. 67.42 MB
+  }
+
+  /**
+   * Helper to group data by time period
+   */
+  private static groupByTimePeriod(data: any[], dateRange: string) {
+    if (!data.length) return [];
+
+    const grouped: { [key: string]: number } = {};
+
+    data.forEach((item) => {
+      const date = new Date(item.created_at);
+      let key: string;
+
+      if (dateRange === "7d") {
+        key = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      } else if (dateRange === "30d") {
+        key = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      } else {
+        key = date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+      }
+
+      grouped[key] = (grouped[key] || 0) + 1;
+    });
+
+    return Object.entries(grouped).map(([period, count]) => ({
+      period,
+      users: count,
+      active: Math.floor(count * 0.7), // Estimate - replace with actual active user query
+    }));
   }
 }

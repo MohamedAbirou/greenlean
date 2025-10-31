@@ -11,8 +11,7 @@ import { QuizSummary } from "@/features/quiz/components/QuizSummary";
 import { useQuizState } from "@/features/quiz/hooks/useQuizState";
 import { useQuizSubmission } from "@/features/quiz/hooks/useQuizSubmission";
 import type { QuizAnswers } from "@/features/quiz/types";
-import { ModalDialog } from "@/shared/components/ui/modal-dialog";
-import { triggerStripeCheckout } from "@/shared/hooks/useStripe";
+import { UpgradeModal } from "@/shared/components/feedback/UpgradeModal";
 import { AnimatePresence } from "framer-motion";
 import React, { useState } from "react";
 
@@ -133,36 +132,11 @@ const Quiz: React.FC = () => {
             </p>
           </div>
         </div>
-        <ModalDialog
-          open={showUpgrade}
-          onOpenChange={setShowUpgrade}
-          title="Upgrade for More AI Plans"
-          description="Unlock up to 50 quizzes + plans/month. Cancel anytime."
-          size="md"
-        >
-          <div className="space-y-4 text-center">
-            <div className="p-4 bg-muted rounded-lg">
-              <p className="font-semibold">
-                Your current plan:{" "}
-                <span className="inline-block px-2 rounded-full text-white bg-primary text-xs">
-                  {planName}
-                </span>
-              </p>
-              <span className="text-foreground text-sm">
-                {aiGenQuizCount}/{allowed} used this period.
-              </span>
-            </div>
-            <button
-              onClick={() => triggerStripeCheckout(user?.id || "")}
-              className="mt-2 w-full rounded bg-primary hover:bg-primary/90 text-white px-4 py-2 font-semibold text-base transition"
-            >
-              Upgrade Now
-            </button>
-            <p className="text-xs mt-2 text-muted-foreground">
-              Billing handled securely via Stripe.
-            </p>
-          </div>
-        </ModalDialog>
+        <UpgradeModal
+          showUpgradeModal={showUpgrade}
+          setShowUpgradeModal={setShowUpgrade}
+          userId={user?.id!}
+        />
       </>
     );
   }
@@ -226,36 +200,11 @@ const Quiz: React.FC = () => {
               </>
             )}
           </AnimatePresence>
-          <ModalDialog
-            open={showUpgrade}
-            onOpenChange={setShowUpgrade}
-            title="Upgrade for More AI Plans"
-            description="Unlock up to 50 plans/month, priority support, and more!"
-            size="md"
-          >
-            <div className="space-y-4 text-center">
-              <div className="p-4 bg-muted rounded-lg">
-                <p className="font-semibold">
-                  Your current plan:{" "}
-                  <span className="inline-block px-2 rounded-full text-white bg-primary text-xs">
-                    {planName}
-                  </span>
-                </p>
-                <span className="text-foreground text-sm">
-                  {aiGenQuizCount}/{allowed} AI generations used this period.
-                </span>
-              </div>
-              <button
-                onClick={() => triggerStripeCheckout(user?.id || "")}
-                className="mt-2 w-full rounded bg-primary hover:bg-primary/90 text-white px-4 py-2 font-semibold text-base transition"
-              >
-                Upgrade Now
-              </button>
-              <p className="text-xs mt-2 text-muted-foreground">
-                Billing handled securely via Stripe.
-              </p>
-            </div>
-          </ModalDialog>
+          <UpgradeModal
+            showUpgradeModal={showUpgrade}
+            setShowUpgradeModal={setShowUpgrade}
+            userId={user?.id!}
+          />
         </div>
       </div>
     </div>

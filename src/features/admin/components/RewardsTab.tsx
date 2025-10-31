@@ -1,6 +1,6 @@
 import { IconMap } from "@/features/challenges/utils/progress";
 import { useRewardsQuery, type Reward } from "@/shared/hooks/Queries/useRewards";
-import { Edit, Loader, Search, Star, StarIcon } from "lucide-react";
+import { Edit, Search, Star, StarIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Input } from "../../../shared/components/ui/input";
 import RewardForm from "./RewardForm";
@@ -35,8 +35,8 @@ const RewardsTab = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
-        <Loader className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex items-center justify-center h-96">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }

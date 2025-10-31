@@ -11,6 +11,7 @@ import { motion } from "framer-motion";
 import { Briefcase } from "lucide-react";
 import React from "react";
 import type { RegistrationData } from "../types";
+import { OCCUPATION_OPTIONS } from "@/shared/utils/profileUtils";
 
 interface OccupationStepProps {
   data: RegistrationData;
@@ -19,17 +20,6 @@ interface OccupationStepProps {
   onNext: () => void;
   onPrev: () => void;
 }
-
-const OCCUPATION_OPTIONS = [
-  "Sedentary (desk job or minimal movement)",
-  "Lightly active (some walking or movement during the day)",
-  "Moderately active (on feet often, e.g., retail, teaching)",
-  "Very active (physical or outdoor job)",
-  "Student",
-  "Self-employed / Freelancer",
-  "Retired",
-  "Currently not working",
-];
 
 export const OccupationStep: React.FC<OccupationStepProps> = ({
   data,

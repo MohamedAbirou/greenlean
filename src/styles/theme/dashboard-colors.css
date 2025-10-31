@@ -8,54 +8,54 @@
   /* ========================================
      EXTENDED COLOR PALETTE - Light Mode
      ======================================== */
-  
+
   /* Blue Shades (Info, Stats) */
-  --blue-400: oklch(0.70 0.15 240);
+  --blue-400: oklch(0.7 0.15 240);
   --blue-500: oklch(0.65 0.18 240);
-  --blue-600: oklch(0.55 0.20 240);
+  --blue-600: oklch(0.55 0.2 240);
   --cyan-400: oklch(0.75 0.12 210);
-  --cyan-500: oklch(0.70 0.14 210);
-  --cyan-600: oklch(0.60 0.16 210);
+  --cyan-500: oklch(0.7 0.14 210);
+  --cyan-600: oklch(0.6 0.16 210);
   --sky-500: oklch(0.72 0.13 230);
-  
+
   /* Orange Shades (Energy, Burn) */
   --orange-400: oklch(0.75 0.14 50);
-  --orange-500: oklch(0.70 0.16 50);
+  --orange-500: oklch(0.7 0.16 50);
   --orange-600: oklch(0.62 0.18 50);
-  --red-500: oklch(0.60 0.20 30);
+  --red-500: oklch(0.6 0.2 30);
   --red-600: oklch(0.52 0.22 30);
-  --amber-400: oklch(0.80 0.12 70);
+  --amber-400: oklch(0.8 0.12 70);
   --amber-500: oklch(0.75 0.14 70);
-  
+
   /* Purple/Pink Shades (Goals, Progress, Advanced) */
   --purple-400: oklch(0.65 0.18 300);
-  --purple-500: oklch(0.60 0.20 300);
+  --purple-500: oklch(0.6 0.2 300);
   --purple-600: oklch(0.52 0.22 300);
-  --pink-400: oklch(0.70 0.16 350);
+  --pink-400: oklch(0.7 0.16 350);
   --pink-500: oklch(0.65 0.18 350);
-  --pink-600: oklch(0.57 0.20 350);
-  --rose-600: oklch(0.55 0.20 10);
-  
+  --pink-600: oklch(0.57 0.2 350);
+  --rose-600: oklch(0.55 0.2 10);
+
   /* Indigo Shades (Workouts) */
   --indigo-400: oklch(0.62 0.16 280);
   --indigo-500: oklch(0.57 0.18 280);
-  --indigo-600: oklch(0.50 0.20 280);
-  
+  --indigo-600: oklch(0.5 0.2 280);
+
   /* Yellow Shades (Rewards, Badges) */
   --yellow-400: oklch(0.88 0.14 95);
   --yellow-500: oklch(0.82 0.16 95);
   --yellow-600: oklch(0.72 0.18 95);
-  
+
   /* Emerald/Teal Shades (Success, Growth) */
   --emerald-400: oklch(0.72 0.16 155);
   --emerald-500: oklch(0.68 0.18 155);
-  --emerald-600: oklch(0.60 0.20 155);
+  --emerald-600: oklch(0.6 0.2 155);
   --teal-500: oklch(0.65 0.14 180);
-  
+
   /* ========================================
      LIGHT MODE BACKGROUNDS (Softer)
      ======================================== */
-  
+
   /* Stat Card Backgrounds - Light Mode */
   --bg-blue-light: oklch(0.97 0.02 240);
   --bg-green-light: oklch(0.97 0.02 145);
@@ -64,7 +64,7 @@
   --bg-yellow-light: oklch(0.97 0.02 95);
   --bg-pink-light: oklch(0.97 0.02 350);
   --bg-indigo-light: oklch(0.97 0.02 280);
-  
+
   /* Badge/Tag Backgrounds - Light Mode */
   --badge-blue-bg: oklch(0.96 0.03 240);
   --badge-blue-text: oklch(0.45 0.18 240);
@@ -73,60 +73,104 @@
   --badge-red-bg: oklch(0.96 0.03 30);
   --badge-red-text: oklch(0.45 0.18 30);
   --badge-red-border: oklch(0.75 0.12 30);
-  
+
   --badge-green-bg: oklch(0.96 0.03 145);
-  --badge-green-text: oklch(0.40 0.18 148);
+  --badge-green-text: oklch(0.4 0.18 148);
   --badge-green-border: oklch(0.72 0.14 148);
-  
+
   --badge-orange-bg: oklch(0.96 0.03 50);
   --badge-orange-text: oklch(0.45 0.18 50);
-  --badge-orange-border: oklch(0.70 0.14 50);
-  
+  --badge-orange-border: oklch(0.7 0.14 50);
+
   --badge-purple-bg: oklch(0.96 0.03 300);
-  --badge-purple-text: oklch(0.45 0.20 300);
+  --badge-purple-text: oklch(0.45 0.2 300);
   --badge-purple-border: oklch(0.65 0.16 300);
-  
+
   --badge-yellow-bg: oklch(0.96 0.03 95);
-  --badge-yellow-text: oklch(0.50 0.16 95);
+  --badge-yellow-text: oklch(0.5 0.16 95);
   --badge-yellow-border: oklch(0.75 0.14 95);
-  
+
   --badge-pink-bg: oklch(0.96 0.03 350);
-  --badge-pink-text: oklch(0.50 0.18 350);
-  --badge-pink-border: oklch(0.70 0.16 350);
-  
+  --badge-pink-text: oklch(0.5 0.18 350);
+  --badge-pink-border: oklch(0.7 0.16 350);
+
+  /* Gray Color Shades (Status, Invoices) */
+  --badge-gray-bg: oklch(0.96 0 0); /* very light gray background */
+  --badge-gray-text: oklch(0.5 0 0); /* medium gray text */
+  --badge-gray-border: oklch(0.75 0 0); /* light gray border */
+
   /* ========================================
      GRADIENT UTILITIES
      ======================================== */
-  
+
   /* Stat Card Gradients - Light Mode (Subtle) */
   --gradient-blue: linear-gradient(135deg, oklch(0.92 0.04 240) 0%, oklch(0.95 0.03 240) 100%);
   --gradient-green: linear-gradient(135deg, oklch(0.92 0.04 145) 0%, oklch(0.95 0.03 145) 100%);
   --gradient-orange: linear-gradient(135deg, oklch(0.92 0.04 50) 0%, oklch(0.95 0.03 50) 100%);
   --gradient-purple: linear-gradient(135deg, oklch(0.92 0.04 300) 0%, oklch(0.95 0.03 300) 100%);
-  --gradient-purple-pink: linear-gradient(135deg, oklch(0.92 0.04 300) 0%, oklch(0.92 0.04 350) 100%);
+  --gradient-purple-pink: linear-gradient(
+    135deg,
+    oklch(0.92 0.04 300) 0%,
+    oklch(0.92 0.04 350) 100%
+  );
   --gradient-indigo: linear-gradient(135deg, oklch(0.92 0.04 280) 0%, oklch(0.95 0.03 280) 100%);
   --gradient-yellow: linear-gradient(135deg, oklch(0.92 0.04 95) 0%, oklch(0.95 0.03 95) 100%);
-  
+
   /* Header Gradients - Light Mode (Vibrant) */
-  --gradient-blue-cyan: linear-gradient(135deg, oklch(0.55 0.20 240) 0%, oklch(0.60 0.16 210) 100%);
-  --gradient-green-emerald: linear-gradient(135deg, oklch(0.73 0.21 148) 0%, oklch(0.68 0.18 155) 100%);
-  --gradient-purple-pink-vivid: linear-gradient(135deg, oklch(0.60 0.20 300) 0%, oklch(0.65 0.18 350) 100%);
-  --gradient-orange-red: linear-gradient(135deg, oklch(0.70 0.16 50) 0%, oklch(0.60 0.20 30) 100%);
-  --gradient-indigo-purple: linear-gradient(135deg, oklch(0.57 0.18 280) 0%, oklch(0.60 0.20 300) 100%);
-  --gradient-yellow-amber: linear-gradient(135deg, oklch(0.82 0.16 95) 0%, oklch(0.75 0.14 70) 100%);
-  
+  --gradient-blue-cyan: linear-gradient(135deg, oklch(0.55 0.2 240) 0%, oklch(0.6 0.16 210) 100%);
+  --gradient-green-emerald: linear-gradient(
+    135deg,
+    oklch(0.73 0.21 148) 0%,
+    oklch(0.68 0.18 155) 100%
+  );
+  --gradient-purple-pink-vivid: linear-gradient(
+    135deg,
+    oklch(0.6 0.2 300) 0%,
+    oklch(0.65 0.18 350) 100%
+  );
+  --gradient-orange-red: linear-gradient(135deg, oklch(0.7 0.16 50) 0%, oklch(0.6 0.2 30) 100%);
+  --gradient-indigo-purple: linear-gradient(
+    135deg,
+    oklch(0.57 0.18 280) 0%,
+    oklch(0.6 0.2 300) 100%
+  );
+  --gradient-yellow-amber: linear-gradient(
+    135deg,
+    oklch(0.82 0.16 95) 0%,
+    oklch(0.75 0.14 70) 100%
+  );
+
   /* Background Gradients - Light Mode (Ultra Soft) */
-  --bg-gradient-purple-blue: linear-gradient(135deg, oklch(0.98 0.01 300) 0%, oklch(0.98 0.01 240) 25%, oklch(0.98 0.01 350) 100%);
-  --bg-gradient-slate-blue: linear-gradient(135deg, oklch(0.98 0.005 0) 0%, oklch(0.98 0.01 240) 50%, oklch(0.98 0.01 280) 100%);
-  --bg-gradient-orange-red: linear-gradient(135deg, oklch(0.98 0.01 50) 0%, oklch(0.98 0.01 30) 100%);
-  --bg-gradient-green-emerald: linear-gradient(135deg, oklch(0.98 0.01 145) 0%, oklch(0.98 0.01 155) 50%, oklch(0.98 0.01 180) 100%);
+  --bg-gradient-purple-blue: linear-gradient(
+    135deg,
+    oklch(0.98 0.01 300) 0%,
+    oklch(0.98 0.01 240) 25%,
+    oklch(0.98 0.01 350) 100%
+  );
+  --bg-gradient-slate-blue: linear-gradient(
+    135deg,
+    oklch(0.98 0.005 0) 0%,
+    oklch(0.98 0.01 240) 50%,
+    oklch(0.98 0.01 280) 100%
+  );
+  --bg-gradient-orange-red: linear-gradient(
+    135deg,
+    oklch(0.98 0.01 50) 0%,
+    oklch(0.98 0.01 30) 100%
+  );
+  --bg-gradient-green-emerald: linear-gradient(
+    135deg,
+    oklch(0.98 0.01 145) 0%,
+    oklch(0.98 0.01 155) 50%,
+    oklch(0.98 0.01 180) 100%
+  );
 
   /* Challenges Base Gradient - Light Mode */
   --bg-challenges-base: linear-gradient(
     to bottom right,
-    oklch(0.99 0.005 95),    /* white */
-    oklch(0.98 0.01 300),    /* purple-50 */
-    oklch(0.98 0.01 240)     /* blue-50 */
+    oklch(0.99 0.005 95),
+    /* white */ oklch(0.98 0.01 300),
+    /* purple-50 */ oklch(0.98 0.01 240) /* blue-50 */
   );
 
   /* Challenges Border - Light Mode */
@@ -137,16 +181,16 @@
   /* ========================================
      DARK MODE - Keep Perfect Colors
      ======================================== */
-  
+
   /* Blue Shades - Dark Mode */
   --blue-400: oklch(0.72 0.14 240);
   --blue-500: oklch(0.67 0.17 240);
-  --blue-600: oklch(0.57 0.20 240);
+  --blue-600: oklch(0.57 0.2 240);
   --cyan-400: oklch(0.77 0.11 210);
   --cyan-500: oklch(0.72 0.13 210);
   --cyan-600: oklch(0.62 0.15 210);
   --sky-500: oklch(0.74 0.12 230);
-  
+
   /* Orange Shades - Dark Mode */
   --orange-400: oklch(0.77 0.13 50);
   --orange-500: oklch(0.72 0.15 50);
@@ -155,7 +199,7 @@
   --red-600: oklch(0.54 0.21 30);
   --amber-400: oklch(0.82 0.11 70);
   --amber-500: oklch(0.77 0.13 70);
-  
+
   /* Purple/Pink Shades - Dark Mode */
   --purple-400: oklch(0.67 0.17 300);
   --purple-500: oklch(0.62 0.19 300);
@@ -164,27 +208,27 @@
   --pink-500: oklch(0.67 0.17 350);
   --pink-600: oklch(0.59 0.19 350);
   --rose-600: oklch(0.57 0.19 10);
-  
+
   /* Indigo Shades - Dark Mode */
   --indigo-400: oklch(0.64 0.15 280);
   --indigo-500: oklch(0.59 0.17 280);
   --indigo-600: oklch(0.52 0.19 280);
-  
+
   /* Yellow Shades - Dark Mode */
   --yellow-400: oklch(0.85 0.13 95);
-  --yellow-500: oklch(0.80 0.15 95);
-  --yellow-600: oklch(0.70 0.17 95);
-  
+  --yellow-500: oklch(0.8 0.15 95);
+  --yellow-600: oklch(0.7 0.17 95);
+
   /* Emerald/Teal Shades - Dark Mode */
   --emerald-400: oklch(0.74 0.15 155);
-  --emerald-500: oklch(0.70 0.17 155);
+  --emerald-500: oklch(0.7 0.17 155);
   --emerald-600: oklch(0.62 0.19 155);
   --teal-500: oklch(0.67 0.13 180);
-  
+
   /* ========================================
      DARK MODE BACKGROUNDS (Rich)
      ======================================== */
-  
+
   /* Stat Card Backgrounds - Dark Mode */
   --bg-blue-light: oklch(0.22 0.03 240);
   --bg-green-light: oklch(0.22 0.03 145);
@@ -193,73 +237,113 @@
   --bg-yellow-light: oklch(0.22 0.03 95);
   --bg-pink-light: oklch(0.22 0.03 350);
   --bg-indigo-light: oklch(0.22 0.03 280);
-  
+
   /* Badge/Tag Backgrounds - Dark Mode */
   --badge-blue-bg: oklch(0.25 0.04 240 / 0.3);
   --badge-blue-text: oklch(0.75 0.13 240);
-  --badge-blue-border: oklch(0.50 0.18 240);
+  --badge-blue-border: oklch(0.5 0.18 240);
 
   --badge-red-bg: oklch(0.25 0.04 30 / 0.3);
   --badge-red-text: oklch(0.75 0.13 30);
   --badge-red-border: oklch(0.62 0.16 30);
-  
+
   --badge-green-bg: oklch(0.25 0.04 145 / 0.3);
   --badge-green-text: oklch(0.75 0.15 148);
-  --badge-green-border: oklch(0.60 0.18 148);
-  
+  --badge-green-border: oklch(0.6 0.18 148);
+
   --badge-orange-bg: oklch(0.25 0.04 50 / 0.3);
   --badge-orange-text: oklch(0.75 0.13 50);
   --badge-orange-border: oklch(0.62 0.16 50);
-  
+
   --badge-purple-bg: oklch(0.25 0.04 300 / 0.3);
   --badge-purple-text: oklch(0.75 0.15 300);
-  --badge-purple-border: oklch(0.60 0.18 300);
-  
+  --badge-purple-border: oklch(0.6 0.18 300);
+
   --badge-yellow-bg: oklch(0.25 0.04 95 / 0.3);
-  --badge-yellow-text: oklch(0.80 0.13 95);
-  --badge-yellow-border: oklch(0.70 0.15 95);
-  
+  --badge-yellow-text: oklch(0.8 0.13 95);
+  --badge-yellow-border: oklch(0.7 0.15 95);
+
   --badge-pink-bg: oklch(0.25 0.04 350 / 0.3);
   --badge-pink-text: oklch(0.75 0.13 350);
   --badge-pink-border: oklch(0.65 0.16 350);
-  
+
+  /* Gray Color Shades - Dark Mode */
+  --badge-gray-bg: oklch(0.25 0 0 / 0.3);
+  --badge-gray-text: oklch(0.75 0 0);
+  --badge-gray-border: oklch(0.62 0 0);
+
   /* ========================================
      GRADIENT UTILITIES - Dark Mode
      ======================================== */
-  
+
   /* Stat Card Gradients - Dark Mode (Rich) */
   --gradient-blue: linear-gradient(135deg, oklch(0.24 0.04 240) 0%, oklch(0.26 0.04 240) 100%);
   --gradient-green: linear-gradient(135deg, oklch(0.24 0.04 145) 0%, oklch(0.26 0.04 145) 100%);
   --gradient-orange: linear-gradient(135deg, oklch(0.24 0.04 50) 0%, oklch(0.26 0.04 50) 100%);
   --gradient-purple: linear-gradient(135deg, oklch(0.24 0.04 300) 0%, oklch(0.26 0.04 300) 100%);
-  --gradient-purple-pink: linear-gradient(135deg, oklch(0.24 0.04 300) 0%, oklch(0.24 0.04 350) 100%);
+  --gradient-purple-pink: linear-gradient(
+    135deg,
+    oklch(0.24 0.04 300) 0%,
+    oklch(0.24 0.04 350) 100%
+  );
   --gradient-indigo: linear-gradient(135deg, oklch(0.24 0.04 280) 0%, oklch(0.26 0.04 280) 100%);
   --gradient-yellow: linear-gradient(135deg, oklch(0.24 0.04 95) 0%, oklch(0.26 0.04 95) 100%);
-  
+
   /* Header Gradients - Dark Mode (Vibrant) */
-  --gradient-blue-cyan: linear-gradient(135deg, oklch(0.57 0.20 240) 0%, oklch(0.62 0.15 210) 100%);
-  --gradient-green-emerald: linear-gradient(135deg, oklch(0.72 0.16 148) 0%, oklch(0.70 0.17 155) 100%);
-  --gradient-purple-pink-vivid: linear-gradient(135deg, oklch(0.62 0.19 300) 0%, oklch(0.67 0.17 350) 100%);
+  --gradient-blue-cyan: linear-gradient(135deg, oklch(0.57 0.2 240) 0%, oklch(0.62 0.15 210) 100%);
+  --gradient-green-emerald: linear-gradient(
+    135deg,
+    oklch(0.72 0.16 148) 0%,
+    oklch(0.7 0.17 155) 100%
+  );
+  --gradient-purple-pink-vivid: linear-gradient(
+    135deg,
+    oklch(0.62 0.19 300) 0%,
+    oklch(0.67 0.17 350) 100%
+  );
   --gradient-orange-red: linear-gradient(135deg, oklch(0.72 0.15 50) 0%, oklch(0.62 0.19 30) 100%);
-  --gradient-indigo-purple: linear-gradient(135deg, oklch(0.59 0.17 280) 0%, oklch(0.62 0.19 300) 100%);
-  --gradient-yellow-amber: linear-gradient(135deg, oklch(0.80 0.15 95) 0%, oklch(0.77 0.13 70) 100%);
-  
+  --gradient-indigo-purple: linear-gradient(
+    135deg,
+    oklch(0.59 0.17 280) 0%,
+    oklch(0.62 0.19 300) 100%
+  );
+  --gradient-yellow-amber: linear-gradient(135deg, oklch(0.8 0.15 95) 0%, oklch(0.77 0.13 70) 100%);
+
   /* Background Gradients - Dark Mode (Rich) */
-  --bg-gradient-purple-blue: linear-gradient(135deg, oklch(0.10 0.04 0) 0%, oklch(0.14 0.05 300) 50%, oklch(0.14 0.05 240) 100%);
-  --bg-gradient-slate-blue: linear-gradient(135deg, oklch(0.10 0.01 0) 0%, oklch(0.12 0.04 240) 50%, oklch(0.13 0.04 280) 100%);
-  --bg-gradient-orange-red: linear-gradient(135deg, oklch(0.24 0.04 50) 0%, oklch(0.24 0.04 30) 100%);
-  --bg-gradient-green-emerald: linear-gradient(135deg, oklch(0.24 0.04 145) 0%, oklch(0.24 0.04 155) 50%, oklch(0.24 0.04 180) 100%);
+  --bg-gradient-purple-blue: linear-gradient(
+    135deg,
+    oklch(0.1 0.04 0) 0%,
+    oklch(0.14 0.05 300) 50%,
+    oklch(0.14 0.05 240) 100%
+  );
+  --bg-gradient-slate-blue: linear-gradient(
+    135deg,
+    oklch(0.1 0.01 0) 0%,
+    oklch(0.12 0.04 240) 50%,
+    oklch(0.13 0.04 280) 100%
+  );
+  --bg-gradient-orange-red: linear-gradient(
+    135deg,
+    oklch(0.24 0.04 50) 0%,
+    oklch(0.24 0.04 30) 100%
+  );
+  --bg-gradient-green-emerald: linear-gradient(
+    135deg,
+    oklch(0.24 0.04 145) 0%,
+    oklch(0.24 0.04 155) 50%,
+    oklch(0.24 0.04 180) 100%
+  );
 
   /* Challenges Base Gradient - Dark Mode */
   --bg-challenges-base: linear-gradient(
     to bottom right,
-    oklch(0.14 0.02 270),    /* gray-900 */
-    oklch(0.18 0.05 300 / 0.5), /* purple-900/50 */
-    oklch(0.16 0.05 240 / 0.5)  /* blue-900/50 */
+    oklch(0.14 0.02 270),
+    /* gray-900 */ oklch(0.18 0.05 300 / 0.5),
+    /* purple-900/50 */ oklch(0.16 0.05 240 / 0.5) /* blue-900/50 */
   );
 
   /* Challenges Border - Dark Mode */
-  --border-challenges-base: oklch(0.30 0.10 300 / 0.5); /* purple-700/50 */
+  --border-challenges-base: oklch(0.3 0.1 300 / 0.5); /* purple-700/50 */
 }
 
 /* ========================================
@@ -267,26 +351,58 @@
    ======================================== */
 
 /* Stat Card Backgrounds */
-.bg-stat-blue { background: var(--gradient-blue); }
-.bg-stat-green { background: var(--gradient-green); }
-.bg-stat-orange { background: var(--gradient-orange); }
-.bg-stat-purple { background: var(--gradient-purple); }
-.bg-stat-indigo { background: var(--gradient-indigo); }
-.bg-stat-yellow { background: var(--gradient-yellow); }
+.bg-stat-blue {
+  background: var(--gradient-blue);
+}
+.bg-stat-green {
+  background: var(--gradient-green);
+}
+.bg-stat-orange {
+  background: var(--gradient-orange);
+}
+.bg-stat-purple {
+  background: var(--gradient-purple);
+}
+.bg-stat-indigo {
+  background: var(--gradient-indigo);
+}
+.bg-stat-yellow {
+  background: var(--gradient-yellow);
+}
 
 /* Progress Bars */
-.bg-progress-blue-cyan { background: var(--gradient-blue-cyan); }
-.bg-progress-green-emerald { background: var(--gradient-green-emerald); }
-.bg-progress-purple-pink { background: var(--gradient-purple-pink-vivid); }
-.bg-progress-orange-red { background: var(--gradient-orange-red); }
-.bg-progress-indigo-purple { background: var(--gradient-indigo-purple); }
-.bg-progress-yellow-amber { background: var(--gradient-yellow-amber); }
+.bg-progress-blue-cyan {
+  background: var(--gradient-blue-cyan);
+}
+.bg-progress-green-emerald {
+  background: var(--gradient-green-emerald);
+}
+.bg-progress-purple-pink {
+  background: var(--gradient-purple-pink-vivid);
+}
+.bg-progress-orange-red {
+  background: var(--gradient-orange-red);
+}
+.bg-progress-indigo-purple {
+  background: var(--gradient-indigo-purple);
+}
+.bg-progress-yellow-amber {
+  background: var(--gradient-yellow-amber);
+}
 
 /* Page Backgrounds */
-.bg-page-purple-blue { background: var(--bg-gradient-purple-blue); }
-.bg-page-slate-blue { background: var(--bg-gradient-slate-blue); }
-.bg-page-orange-red { background: var(--bg-gradient-orange-red); }
-.bg-page-green-emerald { background: var(--bg-gradient-green-emerald); }
+.bg-page-purple-blue {
+  background: var(--bg-gradient-purple-blue);
+}
+.bg-page-slate-blue {
+  background: var(--bg-gradient-slate-blue);
+}
+.bg-page-orange-red {
+  background: var(--bg-gradient-orange-red);
+}
+.bg-page-green-emerald {
+  background: var(--bg-gradient-green-emerald);
+}
 
 /* Challenges Base Background */
 .bg-challenges-base {
@@ -299,6 +415,12 @@
   background-color: var(--badge-blue-bg);
   color: var(--badge-blue-text);
   border-color: var(--badge-blue-border);
+}
+
+.badge-gray {
+  background-color: var(--badge-gray-bg);
+  color: var(--badge-gray-text);
+  border-color: var(--badge-gray-border);
 }
 
 .badge-red {
@@ -372,4 +494,3 @@
   background-clip: text;
   color: transparent;
 }
-

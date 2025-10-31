@@ -87,8 +87,6 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
   ];
 
   const renderAvatar = () => {
-    if (!user) return <UserCircle size={32} className="text-primary" />;
-
     if (profile?.avatar_url) {
       return (
         <img src={profile.avatar_url} alt="Profile" className="w-8 h-8 rounded-full object-cover" />
@@ -104,22 +102,6 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
         {profile?.full_name || user?.email?.split("@")[0]}
       </p>
       <p className="text-xs text-foreground/70 truncate">{user?.email}</p>
-      <div className="flex items-center justify-between">
-        <span className={
-            "inline-flex items-center px-2 py-0.5 rounded bg-muted text-xs text-muted-foreground font-semibold w-fit mt-0.5 mb-0.5 border border-muted-foreground/30 gap-2 " +
-            (planId === "free" ? "badge-yellow" : "badge-green")
-          }>
-          {planName}
-          <span>
-            {aiGenQuizCount}/{allowed} AI plans
-          </span>
-        </span>
-        {planId === "free" && (
-          <Button size="sm" onClick={() => setShowUpgrade(true)}>
-            Upgrade
-          </Button>
-        )}
-      </div>
     </>
   );
 
@@ -134,11 +116,7 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
           <div className="flex justify-between items-center py-2">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2">
-              <img
-                src="/leaf.svg"
-                alt="Logo"
-                className="w-8 h-8 object-contain"
-              />
+              <img src="/leaf.svg" alt="Logo" className="w-8 h-8 object-contain" />
               <span className="text-xl font-bold text-primary">GreenLean</span>
             </Link>
 
@@ -174,7 +152,7 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
               <Button
                 variant="secondary"
                 onClick={toggleTheme}
-                className={`rounded-full ${isDarkMode && "text-yellow-500"}`}
+                className={`rounded-full p-0 ${isDarkMode && "text-yellow-500"}`}
               >
                 {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
               </Button>
@@ -267,10 +245,20 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
       >
         <div className="space-y-4 text-center">
           <div className="p-4 bg-muted rounded-lg">
-            <p className="font-semibold">Your current plan: <span className="inline-block px-2 rounded-full text-white bg-primary text-xs">{planName}</span></p>
-            <span className="text-foreground text-sm">{aiGenQuizCount}/{allowed} AI generations used this period.</span>
+            <p className="font-semibold">
+              Your current plan:{" "}
+              <span className="inline-block px-2 rounded-full text-white bg-primary text-xs">
+                {planName}
+              </span>
+            </p>
+            <span className="text-foreground text-sm">
+              {aiGenQuizCount}/{allowed} AI generations used this period.
+            </span>
           </div>
-          <button onClick={() => triggerStripeCheckout(user?.id || "")} className="mt-2 w-full rounded bg-primary hover:bg-primary/90 text-white px-4 py-2 font-semibold text-base transition">
+          <button
+            onClick={() => triggerStripeCheckout(user?.id || "")}
+            className="mt-2 w-full rounded bg-primary hover:bg-primary/90 text-white px-4 py-2 font-semibold text-base transition"
+          >
             Upgrade Now
           </button>
           <p className="text-xs mt-2 text-muted-foreground">Billing handled securely via Stripe.</p>

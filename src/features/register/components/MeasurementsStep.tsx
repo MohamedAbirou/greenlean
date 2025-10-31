@@ -1,7 +1,7 @@
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import { getUnitSystemForCountry } from "@/shared/utils/countryUtils";
+import { getUnitSystemForCountry } from "@/shared/utils/profileUtils";
 import { motion } from "framer-motion";
 import { Ruler, Weight } from "lucide-react";
 import React, { useEffect } from "react";

@@ -7,7 +7,7 @@ import { useBadgesQuery } from "@/shared/hooks/Queries/useBadges";
 import { useChallengesQuery } from "@/shared/hooks/Queries/useChallenges";
 import type { Challenge } from "@/shared/types/challenge";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { ConfirmDialog } from "../../../shared/components/feedback/ConfirmDialog";
@@ -18,22 +18,20 @@ interface ChallengesTabProps {
   userId: string | undefined;
 }
 
-const ChallengesTab: React.FC<ChallengesTabProps> = ({
-  userId,
-}) => {
+const ChallengesTab: React.FC<ChallengesTabProps> = ({ userId }) => {
   const [searchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
   const [showForm, setShowForm] = useState(false);
-  const [editingChallenge, setEditingChallenge] = useState<Challenge | null>(
-    null
-  );
-  const [deleteChallengeId, setDeleteChallengeId] = useState<string | null>(
-    null
-  );
+  const [editingChallenge, setEditingChallenge] = useState<Challenge | null>(null);
+  const [deleteChallengeId, setDeleteChallengeId] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const queryClient = useQueryClient();
-  const { data: challenges = [], isLoading, refetch: refetchChallenges } = useChallengesQuery(userId);
+  const {
+    data: challenges = [],
+    isLoading,
+    refetch: refetchChallenges,
+  } = useChallengesQuery(userId);
   const { data: badges = [] } = useBadgesQuery();
 
   // debounce search
@@ -48,10 +46,7 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({
       return AdminService.createChallenge(data, userId ?? "");
     },
     onSuccess: (inserted) => {
-      queryClient.setQueryData<Challenge[]>(["challenges"], (old = []) => [
-        ...old,
-        inserted,
-      ]);
+      queryClient.setQueryData<Challenge[]>(["challenges"], (old = []) => [...old, inserted]);
       setShowForm(false);
       toast.success("Challenge created successfully!");
     },
@@ -79,11 +74,7 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({
         .select("user_id, challenge_id")
         .eq("challenge_id", editingChallenge.id);
 
-      if (fetchErr)
-        console.warn(
-          "Couldn't fetch participants for notifications:",
-          fetchErr
-        );
+      if (fetchErr) console.warn("Couldn't fetch participants for notifications:", fetchErr);
 
       // 🔔 Notify participants (frontend side — transaction already done)
       if (participants?.length) {
@@ -94,9 +85,7 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({
             type: "challenge",
             entity_id: editingChallenge.id,
             entity_type: "challenge",
-            message: `The challenge "${
-              data.title ?? editingChallenge.title
-            }" has been updated.`,
+            message: `The challenge "${data.title ?? editingChallenge.title}" has been updated.`,
           });
         }
       }
@@ -104,7 +93,7 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({
       toast.success("Challenge updated successfully!");
       setShowForm(false);
       setEditingChallenge(null);
-      refetchChallenges()
+      refetchChallenges();
     },
 
     onError: (err) => {
@@ -153,9 +142,7 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({
     },
     onSuccess: (res) => {
       if (res.archived) {
-        toast.success(
-          "Challenge has participants, it was archived instead of deleted."
-        );
+        toast.success("Challenge has participants, it was archived instead of deleted.");
       } else {
         queryClient.setQueryData<Challenge[]>(["challenges"], (old = []) =>
           old.filter((c) => c.id !== deleteChallengeId)
@@ -170,17 +157,15 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({
   const filteredChallenges = useMemo(() => {
     const s = debouncedSearch.toLowerCase();
     return challenges.filter(
-      (c) =>
-        c.title?.toLowerCase().includes(s) ||
-        c.description?.toLowerCase().includes(s)
+      (c) => c.title?.toLowerCase().includes(s) || c.description?.toLowerCase().includes(s)
     );
   }, [challenges, debouncedSearch]);
 
   // --- LOADING STATE ---
   if (isLoading) {
     return (
-      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
-        <Loader className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex items-center justify-center h-96">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -189,9 +174,7 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 justify-between items-center">
-        <h2 className="text-2xl font-bold text-foreground">
-          Challenge Management
-        </h2>
+        <h2 className="text-2xl font-bold text-foreground">Challenge Management</h2>
         <Button
           onClick={() => setShowForm(true)}
           className="w-full sm:w-fit bg-primary text-white flex items-center"
@@ -218,7 +201,7 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({
           data={filteredChallenges}
           filterKey="title"
         />
-        
+
         <ChallengeForm
           open={showForm}
           badges={badges}

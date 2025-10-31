@@ -55,7 +55,7 @@ export const userMenuGroups: UserMenuGroup[] = [
       {
         icon: Settings,
         label: "Profile Settings",
-        to: "/profile",
+        to: "/profile/settings",
         shortcut: "CTRL+ALT+P",
       },
       {

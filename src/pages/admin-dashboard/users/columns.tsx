@@ -1,167 +1,168 @@
 import type { AdminUser } from "@/features/admin/hooks/useUsers";
+import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/shared/components/ui/dropdown-menu";
+import type { ColumnDef } from "@tanstack/react-table";
+import { formatDistanceToNow } from "date-fns";
+import { CreditCard, Edit, MoreHorizontal, Trash2 } from "lucide-react";
+
+interface UserColumnsProps {
+  openCancelModal: (subscription_id: string) => void;
+  openPlanChangeModal: (subscription_id: string) => void;
+  onEdit: (user: AdminUser) => void;
+  onDelete: (user: AdminUser) => void;
+}
 
 export const userColumns = ({
   openCancelModal,
   openPlanChangeModal,
-}: {
-  openCancelModal?: (subscriptionId: string) => void;
-  openPlanChangeModal?: (subscriptionId: string) => void;
-}) => [
+  onEdit,
+  onDelete,
+}: UserColumnsProps): ColumnDef<AdminUser>[] => [
   {
     accessorKey: "full_name",
-    header: "Name",
-    cell: ({ row }: { row: { original: AdminUser } }) => {
+    header: "User",
+    cell: ({ row }) => {
       const user = row.original;
       return (
-        <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-full bg-primary flex items-center justify-center text-white font-semibold">
-            {user.full_name?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
-          </div>
-          <div>
-            <p className="font-medium">{user.full_name}</p>
-            <p className="text-sm text-muted-foreground">{user.email}</p>
-          </div>
+        <div className="flex flex-col">
+          <span className="font-medium">{user.full_name}</span>
+          <span className="text-xs text-muted-foreground">{user.email}</span>
         </div>
       );
     },
   },
   {
+    accessorKey: "username",
+    header: "Username",
+    cell: ({ row }) => <span className="text-sm">@{row.original.username}</span>,
+  },
+  {
     accessorKey: "plan",
     header: "Plan",
-    cell: ({ row }: { row: { original: AdminUser } }) => {
+    cell: ({ row }) => {
+      const plan = row.original.plan[0]?.toUpperCase() + row.original.plan.slice(1);
+      const nickname = row.original.stripe_plan_nickname;
       return (
-        <span className="badge-blue px-2 py-1 rounded-full text-xs font-medium">
-          {row.original.plan}
-        </span>
+        <div className="flex flex-col">
+          <Badge className={plan === "Pro" ? "badge-purple" : "badge-yellow"}>
+            {nickname || plan || "Free"}
+          </Badge>
+          {row.original.stripe_plan_amount && (
+            <span className="text-xs text-muted-foreground mt-1">
+              ${row.original.stripe_plan_amount}/{row.original.stripe_plan_interval}
+            </span>
+          )}
+        </div>
       );
     },
   },
   {
-    accessorKey: "stripe_plan_nickname",
-    header: "Plan Name",
-    cell: ({ row }: { row: { original: AdminUser } }) => (
-      <span className="text-sm font-medium">
-        {row.original.stripe_plan_nickname || "-"}
-      </span>
-    ),
-  },
-  {
-    accessorKey: "stripe_plan_amount",
-    header: "Amount",
-    cell: ({ row }: { row: { original: AdminUser } }) => {
-      const a = row.original.stripe_plan_amount;
-      const cur = row.original.stripe_plan_currency?.toUpperCase() || "USD";
-      return a ? `${a} ${cur}` : "-";
-    },
-  },
-  {
-    accessorKey: "stripe_plan_interval",
-    header: "Interval",
-    cell: ({ row }: { row: { original: AdminUser } }) => (
-      <span className="text-xs ">{row.original.stripe_plan_interval || "-"}</span>
-    ),
-  },
-  {
     accessorKey: "status",
     header: "Status",
-    cell: ({ row }: { row: { original: AdminUser } }) => {
-      const s = row.original.status;
-      const color =
-        s === "active" || s === "trialing"
-          ? "bg-green-100 text-green-800"
-          : s === "canceled"
-          ? "bg-red-100 text-red-800"
-          : "bg-blue-100 text-blue-800";
-      return <span className={`px-2 py-1 rounded-full text-xs font-semibold ${color}`}>{s}</span>;
+    cell: ({ row }) => {
+      const status = row.original.status;
+      const variants: Record<string, string> = {
+        active: "badge-green",
+        trialing: "badge-blue",
+        past_due: "badge-orange",
+        canceled: "badge-gray",
+        free: "badge-yellow",
+      };
+      return (
+        <Badge className={variants[status] || "badge-gray"}>
+          {status.charAt(0).toUpperCase() + status.slice(1)}
+        </Badge>
+      );
     },
   },
   {
-    accessorKey: "stripe_customer_id",
-    header: "Stripe Customer",
-    cell: ({ row }: { row: { original: AdminUser } }) => {
-      const id = row.original.stripe_customer_id;
-      return id ? (
-        <a
-          href={`https://dashboard.stripe.com/customers/${id}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline text-primary"
+    accessorKey: "is_admin",
+    header: "Role",
+    cell: ({ row }) => {
+      return row.original.is_admin ? (
+        // Show super admin badge in purple using badge-purple or admin badge in green if admin using badge-green based on row.original.role
+        <span
+          className={`${
+            row.original.role === "super_admin" ? "badge-purple" : "badge-green"
+          } px-2 py-1 rounded-full text-xs font-medium`}
         >
-          {id.slice(0, 6) + "..."}
-        </a>
+          {row.original.role === "super_admin" ? "Super Admin" : "Admin"}
+        </span>
       ) : (
-        <span className="text-muted-foreground">—</span>
+        <span className="badge-gray px-2 py-1 rounded-full text-xs font-medium">User</span>
       );
     },
   },
   {
     accessorKey: "joined",
     header: "Joined",
-    cell: ({ row }: { row: { original: AdminUser } }) => (
-      <span className="text-sm">
-        {row.original.joined ? new Date(row.original.joined).toLocaleDateString() : "—"}
-      </span>
-    ),
-  },
-  {
-    accessorKey: "canceled_at",
-    header: "Canceled",
-    cell: ({ row }: { row: { original: AdminUser } }) => (
-      <span className="text-sm">
-        {row.original.canceled_at ? new Date(row.original.canceled_at).toLocaleDateString() : "—"}
-      </span>
-    ),
+    cell: ({ row }) => {
+      const date = row.original.joined;
+      if (!date) return <span className="text-sm text-muted-foreground">-</span>;
+      return (
+        <div className="flex flex-col">
+          <span className="text-sm">
+            {formatDistanceToNow(new Date(date), { addSuffix: true })}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            {new Date(date).toLocaleDateString()}
+          </span>
+        </div>
+      );
+    },
   },
   {
     id: "actions",
     header: "Actions",
-    cell: ({ row }: { row: { original: AdminUser } }) => {
+    cell: ({ row }) => {
       const user = row.original;
+      const hasSubscription = user.subscription_id && user.status !== "free";
+
       return (
-        <div className="flex flex-wrap gap-2">
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => openCancelModal?.(user.subscription_id || "")}
-            disabled={!user.subscription_id}
-            title={user.subscription_id ? "Cancel subscription" : "No subscription"}
-          >
-            Cancel
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => openPlanChangeModal?.(user.subscription_id || "")}
-            disabled={!user.subscription_id}
-            title={user.subscription_id ? "Change Plan" : "No subscription"}
-          >
-            Change Plan
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() =>
-              window.open(
-                "https://dashboard.stripe.com/customers/" + user.stripe_customer_id,
-                "_blank"
-              )
-            }
-            disabled={!user.stripe_customer_id}
-            title={user.stripe_customer_id ? "View in Stripe" : "No Stripe info"}
-          >
-            Stripe
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => window.open(`mailto:${user.email}`)}
-            title={user.email ? `Email ${user.email}` : "No email"}
-            disabled={!user.email}
-          >
-            Email
-          </Button>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => onEdit(user)}>
+              <Edit className="mr-2 h-4 w-4" />
+              Edit User
+            </DropdownMenuItem>
+            {hasSubscription && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => openPlanChangeModal(user.subscription_id!)}>
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  Change Plan
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => openCancelModal(user.subscription_id!)}
+                  className="text-orange-600"
+                >
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  Cancel Subscription
+                </DropdownMenuItem>
+              </>
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => onDelete(user)} className="text-destructive">
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete User
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       );
     },
   },

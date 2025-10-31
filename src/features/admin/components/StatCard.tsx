@@ -1,7 +1,15 @@
-import { ArrowDownRight, ArrowUpRight, type LucideIcon } from 'lucide-react';
-import React from 'react';
+import { ArrowDownRight, ArrowUpRight, type LucideIcon } from "lucide-react";
+import React from "react";
 
-const StatCard: React.FC<{ icon: LucideIcon; label: string; value: number | string; change?: string; trend?: "up" | "down"; color?: string; subtext?: string }> = ({ icon: Icon, label, value, change, trend, color, subtext }) => (
+const StatCard: React.FC<{
+  icon: LucideIcon;
+  label: string;
+  value: number | string;
+  change?: string;
+  trend?: "up" | "down";
+  color?: string;
+  subtext?: string;
+}> = ({ icon: Icon, label, value, change, trend, color, subtext }) => (
   <div className="bg-card rounded-xl p-6 border border-border hover:shadow-lg transition-all">
     <div className="flex items-start justify-between mb-4">
       <div className={`p-3 rounded-lg ${color || "bg-accent"}`}>

@@ -3,6 +3,7 @@
  * Lazy-loaded routes for optimal performance
  */
 
+import AdminBootstrap from "@/features/admin/components/AdminBootstrap";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AuthCallback from "@/pages/AuthCallback";
 import Challenges from "@/pages/Challenges";
@@ -12,7 +13,7 @@ import DietPlanDetails from "@/pages/DietPlanDetails";
 import DietPlans from "@/pages/DietPlans";
 import ExerciseDetails from "@/pages/ExerciseDetails";
 import Home from "@/pages/Home";
-import Profile from "@/pages/Profile";
+import ProfileSettings from "@/pages/ProfileSettings";
 import Quiz from "@/pages/Quiz";
 import QuizHistory from "@/pages/QuizHistory";
 import QuizResult from "@/pages/QuizResult";
@@ -23,7 +24,6 @@ import type { RouteObject } from "react-router-dom";
 import { ProtectedRoute } from "../../features/auth";
 import { FullPageLoader } from "../../shared/components/feedback";
 import Layout from "../../shared/components/layout/Layout";
-import AdminBootstrap from "@/features/admin/components/AdminBootstrap";
 
 const About = lazy(() => import("@/pages/About"));
 const FAQ = lazy(() => import("@/pages/FAQ"));
@@ -84,10 +84,10 @@ export const routes: RouteObject[] = [
         element: <ExerciseDetails />,
       },
       {
-        path: "profile",
+        path: "profile/settings",
         element: (
           <ProtectedRoute>
-            <Profile />
+            <ProfileSettings />
           </ProtectedRoute>
         ),
       },

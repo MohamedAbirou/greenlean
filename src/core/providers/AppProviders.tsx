@@ -56,20 +56,31 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
     try {
       const p = await ProfileService.getProfile(user.id);
       // @ts-ignore for supabase result shape
-      const planId: string = p?.plan_id || 'free';
+      const planId: string = p?.plan_id || "free";
       // @ts-ignore
       const aiGenQuizCount: number = p?.ai_gen_quiz_count || 0;
       // @ts-ignore
-      const renewal: string = typeof p?.plan_renewal_date === 'string' ? p.plan_renewal_date : (p?.plan_renewal_date?.toISOString?.() ?? "");
+      const renewal: string =
+        typeof p?.plan_renewal_date === "string"
+          ? p.plan_renewal_date
+          : (p?.plan_renewal_date as Date | undefined)?.toISOString?.() ?? "";
       // TODO: fetch allowed dynamically from /plans or hardcode for now
-      let allowed = 2, planName = "Free";
-      if (planId === "pro") { allowed = 50; planName = "Pro"; }
+      let allowed = 1,
+        planName = "Free";
+      if (planId === "pro") {
+        allowed = 20;
+        planName = "Pro";
+      }
       setInfo({ planId, planName, aiGenQuizCount, allowed, renewal });
-    } catch (e) { console.error("Failed to fetch plan info", e); }
+    } catch (e) {
+      console.error("Failed to fetch plan info", e);
+    }
     setLoading(false);
   }, [user]);
 
-  useEffect(() => { fetchPlan(); }, [user]);
+  useEffect(() => {
+    fetchPlan();
+  }, [user]);
 
   return (
     <PlanContext.Provider
@@ -77,12 +88,14 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
         planId: info?.planId || "free",
         planName: info?.planName || "Free",
         aiGenQuizCount: info?.aiGenQuizCount || 0,
-        allowed: info?.allowed || 2,
+        allowed: info?.allowed || 1,
         renewal: info?.renewal || "",
         loading,
-        refresh: fetchPlan
+        refresh: fetchPlan,
       }}
-    >{children}</PlanContext.Provider>
+    >
+      {children}
+    </PlanContext.Provider>
   );
 };
 

@@ -1,4 +1,6 @@
 import { Activity, AlertCircle, CheckCircle } from "lucide-react";
+import { formatBytes } from "../hooks/useAnalytics";
+import ServiceStatus from "./ServiceStatus";
 
 interface SystemHealthTabProps {
   health: any;
@@ -7,7 +9,11 @@ interface SystemHealthTabProps {
 
 export const SystemHealthTab: React.FC<SystemHealthTabProps> = ({ health, isLoading }) => {
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   if (!health) return <div>No system health data available...</div>;
@@ -56,7 +62,7 @@ export const SystemHealthTab: React.FC<SystemHealthTabProps> = ({ health, isLoad
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Database Size</span>
-              <span className="font-medium">{health.dbSize}</span>
+              <span className="font-medium">{formatBytes(health.dbSize)}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Active Connections</span>
@@ -77,25 +83,7 @@ export const SystemHealthTab: React.FC<SystemHealthTabProps> = ({ health, isLoad
           </div>
         </div>
 
-        <div className="bg-card rounded-xl p-6 border border-border">
-          <h3 className="text-lg font-semibold mb-4">Service Status</h3>
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              { service: "API Gateway", status: "operational", latency: "45ms" },
-              { service: "Database", status: "operational", latency: "12ms" },
-              { service: "AI Service", status: "operational", latency: "2.3s" },
-              { service: "Storage", status: "operational", latency: "89ms" },
-            ].map((item, idx) => (
-              <div key={idx} className="p-4 bg-accent rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium text-sm">{item.service}</span>
-                  <div className="h-2 w-2 bg-green-500 rounded-full" />
-                </div>
-                <p className="text-xs text-muted-foreground">{item.latency}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+        <ServiceStatus />
       </div>
     </div>
   );

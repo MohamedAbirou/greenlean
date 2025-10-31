@@ -158,11 +158,11 @@ export class AdminService {
     return data;
   }
 
-  static async cancelSubscription(subscription_id: string) {
+  static async cancelSubscription(user_id: string, subscription_id: string) {
     const res = await fetch(`${ML_SERVICE_URL}/api/admin/stripe/cancel-subscription`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ subscription_id }),
+      body: JSON.stringify({ user_id, subscription_id }),
     });
     return res.json();
   }
@@ -247,22 +247,22 @@ export class AdminService {
   /**
    * Export data to CSV
    */
-  static async exportToCSV(dataType: "users" | "subscriptions" | "challenges") {
-    let data;
-    let headers;
+  static async exportToCSV(dataType: "users" | "subscriptions" | "challenges"): Promise<string> {
+    let data: any[];
+    let headers: string[];
 
     switch (dataType) {
       case "users":
         const { data: users } = await supabase
           .from("profiles")
           .select("email, full_name, plan_id, created_at");
-        data = users;
+        data = users || [];
         headers = ["Email", "Full Name", "Plan", "Joined Date"];
         break;
 
       case "subscriptions":
         const subs = await this.getAllSubscribers();
-        data = subs.subscribers;
+        data = subs.subscribers || [];
         headers = ["Email", "Status", "Plan", "Created"];
         break;
 
@@ -270,21 +270,40 @@ export class AdminService {
         const { data: challenges } = await supabase
           .from("challenges")
           .select("*, challenge_participants(count)");
-        data = challenges;
+        data = challenges || [];
         headers = ["Title", "Type", "Difficulty", "Participants"];
         break;
+
+      default:
+        throw new Error("Invalid data type");
     }
 
     // Convert to CSV
-    const csv = this.convertToCSV(data, headers);
-    return csv;
+    return this.convertToCSV(data, headers);
   }
 
+  /**
+   * Convert data array to CSV format
+   */
   private static convertToCSV(data: any[], headers: string[]): string {
     const rows = data.map((row) => {
       return headers
         .map((header) => {
-          const value = row[header.toLowerCase().replace(" ", "_")];
+          const key = header.toLowerCase().replace(" ", "_");
+          let value = row[key];
+
+          // Handle nested objects
+          if (typeof value === "object" && value !== null) {
+            value = JSON.stringify(value);
+          }
+
+          // Handle dates
+          if (key.includes("date") || key === "created" || key === "joined") {
+            if (typeof value === "number") {
+              value = new Date(value * 1000).toISOString();
+            }
+          }
+
           return `"${value || ""}"`;
         })
         .join(",");
