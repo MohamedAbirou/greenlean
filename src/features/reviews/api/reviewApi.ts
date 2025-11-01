@@ -22,14 +22,17 @@ export async function fetchAllReviewsWithProfiles(): Promise<
 /**
  * Fetch the current user's review, if it exists.
  */
-export async function fetchMyReview(userId: string): Promise<UserReview | null> {
+export async function fetchMyReview(userId?: string): Promise<UserReview | null> {
+  if (!userId) return null; // ✅ prevent invalid query
+
   const { data, error } = await supabase
     .from("user_reviews")
     .select("*")
     .eq("user_id", userId)
     .single();
-  if (error && error.code !== "PGRST116") throw error; // ignore "row not found" error
-  return (data as UserReview) || null;
+
+  if (error && error.code !== "PGRST116") throw error;
+  return data || null;
 }
 
 /**
