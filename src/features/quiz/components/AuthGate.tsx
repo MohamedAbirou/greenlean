@@ -7,7 +7,7 @@ import React from "react";
 
 export const AuthGate: React.FC = () => {
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen pt-24 pb-16 bg-gradient-global">
       <div className="container max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
