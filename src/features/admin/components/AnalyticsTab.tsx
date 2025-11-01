@@ -161,11 +161,7 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
         </div>
         <div
           className={`p-3 rounded-lg ${
-            trend === "up"
-              ? "badge-green"
-              : trend === "down"
-              ? "badge-red"
-              : "badge-blue"
+            trend === "up" ? "badge-green" : trend === "down" ? "badge-red" : "badge-blue"
           }`}
         >
           <Icon
@@ -436,6 +432,8 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
                       borderRadius: "8px",
                       color: "#fff",
                     }}
+                    labelStyle={{ color: "#fff" }}
+                    itemStyle={{ color: "#d1d5db" }} // softer gray if you want contrast
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -493,7 +491,7 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Avg Session Time</span>
               <span className="text-lg font-bold text-foreground">
-                {safeNumber(metrics?.engagement?.avgSessionDuration)} min
+                {safeNumber(metrics?.engagement?.avgWorkoutDuration)} min
               </span>
             </div>
             <div className="flex justify-between items-center">

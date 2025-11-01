@@ -3,13 +3,13 @@
  * All authentication-related API calls
  */
 
+import type { Profile } from "@/features/profile";
 import { supabase } from "@/lib/supabase";
 import type {
   SignInCredentials,
   SignUpData,
-  UpdateProfileData,
-  Profile,
   SignUpResult,
+  UpdateProfileData,
 } from "../types";
 
 export class AuthService {

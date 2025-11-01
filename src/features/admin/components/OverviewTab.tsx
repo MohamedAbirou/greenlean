@@ -65,8 +65,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           icon={DollarSign}
           label="Monthly Recurring Revenue"
           value={`$${data?.revenue?.monthly?.toLocaleString()}`}
-          change={`+${data?.revenue?.growth?.toFixed(1)}%`}
-          trend="up"
+          change={`${data?.revenue?.growth?.toFixed(1)}%`}
+          trend={data?.revenue?.growth > 0 ? "up" : "down"}
           color="bg-green-500"
           subtext={`ARR: $${data?.revenue?.arr?.toLocaleString()}`}
         />
@@ -75,7 +75,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           label="Total Users"
           value={data?.users?.total?.toLocaleString()}
           change={`+${data?.users?.newThisMonth}`}
-          trend="up"
+          trend={data?.users?.newThisMonth > 0 ? "up" : "down"}
           color="bg-blue-500"
           subtext={`${data?.users?.active} active users`}
         />
@@ -91,9 +91,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         <StatCard
           icon={Target}
           label="Conversion Rate"
-          value="8.4%"
-          change="+1.2%"
-          trend="up"
+          value={`${data?.conversionRate?.toFixed(1)}%`}
+          change={`${data?.conversionRateGrowth?.toFixed(1)}%`}
+          trend={data?.conversionRateGrowt > 0 ? "up" : "down"}
           color="bg-orange-500"
           subtext="Visitor → Paid"
         />
@@ -105,16 +105,19 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           icon={FileText}
           label="Plans Generated"
           value={data?.plans?.mealPlansGenerated + data?.plans?.workoutPlansGenerated}
-          change="+234"
-          trend="up"
+          change={`+${data?.plans?.mealPlansGenerated + data?.plans?.workoutPlansGenerated}`}
+          trend={
+            data?.plans?.mealPlansGenerated + data?.plans?.workoutPlansGenerated > 0 ? "up" : "down"
+          }
           color="bg-cyan-500"
-          subtext="This week"
+          subtext={`${data?.plans?.mealPlansGenerated} meal plans, ${data?.plans?.workoutPlansGenerated} workout plans`}
         />
         <StatCard
           icon={Trophy}
           label="Active Challenges"
           value={data?.challenges?.active}
           change={`${data?.challenges?.avgCompletionRate}% completion`}
+          trend={data?.challenges?.avgCompletionRate > 0 ? "up" : "down"}
           color="bg-amber-500"
           subtext={`${data?.challenges?.totalParticipants} participants`}
         />
@@ -122,17 +125,17 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           icon={Activity}
           label="Daily Active Users"
           value={data?.engagement?.dau}
-          change="+12%"
-          trend="up"
+          change={`+${data?.engagement?.dauGrowth?.toFixed(1)}%`}
+          trend={data?.engagement?.dauGrowth?.toFixed(1) > 0 ? "up" : "down"}
           color="bg-pink-500"
-          subtext={`${data?.engagement?.avgSessionDuration} min avg session`}
+          subtext={`${data?.engagement?.avgWorkoutDuration} min avg workout, ${data?.engagement?.avgWaterIntake} ml avg water, ${data?.engagement?.avgNutritionIntake} calories avg nutrition`}
         />
         <StatCard
           icon={Award}
           label="Lifetime Value"
-          value={`$${data?.subscriptions?.ltv}`}
-          change="+$45"
-          trend="up"
+          value={`$${data?.subscriptions?.ltv?.toLocaleString()}`}
+          change={`+${data?.subscriptions?.ltvGrowth?.toFixed(1)}%`}
+          trend={data?.subscriptions?.ltvGrowth > 0 ? "up" : "down"}
           color="bg-indigo-500"
           subtext="Per user"
         />
@@ -143,7 +146,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         {/* Recent Activity */}
         <div className="bg-card rounded-xl p-6 border border-border">
           <h3 className="text-lg font-semibold mb-4">Recent Activity</h3>
-          <div className="space-y-4">
+          <div className="space-y-3 max-h-[300px] overflow-y-auto">
             {recentActivity && recentActivity.length > 0 ? (
               recentActivity.map((activity, idx) => {
                 const IconMap = {
@@ -184,7 +187,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         {/* Top Users */}
         <div className="bg-card rounded-xl p-6 border border-border">
           <h3 className="text-lg font-semibold mb-4">Top Users</h3>
-          <div className="space-y-3">
+          <div className="space-y-3 max-h-[300px] overflow-y-auto">
             {topUsers && topUsers.length > 0 ? (
               topUsers.map((user, idx) => (
                 <div

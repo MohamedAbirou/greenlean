@@ -3,18 +3,9 @@
  * Type definitions for authentication
  */
 
+import type { Profile } from "@/features/profile";
 import type { User } from "@supabase/supabase-js";
 
-
-export interface Profile {
-  id: string;
-  username: string;
-  full_name: string;
-  email: string;
-  avatar_url?: string;
-  created_at?: string;
-  updated_at?: string;
-}
 
 export interface AuthState {
   user: User | null;

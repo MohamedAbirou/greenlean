@@ -7,4 +7,5 @@ export { AuthService } from "./api/authService";
 export { AuthModal, ProtectedRoute, ResetPasswordForm, SignInForm } from "./components";
 export { AuthProvider } from "./context/AuthContext";
 export { useAuth, useAuthContext } from "./hooks";
-export type { AuthState, Profile, SignInCredentials, SignUpData, UpdateProfileData } from "./types";
+export type { AuthState, SignInCredentials, SignUpData, UpdateProfileData } from "./types";
+

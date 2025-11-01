@@ -1,64 +1,47 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Award, Dumbbell, Heart, Quote, Utensils } from "lucide-react";
+import { ArrowRight, Award, Dumbbell, Heart, Utensils } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
 // Components
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { useQuizState } from "@/features/quiz/hooks/useQuizState";
+import { ReviewCarousel } from "@/features/reviews/components/ReviewCarousel";
+import { ReviewForm } from "@/features/reviews/components/ReviewForm";
+import { useMyReview } from "@/features/reviews/hooks/useReviews";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/shared/components/ui/card";
 
-const Home: React.FC = () => {
-  const benefits = [
-    {
-      icon: <Heart className="h-8 w-8 text-pink-500" />,
-      title: "Personalized Plans",
-      description:
-        "Get diet and exercise plans tailored to your unique needs, goals, and preferences.",
-    },
-    {
-      icon: <Utensils className="h-8 w-8 text-blue-500" />,
-      title: "Nutritional Guidance",
-      description:
-        "Learn about balanced nutrition and how to make healthier food choices every day.",
-    },
-    {
-      icon: <Dumbbell className="h-8 w-8 text-green-500" />,
-      title: "Effective Workouts",
-      description:
-        "Access workout routines designed to maximize results while fitting into your schedule.",
-    },
-    {
-      icon: <Award className="h-8 w-8 text-purple-500" />,
-      title: "Expert Support",
-      description: "Receive guidance from nutrition and fitness experts committed to your success.",
-    },
-  ];
+const benefits = [
+  {
+    icon: <Heart className="h-8 w-8 text-pink-500" />,
+    title: "Personalized Plans",
+    description:
+      "Get diet and exercise plans tailored to your unique needs, goals, and preferences.",
+  },
+  {
+    icon: <Utensils className="h-8 w-8 text-blue-500" />,
+    title: "Nutritional Guidance",
+    description: "Learn about balanced nutrition and how to make healthier food choices every day.",
+  },
+  {
+    icon: <Dumbbell className="h-8 w-8 text-green-500" />,
+    title: "Effective Workouts",
+    description:
+      "Access workout routines designed to maximize results while fitting into your schedule.",
+  },
+  {
+    icon: <Award className="h-8 w-8 text-purple-500" />,
+    title: "Expert Support",
+    description: "Receive guidance from nutrition and fitness experts committed to your success.",
+  },
+];
 
-  const testimonials = [
-    {
-      name: "Sarah Johnson",
-      image:
-        "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=600",
-      role: "Lost 25 lbs",
-      testimonial:
-        "GreenLean transformed my approach to weight loss. The personalized plan made all the difference!",
-    },
-    {
-      name: "Michael Chen",
-      image:
-        "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=600",
-      role: "Lost 30 lbs",
-      testimonial:
-        "The quiz matched me with the perfect diet plan. I've never felt better or had more energy!",
-    },
-    {
-      name: "Alicia Rodriguez",
-      image:
-        "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=600",
-      role: "Lost 15 lbs",
-      testimonial:
-        "Finally found a healthy eating plan I can stick to. The recipes are delicious and easy to make.",
-    },
-  ];
+const Home: React.FC = () => {
+  const { user, profile } = useAuth();
+  const { profileData } = useQuizState();
+  const { data: myReview } = useMyReview(user?.id);
+  const eligibleToReview =
+    !!user && (profile?.onboarding_completed || profileData?.onboarding_completed);
 
   return (
     <div>
@@ -217,7 +200,7 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Testimonials Section */}
+      {/* Testimonials Section (static mockups) */}
       <section className="py-16 bg-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -227,38 +210,13 @@ const Home: React.FC = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                viewport={{ once: true }}
-              >
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="overflow-hidden">
-                      <Quote className={`h-8 w-8 text-primary mb-4`} />
-                      <p className="text-foreground/80 mb-6 italic line-clamp-2">
-                        "{testimonial.testimonial}"
-                      </p>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex items-center">
-                    <img
-                      src={testimonial.image}
-                      alt={testimonial.name}
-                      className="w-12 h-12 rounded-full object-cover mr-4"
-                    />
-                    <div>
-                      <h4 className="font-semibold text-foreground">{testimonial.name}</h4>
-                      <p className={`text-primary text-sm`}>{testimonial.role}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+          <div className="mx-auto max-w-4xl">
+            <ReviewCarousel />
+            {eligibleToReview && !myReview && (
+              <div className="mt-12">
+                <ReviewForm userId={user.id} />
+              </div>
+            )}
           </div>
         </div>
       </section>

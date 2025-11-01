@@ -12,28 +12,36 @@ export class AnalyticsService {
       dateRange === "7d" ? 7 : dateRange === "30d" ? 30 : dateRange === "90d" ? 90 : 365;
     const startDate = new Date(now.setDate(now.getDate() - daysAgo)).toISOString();
 
-    // ✅ Fetch ALL data in parallel (single round trip)
-    const [
-      stripeMetrics,
-      allUsersResult,
-      recentUsersResult,
-      activeUsersResult,
-      mealPlansResult,
-      workoutPlansResult,
-      quizzesResult,
-      challengesResult,
-    ] = await Promise.all([
-      AdminService.getSaasMetrics(),
-      supabase.from("profiles").select("id, created_at, plan_id"),
-      supabase.from("profiles").select("id").gte("created_at", startDate),
-      supabase.from("user_activity_logs").select("user_id").gte("activity_date", startDate),
-      supabase.from("ai_meal_plans").select("id, status, created_at").gte("created_at", startDate),
-      supabase
-        .from("ai_workout_plans")
-        .select("id, status, created_at")
-        .gte("created_at", startDate),
-      supabase.from("quiz_results").select("id, created_at").gte("created_at", startDate),
-      supabase.from("challenges").select(`
+    try {
+      // ✅ Fetch ALL data in parallel (single round trip)
+      const [
+        stripeMetrics,
+        allUsersResult,
+        recentUsersResult,
+        dailyNutritionLogsResult,
+        dailyWaterIntakeResult,
+        workoutLogsResult,
+        mealPlansResult,
+        workoutPlansResult,
+        quizzesResult,
+        challengesResult,
+      ] = await Promise.all([
+        AdminService.getSaasMetrics(),
+        supabase.from("profiles").select("id, created_at, plan_id"),
+        supabase.from("profiles").select("id").gte("created_at", startDate),
+        supabase.from("daily_nutrition_logs").select("user_id").gte("log_date", startDate),
+        supabase.from("daily_water_intake").select("user_id").gte("log_date", startDate),
+        supabase.from("workout_logs").select("user_id").gte("created_at", startDate),
+        supabase
+          .from("ai_meal_plans")
+          .select("id, status, created_at")
+          .gte("created_at", startDate),
+        supabase
+          .from("ai_workout_plans")
+          .select("id, status, created_at")
+          .gte("created_at", startDate),
+        supabase.from("quiz_results").select("id, created_at").gte("created_at", startDate),
+        supabase.from("challenges").select(`
         id,
         is_active,
         points,
@@ -42,80 +50,123 @@ export class AnalyticsService {
           completed
         )
       `),
-    ]);
+      ]);
 
-    // Process results
-    const allUsers = allUsersResult.data || [];
-    const recentUsers = recentUsersResult.data || [];
-    const activeUsersData = activeUsersResult.data || [];
-    const uniqueActiveUsers = [...new Set(activeUsersData.map((u) => u.user_id))];
-    const mealPlans = mealPlansResult.data || [];
-    const workoutPlans = workoutPlansResult.data || [];
-    const quizzes = quizzesResult.data || [];
-    const challenges = challengesResult.data || [];
+      // Process results
+      const allUsers = allUsersResult.data || [];
+      const recentUsers = recentUsersResult.data || [];
+      const activeUsersData = [
+        ...new Set([
+          ...(dailyNutritionLogsResult?.data?.map((u) => u.user_id) || []),
+          ...(dailyWaterIntakeResult?.data?.map((u) => u.user_id) || []),
+          ...(workoutLogsResult?.data?.map((u) => u.user_id) || []),
+        ]),
+      ];
+      const uniqueActiveUsers = [...new Set(activeUsersData.map((u) => u.user_id))];
+      const mealPlans = mealPlansResult.data || [];
+      const workoutPlans = workoutPlansResult.data || [];
+      const quizzes = quizzesResult.data || [];
+      const challenges = challengesResult.data || [];
 
-    // Challenge calculations
-    const activeChallenges = challenges.filter((c) => c.is_active);
-    const totalParticipants = challenges.reduce(
-      (sum, c) => sum + (c.challenge_participants?.length || 0),
-      0
-    );
-    const completedChallenges = challenges.reduce(
-      (sum, c) => sum + (c.challenge_participants?.filter((p) => p.completed).length || 0),
-      0
-    );
+      // Challenge calculations
+      const activeChallenges = challenges.filter((c) => c.is_active);
+      const totalParticipants = challenges.reduce(
+        (sum, c) => sum + (c.challenge_participants?.length || 0),
+        0
+      );
+      const completedChallenges = challenges.reduce(
+        (sum, c) => sum + (c.challenge_participants?.filter((p) => p.completed).length || 0),
+        0
+      );
 
-    return {
-      revenue: {
-        total: stripeMetrics.totalEarnings || 0,
-        monthly: stripeMetrics.mrr || 0,
-        thisMonth: stripeMetrics.earningsThisMonth || 0,
-        last30Days: stripeMetrics.earningsLast30Days || 0,
-        growth: this.calculateGrowth(
-          stripeMetrics.earningsThisMonth,
-          stripeMetrics.earningsLast30Days
+      if (
+        !workoutLogsResult?.data ||
+        !dailyWaterIntakeResult?.data ||
+        !dailyNutritionLogsResult?.data
+      ) {
+        return {
+          error: "No workout logs found",
+        };
+      }
+
+      return {
+        conversionRate: (stripeMetrics.conversionRate || 0) * 100,
+        conversionRateGrowth: this.calculateGrowth(
+          stripeMetrics.conversionRate,
+          stripeMetrics.conversionRateLast30Days
         ),
-        arr: (stripeMetrics.mrr || 0) * 12,
-      },
-      users: {
-        total: allUsers.length,
-        active: uniqueActiveUsers.length,
-        newThisMonth: recentUsers.length,
-        churnedThisMonth: stripeMetrics.churnedThisMonth || 0,
-        growthRate: ((recentUsers.length / (allUsers.length || 1)) * 100).toFixed(1),
-      },
-      subscriptions: {
-        active: stripeMetrics.activeSubscribers || 0,
-        total: stripeMetrics.totalSubscribers || 0,
-        trial: 0,
-        canceled: stripeMetrics.churnedThisMonth || 0,
-        churnRate: stripeMetrics.churnedThisMonth || 0,
-        ltv: 890, // TODO: Calculate from Stripe historical data
-      },
-      plans: {
-        mealPlansGenerated: mealPlans.length,
-        workoutPlansGenerated: workoutPlans.length,
-        totalQuizzes: quizzes.length,
-        mealPlansCompleted: mealPlans.filter((p) => p.status === "completed").length,
-        workoutPlansCompleted: workoutPlans.filter((p) => p.status === "completed").length,
-        avgCompletionRate: this.calculateCompletionRate(mealPlans, workoutPlans),
-      },
-      challenges: {
-        active: activeChallenges.length,
-        total: challenges.length,
-        totalParticipants,
-        completedChallenges,
-        avgCompletionRate:
-          totalParticipants > 0 ? ((completedChallenges / totalParticipants) * 100).toFixed(1) : 0,
-        totalPointsAwarded: challenges.reduce((sum, c) => sum + c.points, 0),
-      },
-      engagement: {
-        dau: uniqueActiveUsers.length, // TODO: Refine with actual daily activity
-        wau: uniqueActiveUsers.length,
-        mau: uniqueActiveUsers.length,
-        avgSessionDuration: 23.5, // TODO: Calculate from activity logs
-      },
-    };
+        revenue: {
+          total: stripeMetrics.totalEarnings || 0,
+          monthly: stripeMetrics.mrr || 0,
+          thisMonth: stripeMetrics.earningsThisMonth || 0,
+          last30Days: stripeMetrics.earningsLast30Days || 0,
+          growth: this.calculateGrowth(
+            stripeMetrics.earningsThisMonth,
+            stripeMetrics.earningsLast30Days
+          ),
+          arr: (stripeMetrics.mrr || 0) * 12,
+        },
+        users: {
+          total: allUsers.length,
+          active: uniqueActiveUsers.length,
+          newThisMonth: recentUsers.length,
+          churnedThisMonth: stripeMetrics.churnedThisMonth || 0,
+          growthRate: ((recentUsers.length / (allUsers.length || 1)) * 100).toFixed(1),
+        },
+        subscriptions: {
+          active: stripeMetrics.activeSubscribers || 0,
+          total: stripeMetrics.totalSubscribers || 0,
+          trial: 0,
+          canceled: stripeMetrics.churnedThisMonth || 0,
+          churnRate: stripeMetrics.churnedThisMonth || 0,
+          ltv: stripeMetrics.ltv || 0,
+          ltvGrowth: stripeMetrics.ltvGrowth || 0,
+        },
+        plans: {
+          mealPlansGenerated: mealPlans.length,
+          workoutPlansGenerated: workoutPlans.length,
+          totalQuizzes: quizzes.length,
+          mealPlansCompleted: mealPlans.filter((p) => p.status === "completed").length,
+          workoutPlansCompleted: workoutPlans.filter((p) => p.status === "completed").length,
+          avgCompletionRate: this.calculateCompletionRate(mealPlans, workoutPlans),
+        },
+        challenges: {
+          active: activeChallenges.length,
+          total: challenges.length,
+          totalParticipants,
+          completedChallenges,
+          avgCompletionRate:
+            totalParticipants > 0
+              ? ((completedChallenges / totalParticipants) * 100).toFixed(1)
+              : 0,
+          totalPointsAwarded: challenges.reduce((sum, c) => sum + c.points, 0),
+        },
+        engagement: {
+          dau: uniqueActiveUsers.length,
+          wau: uniqueActiveUsers.length,
+          mau: uniqueActiveUsers.length,
+          dauGrowth: this.calculateGrowth(uniqueActiveUsers.length, uniqueActiveUsers.length - 1),
+          wauGrowth: this.calculateGrowth(uniqueActiveUsers.length, uniqueActiveUsers.length - 1),
+          mauGrowth: this.calculateGrowth(uniqueActiveUsers.length, uniqueActiveUsers.length - 1),
+          avgWorkoutDuration:
+            workoutLogsResult?.data?.reduce(
+              (sum, log: any) => sum + (log.duration_minutes || 0),
+              0
+            ) / workoutLogsResult?.data?.length || 0,
+          avgWaterIntake:
+            dailyWaterIntakeResult?.data?.reduce((sum, log: any) => sum + log.total_ml, 0) /
+              dailyWaterIntakeResult?.data?.length || 0,
+          avgNutritionIntake:
+            dailyNutritionLogsResult?.data?.reduce((sum, log: any) => sum + log.total_calories, 0) /
+              dailyNutritionLogsResult?.data?.length || 0,
+        },
+      };
+    } catch (err) {
+      console.error("🔥 Error in getDashboardMetrics:", err);
+      return {
+        error: "Failed to fetch dashboard metrics",
+      };
+    }
   }
 
   /**
@@ -129,9 +180,9 @@ export class AnalyticsService {
     return [
       {
         period: "Current Period",
-        revenue: metrics.revenue.thisMonth,
-        subscriptions: metrics.subscriptions.active,
-        mrr: metrics.revenue.monthly,
+        revenue: metrics.revenue?.thisMonth,
+        subscriptions: metrics.subscriptions?.active,
+        mrr: metrics.revenue?.monthly,
       },
     ];
   }
@@ -144,146 +195,174 @@ export class AnalyticsService {
     const daysAgo =
       dateRange === "7d" ? 7 : dateRange === "30d" ? 30 : dateRange === "90d" ? 90 : 365;
 
-    // Query user signups grouped by date
-    const { data } = await supabase
-      .from("profiles")
-      .select("created_at")
-      .gte("created_at", new Date(now.setDate(now.getDate() - daysAgo)).toISOString())
-      .order("created_at", { ascending: true });
+    try {
+      // Query user signups grouped by date
+      const { data } = await supabase
+        .from("profiles")
+        .select("created_at")
+        .gte("created_at", new Date(now.setDate(now.getDate() - daysAgo)).toISOString())
+        .order("created_at", { ascending: true });
 
-    // Group by day/week/month depending on range
-    const groupedData = this.groupByTimePeriod(data || [], dateRange);
+      // Group by day/week/month depending on range
+      const groupedData = this.groupByTimePeriod(data || [], dateRange);
 
-    return groupedData;
+      return groupedData;
+    } catch (err) {
+      console.error("🔥 Error in getUserGrowthHistory:", err);
+      return [];
+    }
   }
 
   /**
    * Get conversion funnel
    */
+  // Convert this function to use try and catch just like we did in getRecentActivity
   static async getConversionFunnel(dateRange: "7d" | "30d" | "90d" | "1y" = "30d") {
     const now = new Date();
     const daysAgo =
       dateRange === "7d" ? 7 : dateRange === "30d" ? 30 : dateRange === "90d" ? 90 : 365;
     const startDate = new Date(now.setDate(now.getDate() - daysAgo)).toISOString();
 
-    // Parallel queries
-    const [visitorsResult, quizzesResult, plansResult, paidUsersResult] = await Promise.all([
-      supabase
-        .from("profiles")
-        .select("id", { count: "exact", head: true })
-        .gte("created_at", startDate),
-      supabase
-        .from("quiz_results")
-        .select("user_id", { count: "exact", head: true })
-        .gte("created_at", startDate),
-      supabase
-        .from("ai_meal_plans")
-        .select("user_id", { count: "exact", head: true })
-        .gte("created_at", startDate),
-      supabase
-        .from("profiles")
-        .select("id", { count: "exact", head: true })
-        .eq("plan_id", "pro")
-        .gte("created_at", startDate),
-    ]);
+    try {
+      // Parallel queries
+      const [visitorsResult, quizzesResult, plansResult, paidUsersResult] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("id", { count: "exact", head: true })
+          .gte("created_at", startDate),
+        supabase
+          .from("quiz_results")
+          .select("user_id", { count: "exact", head: true })
+          .gte("created_at", startDate),
+        supabase
+          .from("ai_meal_plans")
+          .select("user_id", { count: "exact", head: true })
+          .gte("created_at", startDate),
+        supabase
+          .from("profiles")
+          .select("id", { count: "exact", head: true })
+          .eq("plan_id", "pro")
+          .gte("created_at", startDate),
+      ]);
 
-    const visitorCount = visitorsResult.count || 1;
-    const quizCount = quizzesResult.count || 0;
-    const planCount = plansResult.count || 0;
-    const paidCount = paidUsersResult.count || 0;
+      const visitorCount = visitorsResult.count || 1;
+      const quizCount = quizzesResult.count || 0;
+      const planCount = plansResult.count || 0;
+      const paidCount = paidUsersResult.count || 0;
 
-    return [
-      { stage: "Site Visitors", count: visitorCount, percent: 100 },
-      {
-        stage: "Quiz Started",
-        count: quizCount,
-        percent: Math.round((quizCount / visitorCount) * 100),
-      },
-      {
-        stage: "Plans Generated",
-        count: planCount,
-        percent: Math.round((planCount / visitorCount) * 100),
-      },
-      {
-        stage: "Paid Subscribers",
-        count: paidCount,
-        percent: Math.round((paidCount / visitorCount) * 100),
-      },
-    ];
+      return [
+        { stage: "Site Visitors", count: visitorCount, percent: 100 },
+        {
+          stage: "Quiz Started",
+          count: quizCount,
+          percent: Math.round((quizCount / visitorCount) * 100),
+        },
+        {
+          stage: "Plans Generated",
+          count: planCount,
+          percent: Math.round((planCount / visitorCount) * 100),
+        },
+        {
+          stage: "Paid Subscribers",
+          count: paidCount,
+          percent: Math.round((paidCount / visitorCount) * 100),
+        },
+      ];
+    } catch (err) {
+      console.error("🔥 Error in getConversionFunnel:", err);
+      return [];
+    }
   }
 
   /**
    * Get recent activity
    */
   static async getRecentActivity(limit = 10) {
-    // Use a single query with union-like approach
-    const [newUsers, mealPlans, challenges] = await Promise.all([
-      supabase
-        .from("profiles")
-        .select("email, created_at")
-        .order("created_at", { ascending: false })
-        .limit(limit),
-      supabase
-        .from("ai_meal_plans")
-        .select("created_at, profiles!inner(email)")
-        .order("created_at", { ascending: false })
-        .limit(limit),
-      supabase
-        .from("challenge_participants")
-        .select("completion_date, challenges!inner(title), profiles!inner(email)")
-        .eq("completed", true)
-        .not("completion_date", "is", null)
-        .order("completion_date", { ascending: false })
-        .limit(limit),
-    ]);
+    try {
+      const [newUsers, mealPlans, challenges] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("email, created_at")
+          .order("created_at", { ascending: false })
+          .limit(limit),
+        supabase
+          .from("ai_meal_plans")
+          .select("created_at, profiles!inner(email)")
+          .order("created_at", { ascending: false })
+          .limit(limit),
+        supabase
+          .from("challenge_participants")
+          .select("completion_date, challenges!inner(title), profiles!inner(email)")
+          .eq("completed", true)
+          .not("completion_date", "is", null)
+          .order("completion_date", { ascending: false })
+          .limit(limit),
+      ]);
 
-    const activities = [
-      ...(newUsers.data || []).map((u) => ({
-        type: "user_signup",
-        user: u.email,
-        time: this.getTimeAgo(u.created_at),
-        timestamp: new Date(u.created_at).getTime(),
-      })),
-      ...(mealPlans.data || []).map((p) => ({
-        type: "plan_generated",
-        user: p.profiles?.find((p) => p.email)?.email || "Unknown",
-        plan: "Meal Plan",
-        time: this.getTimeAgo(p.created_at),
-        timestamp: new Date(p.created_at).getTime(),
-      })),
-      ...(challenges.data || []).map((c) => ({
-        type: "challenge_completed",
-        user: c.profiles?.find((p) => p.email)?.email || "Unknown",
-        challenge: c.challenges?.find((c) => c.title)?.title || "Challenge",
-        time: this.getTimeAgo(c.completion_date),
-        timestamp: new Date(c.completion_date).getTime(),
-      })),
-    ];
+      if (newUsers.error || mealPlans.error || challenges.error)
+        throw new Error(
+          JSON.stringify({
+            newUsers: newUsers.error,
+            mealPlans: mealPlans.error,
+            challenges: challenges.error,
+          })
+        );
 
-    return activities.sort((a, b) => b.timestamp - a.timestamp).slice(0, limit);
+      const activities = [
+        ...((newUsers.data as any[]) || []).map((u) => ({
+          type: "user_signup",
+          user: u.email,
+          time: this.getTimeAgo(u.created_at),
+          timestamp: new Date(u.created_at).getTime(),
+        })),
+        ...((mealPlans.data as any[]) || []).map((p) => ({
+          type: "plan_generated",
+          user: p.profiles?.email || "Unknown",
+          plan: "Meal Plan",
+          time: this.getTimeAgo(p.created_at),
+          timestamp: new Date(p.created_at).getTime(),
+        })),
+        ...((challenges.data as any[]) || []).map((c) => ({
+          type: "challenge_completed",
+          user: c.profiles?.email || "Unknown",
+          challenge: c.challenges?.title || "Challenge",
+          time: this.getTimeAgo(c.completion_date),
+          timestamp: new Date(c.completion_date).getTime(),
+        })),
+      ];
+
+      return activities.sort((a, b) => b.timestamp - a.timestamp).slice(0, limit);
+    } catch (err) {
+      console.error("🔥 Error in getRecentActivity:", err);
+      return [];
+    }
   }
 
   /**
    * Get top users
    */
   static async getTopUsers(limit = 10) {
-    const { data } = await supabase
-      .from("user_rewards")
-      .select("points, profiles!inner(username, full_name, email, plan_id)")
-      .order("points", { ascending: false })
-      .limit(limit);
+    try {
+      const { data, error } = await supabase
+        .from("user_rewards")
+        .select("points, profiles!inner(username, full_name, email, plan_id)")
+        .order("points", { ascending: false })
+        .limit(limit);
 
-    return (
-      data?.map((u) => ({
-        name:
-          u.profiles?.find((p) => p.full_name)?.full_name ||
-          u.profiles?.find((p) => p.username)?.username ||
-          "Unknown",
-        email: u.profiles?.find((p) => p.email)?.email || "",
-        points: u.points,
-        status: u.profiles?.find((p) => p.plan_id)?.plan_id || "free",
-      })) || []
-    );
+      if (error) throw error;
+
+      return (
+        (data as any[])?.map((u) => ({
+          name: u.profiles?.full_name || u.profiles?.username || "Unknown",
+          email: u.profiles?.email || "",
+          points: u.points,
+          status: u.profiles?.plan_id || "free",
+        })) || []
+      );
+    } catch (err) {
+      console.error("🔥 Error in getTopUsers:", err);
+      return [];
+    }
   }
 
   /**

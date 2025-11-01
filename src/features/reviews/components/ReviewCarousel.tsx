@@ -1,0 +1,106 @@
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { UserAvatar } from "@/shared/components/ui/UserAvatar";
+import { motion } from "framer-motion";
+import { Quote } from "lucide-react";
+import { useReviews } from "../hooks/useReviews";
+
+function StarRating({ rating }: { rating: number }) {
+  return (
+    <div style={{ display: "flex", gap: 2 }}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <span key={n} style={{ color: n <= rating ? "#f5c518" : "#e4e4e4", fontSize: 18 }}>
+          &#9733;
+        </span>
+      ))}
+    </div>
+  );
+}
+
+export function ReviewCarousel() {
+  const { data, isLoading } = useReviews();
+
+  if (isLoading)
+    return (
+      <div style={{ display: "flex", gap: 16 }}>
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Card key={i} style={{ padding: 24, minWidth: 320, margin: 8 }}>
+            <div style={{ height: 40, width: 40, borderRadius: 20, background: "#eee" }} />
+            <div style={{ height: 16, width: 120, background: "#eee", margin: "8px 0" }} />
+            <div style={{ height: 14, width: 80, background: "#eee", margin: "6px 0" }} />
+            <div style={{ height: 20, width: "90%", background: "#eee", margin: "10px 0" }} />
+          </Card>
+        ))}
+      </div>
+    );
+
+  if (!data || !data.length) return <div>No reviews yet.</div>;
+
+  // Carousel: Simple horizontal scroll for now. You can sub in a slider lib easily.
+  return (
+    <Carousel className="w-full">
+      <CarouselContent>
+        {data.map((testimonial, index) => (
+          <CarouselItem key={index}>
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              viewport={{ once: true }}
+            >
+              <Card>
+                <CardHeader>
+                  <CardTitle className="overflow-hidden">
+                    <Quote className={`h-8 w-8 text-primary mb-4`} />
+                    <p className="text-foreground/80 mb-6 italic">"{testimonial.review_text}"</p>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="flex items-start justify-between">
+                  <div className="flex gap-2">
+                    <UserAvatar
+                      size="lg"
+                      avatarUrl={testimonial.user_profile?.avatar_url!}
+                      username={
+                        testimonial.user_profile?.username ||
+                        testimonial.user_profile?.full_name ||
+                        "User"
+                      }
+                    />
+                    <div className="flex flex-col">
+                      <h4 className="font-semibold text-foreground">
+                        {testimonial.user_profile?.full_name ||
+                          testimonial.user_profile?.username ||
+                          "User"}
+                      </h4>
+                      <p className={`text-primary text-sm`}>
+                        {typeof testimonial.weight_change_kg === "number" ? (
+                          <div style={{ color: "#26b366", fontWeight: 500, fontSize: 13 }}>
+                            {testimonial.weight_change_kg < 0
+                              ? `Lost ${Math.abs(testimonial.weight_change_kg)}kg`
+                              : testimonial.weight_change_kg > 0
+                              ? `Gained ${testimonial.weight_change_kg}kg`
+                              : null}
+                          </div>
+                        ) : null}
+                      </p>
+                    </div>
+                  </div>
+                  <StarRating rating={testimonial.rating} />
+                </CardContent>
+              </Card>
+            </motion.div>
+          </CarouselItem>
+        ))}
+      </CarouselContent>
+      <CarouselPrevious />
+      <CarouselNext />
+    </Carousel>
+  );
+}
