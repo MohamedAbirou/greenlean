@@ -32,9 +32,9 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
       const file = event.target.files?.[0];
       if (!file) return;
 
-      // Validate file size (100KB max)
-      if (file.size > 100 * 1024) {
-        toast.error("File size must be less than 100KB");
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("File size must be less than 5MB");
         return;
       }
 
