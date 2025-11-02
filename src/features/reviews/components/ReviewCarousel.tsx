@@ -28,13 +28,14 @@ export function ReviewCarousel() {
 
   if (isLoading)
     return (
-      <div style={{ display: "flex", gap: 16 }}>
+  // use className instead of style
+      <div className="flex items-center justify-center gap-4 animate-pulse">
         {Array.from({ length: 3 }).map((_, i) => (
-          <Card key={i} style={{ padding: 24, minWidth: 320, margin: 8 }}>
-            <div style={{ height: 40, width: 40, borderRadius: 20, background: "#eee" }} />
-            <div style={{ height: 16, width: 120, background: "#eee", margin: "8px 0" }} />
-            <div style={{ height: 14, width: 80, background: "#eee", margin: "6px 0" }} />
-            <div style={{ height: 20, width: "90%", background: "#eee", margin: "10px 0" }} />
+          <Card key={i} className="p-4 min-w-80 m-2">
+            <div className="h-10 w-10 rounded-full bg-card" />
+            <div className="h-4 w-32 bg-card my-2" />
+            <div className="h-3 w-24 bg-card my-1" />
+            <div className="h-5 w-full bg-card my-2" />
           </Card>
         ))}
       </div>
@@ -44,7 +45,7 @@ export function ReviewCarousel() {
 
   // Carousel: Simple horizontal scroll for now. You can sub in a slider lib easily.
   return (
-    <Carousel className="w-full">
+    <Carousel className="w-full max-w-4xl mx-auto">
       <CarouselContent>
         {data.map((testimonial, index) => (
           <CarouselItem key={index}>
@@ -55,7 +56,7 @@ export function ReviewCarousel() {
               transition={{ duration: 0.5 }}
               viewport={{ once: true }}
             >
-              <Card>
+              <Card className="p-2">
                 <CardHeader>
                   <CardTitle className="overflow-hidden">
                     <Quote className={`h-8 w-8 text-primary mb-4`} />

@@ -89,7 +89,7 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
   const renderAvatar = () => {
     if (profile?.avatar_url) {
       return (
-        <img src={profile.avatar_url} alt="Profile" className="w-8 h-8 rounded-full object-cover" />
+        <img src={profile.avatar_url} alt="Profile" className="w-9 h-9 rounded-full object-cover" />
       );
     }
 

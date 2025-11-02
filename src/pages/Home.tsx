@@ -210,7 +210,7 @@ const Home: React.FC = () => {
             </p>
           </div>
 
-          <div className="mx-auto max-w-4xl">
+          <div className="mx-auto">
             <ReviewCarousel />
             {eligibleToReview && !myReview && (
               <div className="mt-12">

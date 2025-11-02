@@ -17,7 +17,7 @@ export function useMyReview(userId?: string) {
     queryFn: () => fetchMyReview(userId!),
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchInterval: 60 * 1000, // Refresh every minute
-    enabled: !!userId, // ✅ only run if userId exists
+    enabled: !!userId,
   });
 }
 
