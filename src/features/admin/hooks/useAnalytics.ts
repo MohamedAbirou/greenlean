@@ -6,7 +6,7 @@ export function useDashboardMetrics(dateRange: "7d" | "30d" | "90d" | "1y" = "30
     queryKey: ["dashboard-metrics", dateRange],
     queryFn: () => AnalyticsService.getDashboardMetrics(dateRange),
     staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchInterval: 60 * 1000, // Refresh every minute
+    refetchInterval: 3 * 60 * 1000, // Refresh every 3 minutes
   });
 }
 
@@ -22,8 +22,8 @@ export function useRecentActivity(limit = 10) {
   return useQuery({
     queryKey: ["recent-activity", limit],
     queryFn: () => AnalyticsService.getRecentActivity(limit),
-    staleTime: 30 * 1000, // 30 seconds
-    refetchInterval: 30 * 1000,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    refetchInterval: 2 * 60 * 1000, // 2 minutes
   });
 }
 
@@ -51,4 +51,10 @@ export function formatBytes(bytes: number) {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   const size = parseFloat((bytes / Math.pow(k, i)).toFixed(2));
   return `${size} ${sizes[i]}`;
+}
+
+// Safely handle string to number conversions
+export function safeNumber(val: any): number {
+  if (typeof val === "string") return parseFloat(val) || 0;
+  return val || 0;
 }

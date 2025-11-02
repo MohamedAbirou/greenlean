@@ -7,6 +7,7 @@ import { ML_SERVICE_URL } from "@/features/quiz";
 import { supabase } from "@/lib/supabase/client";
 import { createNotification } from "@/services/notificationService";
 import type { Challenge } from "@/shared/types/challenge";
+import { AnalyticsService } from "./analyticsService";
 
 export class AdminService {
   /**
@@ -205,33 +206,6 @@ export class AdminService {
   }
 
   /**
-   * Get detailed user analytics
-   */
-  static async getUserAnalytics(userId: string) {
-    const [profile, rewards, plans, activity, challenges] = await Promise.all([
-      supabase.from("profiles").select("*").eq("id", userId).single(),
-      supabase.from("user_rewards").select("*").eq("user_id", userId).single(),
-      supabase.from("ai_meal_plans").select("*").eq("user_id", userId),
-      supabase
-        .from("user_activity_logs")
-        .select("*")
-        .eq("user_id", userId)
-        .order("activity_date", { ascending: false })
-        .limit(30),
-      supabase.from("challenge_participants").select("*, challenges(*)").eq("user_id", userId),
-    ]);
-
-    return {
-      profile: profile.data,
-      rewards: rewards.data,
-      plansGenerated: plans.data?.length || 0,
-      recentActivity: activity.data || [],
-      challengesJoined: challenges.data?.length || 0,
-      challengesCompleted: challenges.data?.filter((c) => c.completed).length || 0,
-    };
-  }
-
-  /**
    * Bulk update user plans
    */
   static async bulkUpdateUserPlans(userIds: string[], newPlan: string) {
@@ -247,7 +221,9 @@ export class AdminService {
   /**
    * Export data to CSV
    */
-  static async exportToCSV(dataType: "users" | "subscriptions" | "challenges"): Promise<string> {
+  static async exportToCSV(
+    dataType: "users" | "subscriptions" | "challenges" | "analytics"
+  ): Promise<string> {
     let data: any[];
     let headers: string[];
 
@@ -272,6 +248,33 @@ export class AdminService {
           .select("*, challenge_participants(count)");
         data = challenges || [];
         headers = ["Title", "Type", "Difficulty", "Participants"];
+        break;
+
+      case "analytics":
+        const analytics = await AnalyticsService.getDashboardMetrics();
+
+        // Flatten object to a single row for CSV export
+        data = [
+          {
+            date: new Date().toISOString().split("T")[0],
+            users: analytics.users?.total || 0,
+            subscriptions: analytics.subscriptions?.active || 0,
+            challenges: analytics.challenges?.total || 0,
+            revenue: analytics.revenue?.thisMonth || 0,
+            conversion_rate: analytics.conversionRate || 0,
+            conversion_rate_growth: analytics.conversionRateGrowth || 0,
+          },
+        ];
+
+        headers = [
+          "Date",
+          "Users",
+          "Subscriptions",
+          "Challenges",
+          "Revenue",
+          "Conversion Rate",
+          "Conversion Rate Growth",
+        ];
         break;
 
       default:

@@ -7,68 +7,64 @@ export class AnalyticsService {
    * Get comprehensive dashboard metrics - OPTIMIZED with parallel queries
    */
   static async getDashboardMetrics(dateRange: "7d" | "30d" | "90d" | "1y" = "30d") {
-    const now = new Date();
     const daysAgo =
       dateRange === "7d" ? 7 : dateRange === "30d" ? 30 : dateRange === "90d" ? 90 : 365;
-    const startDate = new Date(now.setDate(now.getDate() - daysAgo)).toISOString();
+    const startDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString();
 
     try {
-      // ✅ Fetch ALL data in parallel (single round trip)
+      // Fetch main data in parallel (engagements view + other data)
       const [
         stripeMetrics,
         allUsersResult,
         recentUsersResult,
-        dailyNutritionLogsResult,
-        dailyWaterIntakeResult,
-        workoutLogsResult,
         mealPlansResult,
         workoutPlansResult,
         quizzesResult,
         challengesResult,
+        engagementsResult,
+        snapshotsResult,
       ] = await Promise.all([
         AdminService.getSaasMetrics(),
         supabase.from("profiles").select("id, created_at, plan_id"),
         supabase.from("profiles").select("id").gte("created_at", startDate),
-        supabase.from("daily_nutrition_logs").select("user_id").gte("log_date", startDate),
-        supabase.from("daily_water_intake").select("user_id").gte("log_date", startDate),
-        supabase.from("workout_logs").select("user_id").gte("created_at", startDate),
         supabase
           .from("ai_meal_plans")
-          .select("id, status, created_at")
+          .select("id, status, created_at, updated_at, generated_at, error_message")
           .gte("created_at", startDate),
         supabase
           .from("ai_workout_plans")
-          .select("id, status, created_at")
+          .select("id, status, created_at, updated_at, generated_at, error_message")
           .gte("created_at", startDate),
         supabase.from("quiz_results").select("id, created_at").gte("created_at", startDate),
         supabase.from("challenges").select(`
-        id,
-        is_active,
-        points,
-        challenge_participants!inner (
-          user_id,
-          completed
-        )
-      `),
+          id,
+          is_active,
+          points,
+          challenge_participants!inner (
+            user_id,
+            completed
+          )
+        `),
+        // pull aggregated engagement per user from the view
+        supabase.from("user_engagements").select("user_id, daily_logs, weekly_logs, monthly_logs"),
+        // fetch latest 2 snapshots for growth calculation
+        supabase
+          .from("engagement_snapshots")
+          .select("*")
+          .order("snapshot_date", { ascending: false })
+          .limit(2),
       ]);
 
-      // Process results
-      const allUsers = allUsersResult.data || [];
-      const recentUsers = recentUsersResult.data || [];
-      const activeUsersData = [
-        ...new Set([
-          ...(dailyNutritionLogsResult?.data?.map((u) => u.user_id) || []),
-          ...(dailyWaterIntakeResult?.data?.map((u) => u.user_id) || []),
-          ...(workoutLogsResult?.data?.map((u) => u.user_id) || []),
-        ]),
-      ];
-      const uniqueActiveUsers = [...new Set(activeUsersData.map((u) => u.user_id))];
-      const mealPlans = mealPlansResult.data || [];
-      const workoutPlans = workoutPlansResult.data || [];
-      const quizzes = quizzesResult.data || [];
-      const challenges = challengesResult.data || [];
+      const allUsers = allUsersResult.data ?? [];
+      const recentUsers = recentUsersResult.data ?? [];
+      const mealPlans = mealPlansResult.data ?? [];
+      const workoutPlans = workoutPlansResult.data ?? [];
+      const quizzes = quizzesResult.data ?? [];
+      const challenges = challengesResult.data ?? [];
+      const engagements = engagementsResult.data ?? [];
+      const snapshots = snapshotsResult.data ?? [];
 
-      // Challenge calculations
+      // Simple challenge calculations
       const activeChallenges = challenges.filter((c) => c.is_active);
       const totalParticipants = challenges.reduce(
         (sum, c) => sum + (c.challenge_participants?.length || 0),
@@ -79,16 +75,65 @@ export class AnalyticsService {
         0
       );
 
-      if (
-        !workoutLogsResult?.data ||
-        !dailyWaterIntakeResult?.data ||
-        !dailyNutritionLogsResult?.data
-      ) {
-        return {
-          error: "No workout logs found",
-        };
-      }
+      // Engagement metrics from the view
+      const dau = engagements.filter((e: any) => Number(e.daily_logs) > 0).length;
+      const wau = engagements.filter((e: any) => Number(e.weekly_logs) > 0).length;
+      const mau = engagements.filter((e: any) => Number(e.monthly_logs) > 0).length;
 
+      // Calculate growth using latest snapshot vs previous snapshot (if available)
+      const [latestSnapshot, previousSnapshot] = snapshots || [];
+
+      const calcGrowth = (current: number, previous: number): number => {
+        if (!previous || previous === 0) return 0; // or null if you prefer
+        return Number((((current - previous) / previous) * 100).toFixed(1));
+      };
+
+      const dauGrowth = calcGrowth(dau, previousSnapshot?.daily_active_users ?? 0);
+      const wauGrowth = calcGrowth(wau, previousSnapshot?.weekly_active_users ?? 0);
+      const mauGrowth = calcGrowth(mau, previousSnapshot?.monthly_active_users ?? 0);
+
+      // ---- Meal Plan Metrics ----
+      const totalMealPlans = mealPlans.length;
+      const completedMealPlans = mealPlans.filter(
+        (p) => p.status === "completed" || p.status === "generated"
+      ).length;
+      const failedMealPlans = mealPlans.filter((p) => p.status === "failed").length;
+
+      // calculate generation time (if both timestamps exist)
+      const mealPlanTimes = mealPlans
+        .filter((p) => p.generated_at || p.updated_at)
+        .map((p) => {
+          const end = new Date(p.generated_at || p.updated_at).getTime();
+          const start = new Date(p.created_at).getTime();
+          return Math.max(0, (end - start) / 1000); // seconds
+        });
+      const avgMealPlanGenTime =
+        mealPlanTimes.length > 0
+          ? Number((mealPlanTimes.reduce((a, b) => a + b, 0) / mealPlanTimes.length).toFixed(1))
+          : 0;
+
+      // ---- Workout Plan Metrics ----
+      const totalWorkoutPlans = workoutPlans.length;
+      const completedWorkoutPlans = workoutPlans.filter(
+        (p) => p.status === "completed" || p.status === "generated"
+      ).length;
+      const failedWorkoutPlans = workoutPlans.filter((p) => p.status === "failed").length;
+
+      const workoutPlanTimes = workoutPlans
+        .filter((p) => p.generated_at || p.updated_at)
+        .map((p) => {
+          const end = new Date(p.generated_at || p.updated_at).getTime();
+          const start = new Date(p.created_at).getTime();
+          return Math.max(0, (end - start) / 1000);
+        });
+      const avgWorkoutGenTime =
+        workoutPlanTimes.length > 0
+          ? Number(
+              (workoutPlanTimes.reduce((a, b) => a + b, 0) / workoutPlanTimes.length).toFixed(1)
+            )
+          : 0;
+
+      // Recompute some derived metrics you previously had
       return {
         conversionRate: (stripeMetrics.conversionRate || 0) * 100,
         conversionRateGrowth: this.calculateGrowth(
@@ -108,7 +153,7 @@ export class AnalyticsService {
         },
         users: {
           total: allUsers.length,
-          active: uniqueActiveUsers.length,
+          active: mau, // or uniqueActiveUsers from previous method if you prefer
           newThisMonth: recentUsers.length,
           churnedThisMonth: stripeMetrics.churnedThisMonth || 0,
           growthRate: ((recentUsers.length / (allUsers.length || 1)) * 100).toFixed(1),
@@ -123,11 +168,29 @@ export class AnalyticsService {
           ltvGrowth: stripeMetrics.ltvGrowth || 0,
         },
         plans: {
-          mealPlansGenerated: mealPlans.length,
-          workoutPlansGenerated: workoutPlans.length,
+          // Meal Plans
+          mealPlansGenerated: totalMealPlans,
+          mealPlansCompleted: completedMealPlans,
+          mealPlansFailed: failedMealPlans,
+          mealPlanSuccessRate:
+            totalMealPlans > 0 ? ((completedMealPlans / totalMealPlans) * 100).toFixed(1) : 0,
+          avgMealPlanGenerationTime: avgMealPlanGenTime, // in seconds
+
+          // Workout Plans
+          workoutPlansGenerated: totalWorkoutPlans,
+          workoutPlansCompleted: completedWorkoutPlans,
+          workoutPlansFailed: failedWorkoutPlans,
+          workoutPlanSuccessRate:
+            totalWorkoutPlans > 0
+              ? ((completedWorkoutPlans / totalWorkoutPlans) * 100).toFixed(1)
+              : 0,
+          avgWorkoutPlanGenerationTime: avgWorkoutGenTime, // in seconds
+
+          // Combined summary (optional)
           totalQuizzes: quizzes.length,
-          mealPlansCompleted: mealPlans.filter((p) => p.status === "completed").length,
-          workoutPlansCompleted: workoutPlans.filter((p) => p.status === "completed").length,
+          totalGenerated: totalMealPlans + totalWorkoutPlans,
+          totalCompleted: completedMealPlans + completedWorkoutPlans,
+          totalFailed: failedMealPlans + failedWorkoutPlans,
           avgCompletionRate: this.calculateCompletionRate(mealPlans, workoutPlans),
         },
         challenges: {
@@ -142,23 +205,15 @@ export class AnalyticsService {
           totalPointsAwarded: challenges.reduce((sum, c) => sum + c.points, 0),
         },
         engagement: {
-          dau: uniqueActiveUsers.length,
-          wau: uniqueActiveUsers.length,
-          mau: uniqueActiveUsers.length,
-          dauGrowth: this.calculateGrowth(uniqueActiveUsers.length, uniqueActiveUsers.length - 1),
-          wauGrowth: this.calculateGrowth(uniqueActiveUsers.length, uniqueActiveUsers.length - 1),
-          mauGrowth: this.calculateGrowth(uniqueActiveUsers.length, uniqueActiveUsers.length - 1),
-          avgWorkoutDuration:
-            workoutLogsResult?.data?.reduce(
-              (sum, log: any) => sum + (log.duration_minutes || 0),
-              0
-            ) / workoutLogsResult?.data?.length || 0,
-          avgWaterIntake:
-            dailyWaterIntakeResult?.data?.reduce((sum, log: any) => sum + log.total_ml, 0) /
-              dailyWaterIntakeResult?.data?.length || 0,
-          avgNutritionIntake:
-            dailyNutritionLogsResult?.data?.reduce((sum, log: any) => sum + log.total_calories, 0) /
-              dailyNutritionLogsResult?.data?.length || 0,
+          dau,
+          wau,
+          mau,
+          dauGrowth,
+          wauGrowth,
+          mauGrowth,
+          avgWorkoutDuration: latestSnapshot?.avg_workout_duration ?? 0,
+          avgWaterIntake: latestSnapshot?.avg_water_intake ?? 0,
+          avgNutritionIntake: latestSnapshot?.avg_nutrition_intake ?? 0,
         },
       };
     } catch (err) {
@@ -188,35 +243,8 @@ export class AnalyticsService {
   }
 
   /**
-   * Get historical user growth data
-   */
-  static async getUserGrowthHistory(dateRange: "7d" | "30d" | "90d" | "1y" = "30d") {
-    const now = new Date();
-    const daysAgo =
-      dateRange === "7d" ? 7 : dateRange === "30d" ? 30 : dateRange === "90d" ? 90 : 365;
-
-    try {
-      // Query user signups grouped by date
-      const { data } = await supabase
-        .from("profiles")
-        .select("created_at")
-        .gte("created_at", new Date(now.setDate(now.getDate() - daysAgo)).toISOString())
-        .order("created_at", { ascending: true });
-
-      // Group by day/week/month depending on range
-      const groupedData = this.groupByTimePeriod(data || [], dateRange);
-
-      return groupedData;
-    } catch (err) {
-      console.error("🔥 Error in getUserGrowthHistory:", err);
-      return [];
-    }
-  }
-
-  /**
    * Get conversion funnel
    */
-  // Convert this function to use try and catch just like we did in getRecentActivity
   static async getConversionFunnel(dateRange: "7d" | "30d" | "90d" | "1y" = "30d") {
     const now = new Date();
     const daysAgo =
@@ -224,12 +252,18 @@ export class AnalyticsService {
     const startDate = new Date(now.setDate(now.getDate() - daysAgo)).toISOString();
 
     try {
-      // Parallel queries
-      const [visitorsResult, quizzesResult, plansResult, paidUsersResult] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("id", { count: "exact", head: true })
-          .gte("created_at", startDate),
+      // Fetch users once
+      const usersResult = await supabase
+        .from("profiles")
+        .select("id, plan_id, created_at")
+        .gte("created_at", startDate);
+
+      const users = usersResult.data || [];
+      const visitorCount = users.length;
+      const paidCount = users.filter((u) => u.plan_id === "pro").length;
+
+      // Parallel queries for the other steps
+      const [quizzesResult, mealPlansResult, workoutPlansResult] = await Promise.all([
         supabase
           .from("quiz_results")
           .select("user_id", { count: "exact", head: true })
@@ -237,18 +271,17 @@ export class AnalyticsService {
         supabase
           .from("ai_meal_plans")
           .select("user_id", { count: "exact", head: true })
-          .gte("created_at", startDate),
+          .eq("status", "completed")
+          .gte("generated_at", startDate),
         supabase
-          .from("profiles")
-          .select("id", { count: "exact", head: true })
-          .eq("plan_id", "pro")
-          .gte("created_at", startDate),
+          .from("ai_workout_plans")
+          .select("user_id", { count: "exact", head: true })
+          .eq("status", "completed")
+          .gte("generated_at", startDate),
       ]);
 
-      const visitorCount = visitorsResult.count || 1;
       const quizCount = quizzesResult.count || 0;
-      const planCount = plansResult.count || 0;
-      const paidCount = paidUsersResult.count || 0;
+      const plansCount = (mealPlansResult.count || 0) + (workoutPlansResult.count || 0);
 
       return [
         { stage: "Site Visitors", count: visitorCount, percent: 100 },
@@ -259,8 +292,8 @@ export class AnalyticsService {
         },
         {
           stage: "Plans Generated",
-          count: planCount,
-          percent: Math.round((planCount / visitorCount) * 100),
+          count: plansCount,
+          percent: Math.round((plansCount / visitorCount) * 100),
         },
         {
           stage: "Paid Subscribers",
@@ -369,38 +402,27 @@ export class AnalyticsService {
    * Get system health
    */
   static async getSystemHealth() {
-    const [dbSizeRes, connRes, uptimeRes, respTimeRes] = await Promise.all([
+    const [dbSizeRes, connRes, storageRes] = await Promise.all([
       supabase.rpc("get_db_size"),
       supabase.rpc("get_active_connections"),
-      // get uptime and get avg response time requires admin_logs implementation in the future!
-      supabase.rpc("get_uptime"),
-      supabase.rpc("get_avg_response_time"),
-      // supabase
-      //   .from("admin_logs")
-      //   .select("*")
-      //   .eq("level", "error")
-      //   .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-      //   .order("created_at", { ascending: false })
-      //   .limit(10),
+      supabase.rpc("get_total_storage_used"),
     ]);
 
     let errors = [];
+
     // get errors from all the subapase requests above!
-    for (const request of [dbSizeRes, connRes, uptimeRes, respTimeRes]) {
+    for (const request of [dbSizeRes, connRes, storageRes]) {
       if (request.error) {
         errors.push(request.error);
       }
     }
-
-    const storageUsed = await AnalyticsService.calcStorageUsed();
+    const totalMB = (storageRes.data || 0) / (1024 * 1024);
 
     return {
-      apiUptime: uptimeRes.data || 0,
-      avgResponseTime: respTimeRes.data || 0,
       errorRate: ((errors.length || 0) / 1000) * 100,
       activeConnections: connRes.data || 0,
       dbSize: dbSizeRes.data || 0,
-      storageUsed,
+      totalMB,
       recentErrors: errors,
     };
   }
@@ -426,63 +448,5 @@ export class AnalyticsService {
       mealPlans.filter((p) => p.status === "completed").length +
       workoutPlans.filter((p) => p.status === "completed").length;
     return parseFloat(((completed / totalPlans) * 100).toFixed(1));
-  }
-
-  private static async calcStorageUsed() {
-    const buckets = ["avatars", "uploads", "documents"]; // change to your buckets
-    let totalBytes = 0;
-
-    for (const bucket of buckets) {
-      // List all files in each bucket
-      const { data: files, error } = await supabase.storage.from(bucket).list("", {
-        limit: 1000, // adjust if you have many files
-        offset: 0,
-        sortBy: { column: "name", order: "asc" },
-      });
-
-      if (error) {
-        console.error(`Error listing files in bucket ${bucket}:`, error);
-        continue;
-      }
-
-      // Sum up file sizes
-      for (const file of files || []) {
-        totalBytes += file.metadata?.size || 0;
-      }
-    }
-
-    // Convert bytes → MB (or GB)
-    const totalMB = totalBytes / (1024 * 1024);
-    return Math.round(totalMB * 100) / 100; // e.g. 67.42 MB
-  }
-
-  /**
-   * Helper to group data by time period
-   */
-  private static groupByTimePeriod(data: any[], dateRange: string) {
-    if (!data.length) return [];
-
-    const grouped: { [key: string]: number } = {};
-
-    data.forEach((item) => {
-      const date = new Date(item.created_at);
-      let key: string;
-
-      if (dateRange === "7d") {
-        key = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-      } else if (dateRange === "30d") {
-        key = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-      } else {
-        key = date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
-      }
-
-      grouped[key] = (grouped[key] || 0) + 1;
-    });
-
-    return Object.entries(grouped).map(([period, count]) => ({
-      period,
-      users: count,
-      active: Math.floor(count * 0.7), // Estimate - replace with actual active user query
-    }));
   }
 }

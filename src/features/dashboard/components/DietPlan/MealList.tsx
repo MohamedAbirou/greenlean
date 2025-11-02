@@ -19,8 +19,8 @@ import { getDifficultyColor, getMealGradient, getMealIcon } from "./helpers";
 
 interface MealListProps {
   dietPlanData: DietPlanData;
-  expandedMeal: string | null;
-  setExpandedMeal: (mealType: string | null) => void;
+  expandedMeal: number | null;
+  setExpandedMeal: (mealType: number | null) => void;
 }
 
 export const MealList: React.FC<MealListProps> = ({
@@ -29,8 +29,7 @@ export const MealList: React.FC<MealListProps> = ({
   setExpandedMeal,
 }) => {
   const meals = dietPlanData?.meals;
-  if (!meals || meals.length === 0)
-    return <div>No meals found for this day.</div>;
+  if (!meals || meals.length === 0) return <div>No meals found for this day.</div>;
 
   return (
     <>
@@ -39,13 +38,10 @@ export const MealList: React.FC<MealListProps> = ({
           <ChefHat className="h-6 w-6 text-white" />
         </div>
         <div>
-          <h3 className="text-2xl font-bold text-foreground">
-            Today's Meals
-          </h3>
+          <h3 className="text-2xl font-bold text-foreground">Today's Meals</h3>
           <p className="text-sm text-foreground/70">
-            {dietPlanData?.meals.length} meals •{" "}
-            {dietPlanData?.daily_totals.calories} total calories •{"  "}✓ Macros
-            match targets within ±5%
+            {dietPlanData?.meals.length} meals • {dietPlanData?.daily_totals.calories} total
+            calories •{"  "}✓ Macros match targets within ±5%
           </p>
         </div>
       </div>
@@ -60,13 +56,9 @@ export const MealList: React.FC<MealListProps> = ({
             {/* Top summary row */}
             <button
               type="button"
-              onClick={() =>
-                setExpandedMeal(
-                  expandedMeal === meal.meal_type ? null : meal.meal_type
-                )
-              }
+              onClick={() => setExpandedMeal(expandedMeal === index ? null : index)}
               className="w-full p-6 flex items-center justify-between hover:bg-white/10 transition-colors"
-              aria-expanded={expandedMeal === meal.meal_type}
+              aria-expanded={expandedMeal === index}
             >
               <div className="flex items-center gap-4">
                 <div className="bg-background p-4 rounded-md shadow-lg">
@@ -85,12 +77,8 @@ export const MealList: React.FC<MealListProps> = ({
                       {meal?.difficulty}
                     </span>
                   </div>
-                  <p className="text-sm text-foreground/80 font-medium">
-                    {meal.meal_name}
-                  </p>
-                  <p className="text-xs text-secondary-foreground mt-1">
-                    {meal.meal_timing}
-                  </p>
+                  <p className="text-sm text-foreground/80 font-medium">{meal.meal_name}</p>
+                  <p className="text-xs text-secondary-foreground mt-1">{meal.meal_timing}</p>
                 </div>
               </div>
               <div className="flex items-center gap-6">
@@ -104,7 +92,7 @@ export const MealList: React.FC<MealListProps> = ({
                     {meal.total_calories} cal
                   </div>
                 </div>
-                {expandedMeal === meal.meal_type ? (
+                {expandedMeal === index ? (
                   <ChevronUp className="h-6 w-6 text-foreground/80" />
                 ) : (
                   <ChevronDown className="h-6 w-6 text-foreground/80" />
@@ -114,7 +102,7 @@ export const MealList: React.FC<MealListProps> = ({
 
             {/* Expandable details */}
             <AnimatePresence>
-              {expandedMeal === meal.meal_type && (
+              {expandedMeal === index && (
                 <motion.div
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
@@ -154,18 +142,14 @@ export const MealList: React.FC<MealListProps> = ({
                               <Check className="h-4 w-4 text-white" />
                             </div>
                             <div>
-                              <p className="font-semibold text-foreground">
-                                {food.name}
-                              </p>
+                              <p className="font-semibold text-foreground">{food.name}</p>
                               <p className="text-sm text-foreground-50">
                                 {food.portion} • {food.grams}g
                               </p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold text-foreground">
-                              {food.calories} cal
-                            </p>
+                            <p className="font-bold text-foreground">{food.calories} cal</p>
                             <p className="text-xs text-foreground-50">
                               P:{food.protein}g C:{food.carbs}g F:
                               {food.fats}g
@@ -201,10 +185,7 @@ export const MealList: React.FC<MealListProps> = ({
                           Pro Tips
                         </p>
                         {meal.tips.map((tip, tipIndex) => (
-                          <p
-                            key={tipIndex}
-                            className="text-xs text-foreground-50 mb-1"
-                          >
+                          <p key={tipIndex} className="text-xs text-foreground-50 mb-1">
                             • {tip}
                           </p>
                         ))}
@@ -216,48 +197,28 @@ export const MealList: React.FC<MealListProps> = ({
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                     <div className="bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-md p-4 text-center border border-orange-200/50 dark:border-orange-800/50">
                       <Flame className="h-6 w-6 text-orange-600 dark:text-orange-400 mx-auto mb-2" />
-                      <p className="text-xs text-foreground-50 font-medium">
-                        Calories
-                      </p>
-                      <p className="text-2xl font-bold text-foreground">
-                        {meal.total_calories}
-                      </p>
+                      <p className="text-xs text-foreground-50 font-medium">Calories</p>
+                      <p className="text-2xl font-bold text-foreground">{meal.total_calories}</p>
                     </div>
                     <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-md p-4 text-center border border-green-200/50 dark:border-green-800/50">
                       <TrendingUp className="h-6 w-6 text-green-600 dark:text-green-400 mx-auto mb-2" />
-                      <p className="text-xs text-foreground-50 font-medium">
-                        Protein
-                      </p>
-                      <p className="text-2xl font-bold text-foreground">
-                        {meal.total_protein}g
-                      </p>
+                      <p className="text-xs text-foreground-50 font-medium">Protein</p>
+                      <p className="text-2xl font-bold text-foreground">{meal.total_protein}g</p>
                     </div>
                     <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-md p-4 text-center border border-blue-200/50 dark:border-blue-800/50">
                       <Zap className="h-6 w-6 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
-                      <p className="text-xs text-foreground-50 font-medium">
-                        Carbs
-                      </p>
-                      <p className="text-2xl font-bold text-foreground">
-                        {meal.total_carbs}g
-                      </p>
+                      <p className="text-xs text-foreground-50 font-medium">Carbs</p>
+                      <p className="text-2xl font-bold text-foreground">{meal.total_carbs}g</p>
                     </div>
                     <div className="bg-gradient-to-br from-yellow-500/20 to-amber-500/20 rounded-md p-4 text-center border border-yellow-200/50 dark:border-yellow-800/50">
                       <Heart className="h-6 w-6 text-yellow-600 dark:text-yellow-400 mx-auto mb-2" />
-                      <p className="text-xs text-foreground-50 font-medium">
-                        Fats
-                      </p>
-                      <p className="text-2xl font-bold text-foreground">
-                        {meal.total_fats}g
-                      </p>
+                      <p className="text-xs text-foreground-50 font-medium">Fats</p>
+                      <p className="text-2xl font-bold text-foreground">{meal.total_fats}g</p>
                     </div>
                     <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-md p-4 text-center border border-purple-200/50 dark:border-purple-800/50">
                       <Apple className="h-6 w-6 text-purple-600 dark:text-purple-400 mx-auto mb-2" />
-                      <p className="text-xs text-foreground-50 font-medium">
-                        Fiber
-                      </p>
-                      <p className="text-2xl font-bold text-foreground">
-                        {meal.total_fiber}g
-                      </p>
+                      <p className="text-xs text-foreground-50 font-medium">Fiber</p>
+                      <p className="text-2xl font-bold text-foreground">{meal.total_fiber}g</p>
                     </div>
                   </div>
                 </motion.div>

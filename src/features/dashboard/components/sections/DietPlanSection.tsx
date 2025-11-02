@@ -50,7 +50,7 @@ const TABS = [
 
 export const DietPlanSection: React.FC<DietPlanSectionProps> = memo(({ userId, calculations }) => {
   const [showLogModal, setShowLogModal] = useState(false);
-  const [expandedMeal, setExpandedMeal] = useState<string | null>(null);
+  const [expandedMeal, setExpandedMeal] = useState<number | null>(null);
   const [selectedTab, setSelectedTab] = useState(TABS[0].name);
 
   // Unified data fetching with polling

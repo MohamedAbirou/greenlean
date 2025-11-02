@@ -49,7 +49,7 @@ export const MealTabs: React.FC<MealTabsProps> = ({
       </nav>
       <AnimatePresence mode="wait">
           <motion.div
-            key={currentTab} // animate when tab changes
+            key={`${currentTab}-${activeIndex}`} // animate when tab changes
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}

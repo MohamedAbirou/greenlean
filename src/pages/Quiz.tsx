@@ -127,7 +127,7 @@ const Quiz: React.FC = () => {
               Upgrade Now
             </button>
             <p className="text-xs text-muted-foreground mt-2">
-              Unlock up to 50 plans/month with Pro. Billing via Stripe.
+              Unlock up to 20 plans/month with Pro. Billing via Stripe.
             </p>
           </div>
         </div>

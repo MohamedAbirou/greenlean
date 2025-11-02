@@ -137,28 +137,28 @@ export const userColumns = ({
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem onClick={() => onEdit(user)}>
-              <Edit className="mr-2 h-4 w-4" />
+              <Edit className="h-4 w-4" />
               Edit User
             </DropdownMenuItem>
             {hasSubscription && (
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => openPlanChangeModal(user.subscription_id!)}>
-                  <CreditCard className="mr-2 h-4 w-4" />
+                  <CreditCard className="h-4 w-4" />
                   Change Plan
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => openCancelModal(user.subscription_id!)}
-                  className="text-orange-600"
+                  className="text-destructive"
                 >
-                  <CreditCard className="mr-2 h-4 w-4" />
+                  <CreditCard className="h-4 w-4" />
                   Cancel Subscription
                 </DropdownMenuItem>
               </>
             )}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => onDelete(user)} className="text-destructive">
-              <Trash2 className="mr-2 h-4 w-4" />
+              <Trash2 className=" h-4 w-4 text-destructive" />
               Delete User
             </DropdownMenuItem>
           </DropdownMenuContent>

@@ -6,6 +6,7 @@
 import { supabase } from "@/lib/supabase/client";
 import type {
   BmiStatus,
+  DailyWaterIntake,
   DashboardAnswers,
   DashboardCalculations,
   DashboardDietPlan,
@@ -156,5 +157,50 @@ export class DashboardService {
     });
 
     if (error) throw error;
+  }
+
+  /**
+   * Fetch daily water intake log for a user for a given date (defaults to today)
+   */
+  static async getDailyWaterIntake(userId: string, date?: string) {
+    const today = date || new Date().toISOString().split("T")[0];
+    const { data, error } = await supabase
+      .from("daily_water_intake")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("log_date", today)
+      .maybeSingle();
+    if (error && error.code !== "PGRST116") throw error; // ignore row not found
+    return data;
+  }
+
+  /**
+   * Insert or update (upsert) daily water intake for a user for today
+   */
+  static async upsertDailyWaterIntake({
+    userId,
+    glasses,
+    total_ml,
+    date,
+  }: {
+    userId: string;
+    glasses?: number;
+    total_ml?: number;
+    date?: string;
+  }) {
+    try {
+      const log_date = date || new Date().toISOString().split("T")[0];
+      const { data, error } = await supabase
+        .from("daily_water_intake")
+        .upsert<DailyWaterIntake[]>([{ user_id: userId, log_date, glasses, total_ml }], {
+          onConflict: "user_id, log_date",
+        });
+      if (error) throw error;
+      const waterIntake = data as unknown as DailyWaterIntake[];
+      return waterIntake && waterIntake.length > 0 ? waterIntake[0] : null;
+    } catch (error) {
+      console.error("Error upserting daily water intake", error);
+      throw error;
+    }
   }
 }

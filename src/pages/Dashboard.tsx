@@ -10,11 +10,13 @@ import {
   DashboardEmpty,
   DashboardLoading,
   DashboardTabs,
+  StatsSection,
   useDashboardData
 } from "../features/dashboard";
 import { DietPlanSection } from "../features/dashboard/components/sections/DietPlanSection";
 import { OverviewSection } from "../features/dashboard/components/sections/OverviewSection";
 import { WorkoutSection } from "../features/dashboard/components/sections/WorkoutSection";
+
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<DashboardTab>("overview");
@@ -38,7 +40,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen pt-24 pb-16 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <DashboardTabs activeTab={activeTab} onTabChange={setActiveTab} primaryBg="bg-primary" userId={user?.id || ""} />
+        <DashboardTabs activeTab={activeTab} onTabChange={setActiveTab} userId={user?.id || ""} />
 
         {activeTab === "overview" && (
           <OverviewSection answers={answers} calculations={calculations} bmiStatus={bmiStatus!} />
@@ -49,6 +51,8 @@ export default function Dashboard() {
         )}
 
         {activeTab === "exercise" && user && <WorkoutSection userId={user.id} />}
+
+        {activeTab === "stats" && user && <StatsSection userId={user.id} />}
       </div>
     </div>
   );

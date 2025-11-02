@@ -94,6 +94,13 @@ interface DailyTotals {
   variance: string;
 }
 
+export type DailyWaterIntake = {
+  user_id: string;
+  log_date: string;
+  glasses?: number;
+  total_ml?: number;
+};
+
 interface Meal {
   tags: string[];
   tips: string[];
@@ -342,4 +349,4 @@ export interface ExerciseLibrary {
   outdoor_exercises: string[];
 }
 
-export type DashboardTab = "overview" | "meal-plan" | "exercise";
+export type DashboardTab = "overview" | "meal-plan" | "exercise" | "stats";

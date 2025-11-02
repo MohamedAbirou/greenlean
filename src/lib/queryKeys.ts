@@ -10,7 +10,6 @@ export const queryKeys = {
   badges: ["badges"] as const,
   dashboard: ["dashboard"] as const,
   profile: ["profile"] as const,
-  quizProgress: ["quiz_progress"] as const,
   latestQuizResult: ["latest_quiz_result"] as const,
   saasMetrics: ["saas-metrics"] as const,
   adminSubscribers: ["admin-subscribers"] as const,

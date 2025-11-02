@@ -18,6 +18,9 @@ export const SystemHealthTab: React.FC<SystemHealthTabProps> = ({ health, isLoad
 
   if (!health) return <div>No system health data available...</div>;
 
+  const dbSizeMB = health.dbSize / (1024 * 1024);
+  const storagePercent = (health.totalMB / dbSizeMB) * 100;
+
   return (
     <div className="space-y-6">
       <div>
@@ -32,7 +35,7 @@ export const SystemHealthTab: React.FC<SystemHealthTabProps> = ({ health, isLoad
             <h3 className="font-semibold">API Uptime</h3>
             <CheckCircle className="h-5 w-5 text-green-500" />
           </div>
-          <p className="text-3xl font-bold mb-1">{health.apiUptime}%</p>
+          <p className="text-3xl font-bold mb-1">{health.apiUptime || 0}%</p>
           <p className="text-sm text-muted-foreground">Last 30 days</p>
         </div>
 
@@ -41,7 +44,7 @@ export const SystemHealthTab: React.FC<SystemHealthTabProps> = ({ health, isLoad
             <h3 className="font-semibold">Avg Response Time</h3>
             <Activity className="h-5 w-5 text-blue-500" />
           </div>
-          <p className="text-3xl font-bold mb-1">{health.avgResponseTime}ms</p>
+          <p className="text-3xl font-bold mb-1">{health.avgResponseTime || 0}ms</p>
           <p className="text-sm text-green-600">-12ms vs last week</p>
         </div>
 
@@ -70,13 +73,13 @@ export const SystemHealthTab: React.FC<SystemHealthTabProps> = ({ health, isLoad
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Storage Used</span>
-              <span className="font-medium">{health.storageUsed}%</span>
+              <span className="font-medium">{formatBytes(health.totalMB * 1024 * 1024)}</span>
             </div>
             <div>
               <div className="h-2 bg-accent rounded-full">
                 <div
                   className="h-full bg-primary rounded-full transition-all"
-                  style={{ width: `${health.storageUsed}%` }}
+                  style={{ width: `${storagePercent}%` }}
                 />
               </div>
             </div>

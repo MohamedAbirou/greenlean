@@ -1,4 +1,3 @@
-import { Button } from "@/shared/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,12 +41,11 @@ export function UserMenu({ renderAvatar, renderUserMenu, handleSignOut, isAdmin 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          className="rounded-full p-0 dark:hover:bg-transparent hover:bg-transparent"
+        <button
+          className="p-0 cursor-pointer rounded-full max-w-none dark:hover:bg-transparent hover:bg-transparent"
         >
           {renderAvatar()}
-        </Button>
+        </button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent className="w-64" align="start">

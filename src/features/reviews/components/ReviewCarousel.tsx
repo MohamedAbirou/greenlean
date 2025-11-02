@@ -70,24 +70,24 @@ export function ReviewCarousel() {
                       username={
                         testimonial.user_profile?.username ||
                         testimonial.user_profile?.full_name ||
-                        "User"
+                        "Anonymous"
                       }
                     />
                     <div className="flex flex-col">
                       <h4 className="font-semibold text-foreground">
                         {testimonial.user_profile?.full_name ||
                           testimonial.user_profile?.username ||
-                          "User"}
+                          "Anonymous"}
                       </h4>
                       <p className={`text-primary text-sm`}>
                         {typeof testimonial.weight_change_kg === "number" ? (
-                          <div style={{ color: "#26b366", fontWeight: 500, fontSize: 13 }}>
+                          <span style={{ color: "#26b366", fontWeight: 500, fontSize: 13 }}>
                             {testimonial.weight_change_kg < 0
                               ? `Lost ${Math.abs(testimonial.weight_change_kg)}kg`
                               : testimonial.weight_change_kg > 0
                               ? `Gained ${testimonial.weight_change_kg}kg`
                               : null}
-                          </div>
+                          </span>
                         ) : null}
                       </p>
                     </div>

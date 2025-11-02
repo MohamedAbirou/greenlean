@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Check, Droplet, Info, Timer } from "lucide-react";
 import React from "react";
+import WaterIntakeCard from "../WaterIntakeCard";
 
 interface HydrationPlan {
   daily_water_intake: string;
@@ -68,6 +69,8 @@ export const HydrationPanel: React.FC<HydrationPanelProps> = ({
               </p>
             </div>
           </div>
+          {/* Daily Water Intake Card */}
+        <WaterIntakeCard />
           <div className="space-y-2 mt-4">
             <p className="text-xs font-semibold text-cyan-600 dark:text-cyan-400">
               Signs you need more water:

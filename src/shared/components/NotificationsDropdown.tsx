@@ -64,9 +64,8 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="secondary"
-          className="relative rounded-full p-2"
+        <button
+          className="bg-card relative rounded-full p-2 hover:bg-card/80 cursor-pointer"
           aria-label="View notifications"
         >
           <motion.span
@@ -93,7 +92,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
               {unreadCount}
             </span>
           )}
-        </Button>
+        </button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent className="max-h-96 max-w-80 w-80" align="start">

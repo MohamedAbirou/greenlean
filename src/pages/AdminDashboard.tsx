@@ -24,14 +24,13 @@ import SubscriptionsTab from "@/features/admin/components/SubscriptionsTab";
 import { SystemHealthTab } from "@/features/admin/components/SystemHealthTab";
 import { useProfile } from "@/features/profile";
 import NotificationsDropdown from "@/shared/components/NotificationsDropdown";
-import { Button } from "@/shared/components/ui/button";
 import { UserMenu } from "@/shared/components/UserMenu";
 import { useNotifications } from "@/shared/hooks/useNotifications";
 import { useThemeStore } from "@/store/themeStore";
 
 const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState("overview");
-  const [dateRange, setDateRange] = useState<"7d" | "30d" | "90d" | "1y">("30d");
+  const [dateRange, setDateRange] = useState<"7d" | "30d" | "90d" | "1y">("7d");
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll } = useNotifications();
   const { isDarkMode, toggleTheme } = useThemeStore();
 
@@ -40,10 +39,18 @@ const AdminDashboard: React.FC = () => {
   const { profile } = useProfile(user?.id);
 
   // Fetch dashboard data
-  const { data: metrics, isLoading: metricsLoading } = useDashboardMetrics(dateRange);
+  const {
+    data: metrics,
+    isLoading: metricsLoading,
+    refetch: refetchMetrics,
+  } = useDashboardMetrics(dateRange);
   const { data: recentActivity } = useRecentActivity(10);
   const { data: topUsers } = useTopUsers(10);
-  const { data: funnelData, isLoading: funnelLoading } = useConversionFunnel(dateRange);
+  const {
+    data: funnelData,
+    isLoading: funnelLoading,
+    refetch: refetchFunnel,
+  } = useConversionFunnel(dateRange);
   const { data: systemHealth, isLoading: healthLoading } = useSystemHealth();
 
   // Loading state
@@ -91,6 +98,8 @@ const AdminDashboard: React.FC = () => {
             dateRange={dateRange}
             onDateRangeChange={setDateRange}
             isLoading={funnelLoading}
+            refetchFunnel={refetchFunnel}
+            refetchMetrics={refetchMetrics}
           />
         );
       case "plans":
@@ -157,7 +166,7 @@ const AdminDashboard: React.FC = () => {
     <AdminSidebarLayout activeTab={activeTab} setActiveTab={setActiveTab}>
       {/* Top Bar */}
       <header className="bg-card border-b border-border sticky top-0 z-10">
-        <div className="px-6 py-[7px] flex items-center justify-end gap-3">
+        <div className="px-6 py-[7px] flex items-center justify-end space-x-2">
           <NotificationsDropdown
             notifications={notifications.slice(0, 15)}
             onNotificationClick={(n) => {
@@ -168,13 +177,14 @@ const AdminDashboard: React.FC = () => {
             unreadCount={unreadCount}
           />
 
-          <Button
-            variant="secondary"
+          <button
             onClick={toggleTheme}
-            className={`rounded-full ${isDarkMode && "text-yellow-500"}`}
+            className={`rounded-full bg-background p-2 hover:bg-card/80 cursor-pointer ${
+              isDarkMode && "text-yellow-500"
+            }`}
           >
             {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-          </Button>
+          </button>
           <UserMenu
             isAdmin={isAdmin}
             renderAvatar={renderAvatar}

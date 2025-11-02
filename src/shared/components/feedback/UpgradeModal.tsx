@@ -1,4 +1,5 @@
 import { triggerStripeCheckout } from "@/shared/hooks/useStripe";
+import { useState } from "react";
 import { Button } from "../ui/button";
 import { ModalDialog } from "../ui/modal-dialog";
 
@@ -13,6 +14,12 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
   setShowUpgradeModal,
   userId,
 }) => {
+  const [loading, setLoading] = useState(false);
+  const handleUpgrade = async () => {
+    setLoading(true);
+    await triggerStripeCheckout(userId);
+    setLoading(false);
+  };
   return (
     <ModalDialog
       open={showUpgradeModal}
@@ -31,7 +38,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
           <ul className="space-y-2 text-sm">
             <li className="flex items-center gap-2">
               <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-              <span>50 AI-generated quizzes per month</span>
+              <span>20 AI-generated quizzes per month</span>
             </li>
             <li className="flex items-center gap-2">
               <div className="h-1.5 w-1.5 rounded-full bg-primary" />
@@ -50,13 +57,11 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
 
         <div className="space-y-3">
           <Button
-            onClick={() => {
-              triggerStripeCheckout(userId);
-            }}
+            onClick={handleUpgrade}
             className="w-full bg-primary hover:bg-primary/90"
             size="lg"
           >
-            Upgrade Now
+            {loading ? "Processing..." : "Upgrade Now"}
           </Button>
           <p className="text-xs text-center text-muted-foreground">
             Secure payment processed by Stripe. Cancel anytime.

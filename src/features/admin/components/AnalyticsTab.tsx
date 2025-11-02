@@ -10,6 +10,7 @@ import {
   Users,
 } from "lucide-react";
 import React, { useState } from "react";
+import toast from "react-hot-toast";
 import {
   Bar,
   BarChart,
@@ -27,6 +28,9 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { AdminService } from "../api/adminService";
+import { safeNumber } from "../hooks/useAnalytics";
+import { AnalyticsStatCard } from "./AnalyticsStatCard";
 
 interface AnalyticsTabProps {
   funnelData: { stage: string; count: number; percent: number }[];
@@ -34,6 +38,8 @@ interface AnalyticsTabProps {
   dateRange: string;
   onDateRangeChange: (range: "7d" | "30d" | "90d" | "1y") => void;
   isLoading: boolean;
+  refetchFunnel: () => void;
+  refetchMetrics: () => void;
 }
 
 export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
@@ -42,22 +48,19 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
   dateRange,
   onDateRangeChange,
   isLoading,
+  refetchFunnel,
+  refetchMetrics,
 }) => {
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = () => {
     setRefreshing(true);
     setTimeout(() => setRefreshing(false), 1000);
-    window.location.reload();
+    refetchFunnel();
+    refetchMetrics();
   };
 
-  // Safely handle string to number conversions
-  const safeNumber = (val: any): number => {
-    if (typeof val === "string") return parseFloat(val) || 0;
-    return val || 0;
-  };
-
-  if (isLoading) {
+  if (isLoading || refreshing) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -117,15 +120,6 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
     },
   ];
 
-  // Generate revenue trend from current metrics (simplified - single data point)
-  // const revenueTrendData = [
-  //   {
-  //     period: "Current",
-  //     revenue: safeNumber(metrics?.revenue?.thisMonth),
-  //     subscriptions: safeNumber(metrics?.subscriptions?.active),
-  //   },
-  // ];
-
   // Generate user stats from actual data
   const userStatsData = [
     {
@@ -150,50 +144,32 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
     },
   ];
 
-  // Stat Card Component
-  const StatCard = ({ title, value, change, icon: Icon, trend, subtitle }: any) => (
-    <div className="bg-background rounded-xl p-6 border border-border hover:shadow-lg transition-shadow">
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <h3 className="text-2xl font-bold text-foreground mt-2">{value}</h3>
-          {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
-        </div>
-        <div
-          className={`p-3 rounded-lg ${
-            trend === "up" ? "badge-green" : trend === "down" ? "badge-red" : "badge-blue"
-          }`}
-        >
-          <Icon
-            className={`h-6 w-6 ${
-              trend === "up"
-                ? "text-green-600 dark:text-green-400"
-                : trend === "down"
-                ? "text-red-600 dark:text-red-400"
-                : "text-blue-600 dark:text-blue-400"
-            }`}
-          />
-        </div>
-      </div>
-      {change !== undefined && change !== null && (
-        <div className="mt-4 flex items-center">
-          {change >= 0 ? (
-            <ArrowUpRight className="h-4 w-4 text-green-600 dark:text-green-400" />
-          ) : (
-            <ArrowDownRight className="h-4 w-4 text-red-600 dark:text-red-400" />
-          )}
-          <span
-            className={`text-sm font-medium ml-1 ${
-              change >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-            }`}
-          >
-            {Math.abs(change)}%
-          </span>
-          <span className="text-sm text-muted-foreground ml-2">vs last period</span>
-        </div>
-      )}
-    </div>
+  const handleExportCSV = async () => {
+    try {
+      const csv = await AdminService.exportToCSV("analytics");
+      console.log(csv);
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `analytics-export-${new Date().toISOString().split("T")[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      toast.success("Analytics exported successfully");
+    } catch (error) {
+      toast.error("Failed to export analytics");
+    }
+  };
+
+  const maxRevenue = Math.max(
+    safeNumber(metrics?.revenue?.thisMonth),
+    safeNumber(metrics?.revenue?.last30Days),
+    1
   );
+  
+  
 
   return (
     <div className="space-y-6">
@@ -226,7 +202,10 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
             <option value="1y">Last year</option>
           </select>
 
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+          <button
+            onClick={handleExportCSV}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+          >
             <Download className="h-4 w-4" />
             <span className="text-sm font-medium">Export</span>
           </button>
@@ -235,7 +214,7 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
 
       {/* Key Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
+        <AnalyticsStatCard
           title="Total Revenue"
           value={`$${safeNumber(metrics?.revenue?.total).toLocaleString()}`}
           change={safeNumber(metrics?.revenue?.growth)}
@@ -243,7 +222,7 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
           trend={safeNumber(metrics?.revenue?.growth) >= 0 ? "up" : "down"}
           subtitle={`MRR: $${safeNumber(metrics?.revenue?.monthly).toLocaleString()}`}
         />
-        <StatCard
+        <AnalyticsStatCard
           title="Total Users"
           value={safeNumber(metrics?.users?.total).toLocaleString()}
           change={safeNumber(metrics?.users?.growthRate)}
@@ -251,7 +230,7 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
           trend="up"
           subtitle={`Active: ${safeNumber(metrics?.users?.active).toLocaleString()}`}
         />
-        <StatCard
+        <AnalyticsStatCard
           title="Subscriptions"
           value={safeNumber(metrics?.subscriptions?.active).toLocaleString()}
           change={-safeNumber(metrics?.subscriptions?.churnRate)}
@@ -259,10 +238,10 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
           trend={safeNumber(metrics?.subscriptions?.churnRate) > 0 ? "down" : "neutral"}
           subtitle={`Total: ${safeNumber(metrics?.subscriptions?.total).toLocaleString()}`}
         />
-        <StatCard
+        <AnalyticsStatCard
           title="Avg LTV"
           value={`$${safeNumber(metrics?.subscriptions?.ltv)}`}
-          change={null}
+          change={null!}
           icon={Target}
           trend="neutral"
           subtitle={`ARR: $${safeNumber(metrics?.revenue?.arr).toLocaleString()}`}
@@ -272,7 +251,7 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* User Distribution */}
-        <div className="bg-background rounded-xl p-6 border border-border">
+        <div className="bg-card rounded-xl p-6 border border-border">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-foreground">User Distribution</h3>
             <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
@@ -294,6 +273,8 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
                   borderRadius: "8px",
                   color: "#fff",
                 }}
+                labelStyle={{ color: "#fff" }}
+                itemStyle={{ color: "#d1d5db" }}
               />
               <Bar dataKey="count" radius={[8, 8, 0, 0]}>
                 {userStatsData.map((entry, index) => (
@@ -305,7 +286,7 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
         </div>
 
         {/* Revenue Overview */}
-        <div className="bg-background rounded-xl p-6 border border-border">
+        <div className="bg-card rounded-xl p-6 border border-border">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-foreground">Revenue Overview</h3>
             <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
@@ -321,8 +302,13 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
                   ${safeNumber(metrics?.revenue?.thisMonth).toLocaleString()}
                 </span>
               </div>
-              <div className="h-2 bg-card rounded-full">
-                <div className="h-full bg-blue-500 rounded-full" style={{ width: "100%" }}></div>
+              <div className="h-2 bg-background rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-progress-green-emerald transition-all rounded-full relative"
+                  style={{ width: `${safeNumber(metrics?.revenue?.thisMonth)}%` }}
+                >
+                  <div className="absolute inset-0 bg-gray-200 rounded-full opacity-20 animate-pulse"></div>
+                </div>
               </div>
             </div>
             <div>
@@ -332,18 +318,13 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
                   ${safeNumber(metrics?.revenue?.last30Days).toLocaleString()}
                 </span>
               </div>
-              <div className="h-2 bg-card rounded-full">
+              <div className="h-2 bg-background rounded-full">
                 <div
-                  className="h-full bg-purple-500 rounded-full"
-                  style={{
-                    width: `${Math.min(
-                      100,
-                      (safeNumber(metrics?.revenue?.last30Days) /
-                        Math.max(safeNumber(metrics?.revenue?.thisMonth), 1)) *
-                        100
-                    )}%`,
-                  }}
-                ></div>
+                  className="h-full bg-progress-purple-pink transition-all rounded-full relative"
+                  style={{ width: `${(safeNumber(metrics?.revenue?.thisMonth) / maxRevenue) * 100}%` }}
+                >
+                  <div className="absolute inset-0 bg-gray-200 rounded-full opacity-20 animate-pulse"></div>
+                </div>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
@@ -365,7 +346,7 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
       </div>
 
       {/* Conversion Funnel */}
-      <div className="bg-background rounded-xl p-6 border border-border">
+      <div className="bg-card rounded-xl p-6 border border-border">
         <h3 className="text-lg font-semibold text-foreground mb-6">Conversion Funnel</h3>
         <div className="space-y-4">
           {funnelData && funnelData.length > 0 ? (
@@ -377,17 +358,21 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
                     {stage.count.toLocaleString()} ({stage.percent}%)
                   </span>
                 </div>
-                <div className="h-4 bg-card rounded-full overflow-hidden">
+                <div className="h-2 bg-background rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all rounded-full relative"
+                    className="h-full bg-progress-green-emerald transition-all rounded-full relative"
                     style={{ width: `${stage.percent}%` }}
                   >
-                    <div className="absolute inset-0 bg-white opacity-20 animate-pulse"></div>
+                    <div className="absolute inset-0 bg-gray-200 rounded-full opacity-20 animate-pulse"></div>
                   </div>
                 </div>
                 {idx < funnelData.length - 1 && stage.count > 0 && (
                   <div className="flex items-center gap-2 mt-2 ml-4">
-                    <ArrowDownRight className="h-4 w-4 text-gray-400" />
+                    {safeNumber(metrics?.revenue?.growth) >= 0 ? (
+                      <ArrowDownRight className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <ArrowUpRight className="h-4 w-4 text-red-500" />
+                    )}
                     <span className="text-xs text-muted-foreground">
                       {Math.round((funnelData[idx + 1].count / stage.count) * 100)}% conversion rate
                     </span>
@@ -406,7 +391,7 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
       {/* Charts Row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Feature Usage Pie */}
-        <div className="bg-background rounded-xl p-6 border border-border">
+        <div className="bg-card rounded-xl p-6 border border-border">
           <h3 className="text-lg font-semibold text-foreground mb-6">Feature Distribution</h3>
           {featureUsageData.length > 0 ? (
             <>
@@ -433,7 +418,7 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
                       color: "#fff",
                     }}
                     labelStyle={{ color: "#fff" }}
-                    itemStyle={{ color: "#d1d5db" }} // softer gray if you want contrast
+                    itemStyle={{ color: "#d1d5db" }}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -457,7 +442,7 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
         </div>
 
         {/* Engagement Radar */}
-        <div className="bg-background rounded-xl p-6 border border-border">
+        <div className="bg-card rounded-xl p-6 border border-border">
           <h3 className="text-lg font-semibold text-foreground mb-6">Engagement Score</h3>
           <ResponsiveContainer width="100%" height={250}>
             <RadarChart data={engagementRadarData}>
@@ -473,11 +458,12 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
                 strokeWidth={2}
               />
               <Tooltip
+                labelStyle={{ color: "#fff" }}
                 contentStyle={{
                   backgroundColor: "#1f2937",
                   border: "none",
                   borderRadius: "8px",
-                  color: "#fff",
+                  color: "#FFFFFF",
                 }}
               />
             </RadarChart>
@@ -485,7 +471,7 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
         </div>
 
         {/* Quick Stats */}
-        <div className="bg-background rounded-xl p-6 border border-border">
+        <div className="bg-card rounded-xl p-6 border border-border">
           <h3 className="text-lg font-semibold text-foreground mb-6">Quick Stats</h3>
           <div className="space-y-4">
             <div className="flex justify-between items-center">
@@ -523,7 +509,7 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
       </div>
 
       {/* Feature Performance Details */}
-      <div className="bg-background rounded-xl p-6 border border-border">
+      <div className="bg-card rounded-xl p-6 border border-border">
         <h3 className="text-lg font-semibold text-foreground mb-6">Feature Performance</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
@@ -558,7 +544,7 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
                 : 0;
 
             return (
-              <div key={idx} className="p-4 rounded-lg bg-card border border-border">
+              <div key={idx} className="bg-background p-4 rounded-lg border border-border">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="font-medium text-foreground text-sm">{feature.name}</h4>
                   <span className="text-xs font-medium px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
@@ -571,7 +557,7 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
                       <span>Generated</span>
                       <span>{feature.generated.toLocaleString()}</span>
                     </div>
-                    <div className="h-2 bg-background rounded-full">
+                    <div className="h-2 bg-card rounded-full">
                       <div
                         className="h-full bg-blue-500 rounded-full"
                         style={{ width: "100%" }}
@@ -583,7 +569,7 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
                       <span>Completed</span>
                       <span>{feature.completed.toLocaleString()}</span>
                     </div>
-                    <div className="h-2 bg-background rounded-full">
+                    <div className="h-2 bg-card rounded-full">
                       <div
                         className="h-full bg-green-500 rounded-full"
                         style={{ width: `${completionRate}%` }}

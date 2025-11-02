@@ -98,18 +98,20 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
       iconColor: "text-purple-600 dark:text-purple-400",
     },
     // Show Body Fat Percentage IF it exists in calculations!
-    ...(calculations.bodyFatPercentage ? [
-      {
-        icon: Percent,
-        label: "Body Fat Percentage",
-        value: `${calculations.bodyFatPercentage}%`,
-        subtitle: "body fat percentage",
-        color: "red",
-        bgGradient: "bg-stat-red",
-        iconBg: "bg-red-500/10 dark:bg-red-500/20",
-        iconColor: "text-red-600 dark:text-red-400",
-      }
-    ] : []),
+    ...(calculations.bodyFatPercentage
+      ? [
+          {
+            icon: Percent,
+            label: "Body Fat Percentage",
+            value: `${calculations.bodyFatPercentage}%`,
+            subtitle: "body fat percentage",
+            color: "red",
+            bgGradient: "bg-stat-red",
+            iconBg: "bg-red-500/10 dark:bg-red-500/20",
+            iconColor: "text-red-600 dark:text-red-400",
+          },
+        ]
+      : []),
   ];
 
   const macroData = [
@@ -117,24 +119,24 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
       name: "Protein",
       percentage: calculations.macros.protein_pct_of_calories,
       grams: calculations.macros.protein_g,
-      color: "bg-green-600 dark:bg-green-500",
-      lightColor: "bg-green-50 dark:bg-green-900/30 border border-green-200/50 dark:border-green-700/50",
+      color: "bg-progress-green-emerald",
+      lightColor: "badge-green border",
       icon: "🥩",
     },
     {
       name: "Carbs",
       percentage: calculations.macros.carbs_pct_of_calories,
       grams: calculations.macros.carbs_g,
-      color: "bg-blue-600 dark:bg-blue-500",
-      lightColor: "bg-blue-50 dark:bg-blue-900/30 border border-blue-200/50 dark:border-blue-700/50",
+      color: "bg-progress-blue-cyan",
+      lightColor: "badge-blue border",
       icon: "🍞",
     },
     {
       name: "Fats",
       percentage: calculations.macros.fat_pct_of_calories,
       grams: calculations.macros.fat_g,
-      color: "bg-yellow-600 dark:bg-yellow-500",
-      lightColor: "bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200/50 dark:border-yellow-700/50",
+      color: "bg-progress-yellow-amber",
+      lightColor: "badge-yellow border",
       icon: "🥑",
     },
   ];
@@ -142,7 +144,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
   return (
     <div className="space-y-6">
       {/* Hero Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className={`grid grid-cols-1 sm:grid-cols-2 ${calculations.bodyFatPercentage ? "lg:grid-cols-5" : "lg:grid-cols-4"} gap-4`}>
         {statCards.map((stat, index) => (
           <motion.div
             key={stat.label}
@@ -190,7 +192,9 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
             </div>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{progressPercentage.toFixed(0)}%</p>
+            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+              {progressPercentage.toFixed(0)}%
+            </p>
             <p className="text-xs text-foreground/60">Progress</p>
           </div>
         </div>
@@ -238,7 +242,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.5 }}
-        className="bg-card rounded-md p-6 border border-border/30 dark:border-white/10 shadow-sm"
+        className="bg-card rounded-md p-6 border border-border shadow-sm"
       >
         <div className="flex items-center gap-3 mb-6">
           <div className="bg-primary/10 dark:bg-primary/20 p-3 rounded-md">
@@ -312,11 +316,11 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3, delay: 0.7 }}
-          className="bg-card rounded-md p-6 border border-border/30 dark:border-white/10 shadow-sm"
+          className="bg-card rounded-md p-6 border border-border shadow-sm"
         >
           <div className="flex items-center gap-3 mb-4">
-            <div className="bg-green-500/10 dark:bg-green-500/20 p-3 rounded-md">
-              <Award className="h-6 w-6 text-green-600 dark:text-green-400" />
+            <div className="bg-primary/10 dark:bg-primary/20 p-3 rounded-md">
+              <Award className="h-6 w-6 text-primary" />
             </div>
             <h3 className="text-lg font-semibold text-foreground">Your Goals</h3>
           </div>
@@ -331,7 +335,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
                 {(answers.secondaryGoals || []).map((goal: string, idx: number) => (
                   <span
                     key={idx}
-                    className="px-3 py-1.5 bg-primary/10 dark:bg-primary/20 text-primary text-sm rounded-full font-medium border border-primary/20"
+                    className="px-3 py-1.5 badge-green text-primary text-sm rounded-full font-medium border"
                   >
                     {goal}
                   </span>
@@ -358,7 +362,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3, delay: 0.8 }}
-          className="bg-card rounded-md p-6 border border-border/30 dark:border-white/10 shadow-sm"
+          className="bg-card rounded-md p-6 border border-border shadow-sm"
         >
           <div className="flex items-center gap-3 mb-4">
             <div className="bg-primary/10 dark:bg-primary/20 p-3 rounded-md">

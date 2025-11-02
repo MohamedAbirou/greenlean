@@ -149,13 +149,12 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
                 unreadCount={unreadCount}
               />
 
-              <Button
-                variant="secondary"
+              <button
                 onClick={toggleTheme}
-                className={`rounded-full p-0 ${isDarkMode && "text-yellow-500"}`}
+                className={`bg-card rounded-full p-2 hover:bg-card/80 cursor-pointer ${isDarkMode && "text-yellow-500"}`}
               >
                 {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-              </Button>
+              </button>
 
               {user ? (
                 <UserMenu
