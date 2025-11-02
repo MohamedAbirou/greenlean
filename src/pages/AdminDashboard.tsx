@@ -1,5 +1,5 @@
 // src/pages/admin-dashboard/AdminDashboard.tsx
-import { useAdminStatus } from "@/features/admin";
+import { SettingsTab, useAdminStatus } from "@/features/admin";
 import AdminSidebarLayout from "@/features/admin/components/AdminSidebarLayout";
 import BadgesTab from "@/features/admin/components/BadgesTabs";
 import ChallengesTab from "@/features/admin/components/ChallengesTab";
@@ -116,6 +116,8 @@ const AdminDashboard: React.FC = () => {
         return <RewardsTab />;
       case "subscriptions":
         return <SubscriptionsTab currentUserId={user?.id || ""} />;
+      case "settings":
+        return <SettingsTab />;
       default:
         return null;
     }

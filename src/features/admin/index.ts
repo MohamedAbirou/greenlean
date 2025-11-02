@@ -10,3 +10,8 @@ export type {
   ChallengeWithParticipants,
   NotificationPayload,
 } from "./types";
+
+// Add to existing exports
+export { default as SettingsTab } from './components/SettingsTab';
+export * from './hooks/useSettings';
+export * from './types/settings.types';
