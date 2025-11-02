@@ -36,10 +36,10 @@ const AdminBootstrap: React.FC = () => {
     setMessage(null);
 
     try {
-      const result = await createFirstAdmin(user.id, "admin");
+      const result = await createFirstAdmin(user.id, "super_admin");
       
       if (result.success) {
-        setMessage({ type: 'success', text: 'Admin access granted successfully!' });
+        setMessage({ type: 'success', text: 'Super admin access granted successfully!' });
         setIsAdmin(true);
         // Refresh the page to update admin status throughout the app
         setTimeout(() => {
@@ -51,7 +51,7 @@ const AdminBootstrap: React.FC = () => {
     } catch (error) {
       setMessage({ 
         type: 'error', 
-        text: error instanceof Error ? error.message : 'Failed to create admin' 
+        text: error instanceof Error ? error.message : 'Failed to create super admin' 
       });
     } finally {
       setCreating(false);
