@@ -20,6 +20,8 @@ interface OverviewSectionProps {
   answers: Record<string, any>;
   calculations: DashboardCalculations;
   bmiStatus: BmiStatus;
+  // Add profile to props
+  profile: { weight_kg?: number };
 }
 
 function getWeight(weightObj: { kg?: string | number; lbs?: string | number }) {
@@ -37,16 +39,17 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
   answers,
   calculations,
   bmiStatus,
+  profile,
 }) => {
-  const currentWeight = getWeight(answers.currentWeight);
-  const targetWeight = getWeight(answers.targetWeight);
-
-  const startingWeight = currentWeight.value;
-  const goalWeight = targetWeight.value;
+  const startingWeight = getWeight(answers.currentWeight).value;
+  const goalWeight = getWeight(answers.targetWeight).value;
+  // Use user profile weight if available, else fallback to quiz answer
+  const currentWeight = (typeof profile.weight_kg === 'number' && !isNaN(profile.weight_kg))
+    ? profile.weight_kg
+    : startingWeight;
   const totalWeightChange = Math.abs(startingWeight - goalWeight);
-  const currentProgress = 0;
-  const progressPercentage =
-    totalWeightChange > 0 ? (currentProgress / totalWeightChange) * 100 : 0;
+  const progressMade = Math.abs(startingWeight - currentWeight);
+  const progressPercentage = totalWeightChange > 0 ? Math.min((progressMade / totalWeightChange) * 100, 100) : 0;
 
   const getBMIColor = (status: string) => {
     if (status.toLowerCase().includes("normal")) return "text-green-500";
@@ -202,10 +205,10 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
         <div className="space-y-2">
           <div className="flex justify-between text-sm text-foreground/70">
             <span>
-              Current: {currentWeight.value} {currentWeight.unit}
+              Current: {currentWeight} {getWeight(answers.currentWeight).unit}
             </span>
             <span>
-              Target: {targetWeight.value} {targetWeight.unit}
+              Target: {goalWeight} {getWeight(answers.targetWeight).unit}
             </span>
           </div>
           <div className="relative h-3 bg-muted/50 rounded-full overflow-hidden">
@@ -346,7 +349,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
               <div className="bg-muted/30 rounded-md p-3 border border-border/30">
                 <p className="text-xs font-medium text-foreground/60 mb-1">Target Weight</p>
                 <p className="text-lg font-bold text-foreground">
-                  {targetWeight.value} {targetWeight.unit}
+                  {goalWeight} {getWeight(answers.targetWeight).unit}
                 </p>
               </div>
               <div className="bg-muted/30 rounded-md p-3 border border-border/30">

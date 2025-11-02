@@ -7,11 +7,11 @@ import type { DashboardTab } from "@/shared/types/dashboard";
 import { useState } from "react";
 import { useAuth } from "../features/auth";
 import {
-  DashboardEmpty,
-  DashboardLoading,
-  DashboardTabs,
-  StatsSection,
-  useDashboardData
+    DashboardEmpty,
+    DashboardLoading,
+    DashboardTabs,
+    StatsSection,
+    useDashboardData
 } from "../features/dashboard";
 import { DietPlanSection } from "../features/dashboard/components/sections/DietPlanSection";
 import { OverviewSection } from "../features/dashboard/components/sections/OverviewSection";
@@ -20,7 +20,7 @@ import { WorkoutSection } from "../features/dashboard/components/sections/Workou
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<DashboardTab>("overview");
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   const { data, isLoading } = useDashboardData(user?.id);
 
@@ -43,7 +43,7 @@ export default function Dashboard() {
         <DashboardTabs activeTab={activeTab} onTabChange={setActiveTab} userId={user?.id || ""} />
 
         {activeTab === "overview" && (
-          <OverviewSection answers={answers} calculations={calculations} bmiStatus={bmiStatus!} />
+          <OverviewSection answers={answers} calculations={calculations} bmiStatus={bmiStatus!} profile={profile} />
         )}
 
         {activeTab === "meal-plan" && user && (
