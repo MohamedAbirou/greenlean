@@ -1,3 +1,4 @@
+import type { Profile } from "@/features/profile";
 import type { BmiStatus, DashboardCalculations } from "@/shared/types/dashboard";
 import { motion } from "framer-motion";
 import {
@@ -20,8 +21,7 @@ interface OverviewSectionProps {
   answers: Record<string, any>;
   calculations: DashboardCalculations;
   bmiStatus: BmiStatus;
-  // Add profile to props
-  profile: { weight_kg?: number };
+  profile: Profile | null;
 }
 
 function getWeight(weightObj: { kg?: string | number; lbs?: string | number }) {
@@ -44,7 +44,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
   const startingWeight = getWeight(answers.currentWeight).value;
   const goalWeight = getWeight(answers.targetWeight).value;
   // Use user profile weight if available, else fallback to quiz answer
-  const currentWeight = (typeof profile.weight_kg === 'number' && !isNaN(profile.weight_kg))
+  const currentWeight = (typeof profile?.weight_kg === 'number' && !isNaN(profile.weight_kg))
     ? profile.weight_kg
     : startingWeight;
   const totalWeightChange = Math.abs(startingWeight - goalWeight);

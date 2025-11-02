@@ -7,11 +7,11 @@ import type { DashboardTab } from "@/shared/types/dashboard";
 import { useState } from "react";
 import { useAuth } from "../features/auth";
 import {
-    DashboardEmpty,
-    DashboardLoading,
-    DashboardTabs,
-    StatsSection,
-    useDashboardData
+  DashboardEmpty,
+  DashboardLoading,
+  DashboardTabs,
+  StatsSection,
+  useDashboardData
 } from "../features/dashboard";
 import { DietPlanSection } from "../features/dashboard/components/sections/DietPlanSection";
 import { OverviewSection } from "../features/dashboard/components/sections/OverviewSection";
