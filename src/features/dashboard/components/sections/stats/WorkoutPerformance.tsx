@@ -95,7 +95,7 @@ export function WorkoutPerformance({ workoutCalendar, workoutStats, weeklyEffort
                       {new Date(day.date).getDate()}
                     </span>
                     {day.workoutType && (
-                      <span className="text-lg">{getWorkoutIcon(day.workoutType)}</span>
+                      <span className="text-xs sm:text-lg">{getWorkoutIcon(day.workoutType)}</span>
                     )}
                   </div>
                 ))}

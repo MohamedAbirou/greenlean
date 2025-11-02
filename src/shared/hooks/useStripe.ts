@@ -7,7 +7,7 @@ export const triggerStripeCheckout = async (userId: string) => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       user_id: userId,
-      success_url: window.location.origin + "/profile?paid=success",
+      success_url: window.location.origin + "/profile/settings?paid=success",
       cancel_url: window.location.href,
     }),
   });

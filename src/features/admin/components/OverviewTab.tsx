@@ -128,7 +128,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           change={`+${data?.engagement?.dauGrowth?.toFixed(1)}%`}
           trend={data?.engagement?.dauGrowth?.toFixed(1) > 0 ? "up" : "down"}
           color="bg-pink-500"
-          subtext={`${data?.engagement?.avgWorkoutDuration} min avg workout, ${data?.engagement?.avgWaterIntake} ml avg water, ${data?.engagement?.avgNutritionIntake} calories avg nutrition`}
+          subtext={`${data?.engagement?.avgWorkoutDuration.toFixed(1)} min avg workout, ${data?.engagement?.avgWaterIntake.toFixed(1)} ml avg water, ${data?.engagement?.avgNutritionIntake.toFixed(1)} calories avg nutrition`}
         />
         <StatCard
           icon={Award}

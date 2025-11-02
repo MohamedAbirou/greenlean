@@ -64,7 +64,6 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
         typeof p?.plan_renewal_date === "string"
           ? p.plan_renewal_date
           : (p?.plan_renewal_date as Date | undefined)?.toISOString?.() ?? "";
-      // TODO: fetch allowed dynamically from /plans or hardcode for now
       let allowed = 1,
         planName = "Free";
       if (planId === "pro") {

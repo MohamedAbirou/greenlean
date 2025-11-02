@@ -13,6 +13,7 @@ import DietPlanDetails from "@/pages/DietPlanDetails";
 import DietPlans from "@/pages/DietPlans";
 import ExerciseDetails from "@/pages/ExerciseDetails";
 import Home from "@/pages/Home";
+import MaintenancePage from "@/pages/MaintenancePage";
 import ProfileSettings from "@/pages/ProfileSettings";
 import Quiz from "@/pages/Quiz";
 import QuizHistory from "@/pages/QuizHistory";
@@ -44,6 +45,10 @@ export const routes: RouteObject[] = [
     element: <ResetPassword />,
   },
   {
+    path: "/maintenance",
+    element: <MaintenancePage />,
+  },
+  {
     path: "/",
     element: <Layout />,
     children: [
@@ -64,10 +69,6 @@ export const routes: RouteObject[] = [
         element: <FAQ />,
       },
       {
-        path: "quiz",
-        element: <Quiz />,
-      },
-      {
         path: "diet-plans",
         element: <DietPlans />,
       },
@@ -82,6 +83,14 @@ export const routes: RouteObject[] = [
       {
         path: "weight-loss/:id",
         element: <ExerciseDetails />,
+      },
+      {
+        path: "quiz",
+        element: (
+          <ProtectedRoute>
+            <Quiz />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "profile/settings",

@@ -202,7 +202,7 @@ export function NutritionAnalytics({
             {mealConsistency.slice(-30).map((day, idx) => {
               const percentage = (day.mealsLogged / day.expectedMeals) * 100;
               let bgColor = "bg-gray-100";
-              if (percentage >= 80) bgColor = "bg-green-500";
+              if (percentage >= 80) bgColor = "bg-[#10b981]";
               else if (percentage >= 50) bgColor = "bg-yellow-400";
               else if (percentage > 0) bgColor = "bg-orange-300";
 
@@ -221,7 +221,7 @@ export function NutritionAnalytics({
               <div className="w-4 h-4 rounded bg-gray-100"></div>
               <div className="w-4 h-4 rounded bg-orange-300"></div>
               <div className="w-4 h-4 rounded bg-yellow-400"></div>
-              <div className="w-4 h-4 rounded bg-green-500"></div>
+              <div className="w-4 h-4 rounded bg-[#10b981]"></div>
             </div>
             <span>More</span>
           </div>

@@ -135,7 +135,7 @@ export class AnalyticsService {
 
       // Recompute some derived metrics you previously had
       return {
-        conversionRate: (stripeMetrics.conversionRate || 0) * 100,
+        conversionRate: stripeMetrics.conversionRate || 0,
         conversionRateGrowth: this.calculateGrowth(
           stripeMetrics.conversionRate,
           stripeMetrics.conversionRateLast30Days
@@ -163,7 +163,8 @@ export class AnalyticsService {
           total: stripeMetrics.totalSubscribers || 0,
           trial: 0,
           canceled: stripeMetrics.churnedThisMonth || 0,
-          churnRate: stripeMetrics.churnedThisMonth || 0,
+          arpu: stripeMetrics.arpu || 0,
+          churnRate: stripeMetrics.churnRate || 0,
           ltv: stripeMetrics.ltv || 0,
           ltvGrowth: stripeMetrics.ltvGrowth || 0,
         },

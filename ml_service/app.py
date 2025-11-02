@@ -345,8 +345,8 @@ async def create_checkout_session(request: Request):
     try:
         data = await request.json()
         user_id = data["user_id"]  # from auth/session/cookie
-        success_url = data.get("success_url", "https://greenlean.vercel.app/account?stripe=success")
-        cancel_url = data.get("cancel_url", "https://greenlean.vercel.app/account?stripe=cancel")
+        success_url = data.get("success_url", "https://greenlean.vercel.app/profile/settings?stripe=success")
+        cancel_url = data.get("cancel_url", "https://greenlean.vercel.app/profile/settings?stripe=cancel")
         # You may hardcode your pro plan price_id or product for now:
         price_id = os.getenv("STRIPE_PRICE_ID")
 
@@ -401,8 +401,6 @@ async def stripe_webhook(request: Request, stripe_signature: str = Header(None))
 # ANALYTICS ENDPOINTS
 @app.get("/api/admin/saas-metrics")
 async def get_saas_metrics():
-    # Fetch subscriptions and expand items.data.price, which is within the depth limit.
-    # Also expand customer on the latest_invoice to get email.
     subs_iterator = stripe.Subscription.list(
         status="all",
         limit=100,
@@ -411,86 +409,138 @@ async def get_saas_metrics():
 
     invoices_iterator = stripe.Invoice.list(limit=100).auto_paging_iter()
 
-    # Cache for product names to minimize redundant API calls
     product_cache = {}
 
     def get_product_name(price_id):
         if price_id not in product_cache:
             try:
-                # Retrieve the price and expand the product in a separate call
                 price_with_product = stripe.Price.retrieve(price_id, expand=["product"])
                 product_cache[price_id] = price_with_product.product.name
-            except stripe.error.StripeError as e:
-                print(f"Error retrieving product for price {price_id}: {e}")
+            except stripe.error.StripeError:
                 product_cache[price_id] = "Unknown Plan"
         return product_cache[price_id]
 
-    # Collect data from iterators once to prevent multiple API calls
     all_subs = list(subs_iterator)
     all_invoices = list(invoices_iterator)
 
     active_subs = [s for s in all_subs if s.status in ("active", "trialing", "past_due")]
     canceled_subs = [s for s in all_subs if s.status == "canceled"]
 
-    # MRR calculation using the expanded price information
+    # --- MRR
     mrr = sum(
         item.price.unit_amount for s in active_subs for item in dict(s.items())['items'].data
         if item.price.recurring and item.price.recurring.interval == "month"
     ) / 100
 
-
-    # Total earnings
+    # --- Earnings
     all_earnings = sum(i.amount_paid for i in all_invoices) / 100
-
     now = datetime.now(timezone.utc)
     start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     last_30 = now - timedelta(days=30)
 
-    # Earnings this month and last 30 days
     earnings_this_month = sum(
         i.amount_paid for i in all_invoices if datetime.fromtimestamp(i.created, tz=timezone.utc) >= start_of_month
     ) / 100
+
     earnings_last_30 = sum(
         i.amount_paid for i in all_invoices if datetime.fromtimestamp(i.created, tz=timezone.utc) >= last_30
     ) / 100
 
-    # Subscribers by month
+    # --- Subscribers by month
     by_month = {}
     for s in all_subs:
         dt = datetime.fromtimestamp(s.created, tz=timezone.utc)
         label = dt.strftime("%Y-%m")
         by_month[label] = by_month.get(label, 0) + 1
 
-    # New this month and churn this month
+    # --- New / churned
     new_this_month = sum(
         1 for s in all_subs
         if datetime.fromtimestamp(s.created, tz=timezone.utc) >= start_of_month and s.status in ("active", "trialing")
+    )
+    new_last_30 = sum(
+        1 for s in all_subs
+        if datetime.fromtimestamp(s.created, tz=timezone.utc) >= last_30 and s.status in ("active", "trialing")
     )
     churned_this_month = sum(
         1 for s in all_subs
         if s.canceled_at and datetime.fromtimestamp(s.canceled_at, tz=timezone.utc) >= start_of_month
     )
 
-    # Recent canceled with proper product name retrieval
+    # --- Conversion rates
+    total_created = len(all_subs)
+    created_last_30 = sum(1 for s in all_subs if datetime.fromtimestamp(s.created, tz=timezone.utc) >= last_30)
+
+    conversion_rate = (new_this_month / total_created * 100) if total_created > 0 else 0
+    conversion_rate_last_30 = (new_last_30 / created_last_30 * 100) if created_last_30 > 0 else 0
+
+    # --- Recent canceled
     recent_canceled = []
-    for s in canceled_subs:
-        if len(recent_canceled) >= 20:
-            break
-        
-        plan_name = ""
+    for s in canceled_subs[:20]:
         items_list = dict(s.items())['items'].data
-        if items_list and items_list[0].price:
-            price_id = items_list[0].price.id
-            plan_name = get_product_name(price_id)
-
-
-        customer_email = s.latest_invoice.customer.email if s.latest_invoice and s.latest_invoice.customer and s.latest_invoice.customer.email else ""
-        
+        plan_name = get_product_name(items_list[0].price.id) if items_list else "Unknown Plan"
+        customer_email = (
+            s.latest_invoice.customer.email
+            if s.latest_invoice and s.latest_invoice.customer and s.latest_invoice.customer.email
+            else ""
+        )
         recent_canceled.append({
             "customer_email": customer_email,
             "canceled_at": s.canceled_at,
             "plan": plan_name,
         })
+
+    # --- Compute LTV for current period (already done)
+    if len(active_subs) > 0:
+        arpu = mrr / len(active_subs)
+    else:
+        arpu = 0
+
+    if (len(active_subs) + churned_this_month) > 0:
+        churn_rate = churned_this_month / (len(active_subs) + churned_this_month)
+    else:
+        churn_rate = 0
+
+    if churn_rate > 0:
+        ltv = arpu / churn_rate
+    else:
+        ltv = arpu * 12  # fallback assumption
+
+    # --- Estimate previous month's LTV
+    one_month_ago = now - timedelta(days=30)
+    subs_last_month = [s for s in all_subs if datetime.fromtimestamp(s.created, tz=timezone.utc) < one_month_ago]
+    active_last_month = [s for s in subs_last_month if s.status in ("active", "trialing", "past_due")]
+    churned_last_month = [
+        s for s in subs_last_month
+        if s.canceled_at and datetime.fromtimestamp(s.canceled_at, tz=timezone.utc) >= (one_month_ago - timedelta(days=30))
+    ]
+
+    mrr_last_month = sum(
+        item.price.unit_amount for s in active_last_month for item in dict(s.items())['items'].data
+        if item.price.recurring and item.price.recurring.interval == "month"
+    ) / 100
+
+    if len(active_last_month) > 0:
+        arpu_last_month = mrr_last_month / len(active_last_month)
+    else:
+        arpu_last_month = 0
+
+    if (len(active_last_month) + len(churned_last_month)) > 0:
+        churn_rate_last_month = len(churned_last_month) / (len(active_last_month) + len(churned_last_month))
+    else:
+        churn_rate_last_month = 0
+
+    if churn_rate_last_month > 0:
+        ltv_last_month = arpu_last_month / churn_rate_last_month
+    else:
+        ltv_last_month = arpu_last_month * 12
+
+    # --- LTV Growth
+    if ltv_last_month > 0:
+        ltv_growth_percent = ((ltv - ltv_last_month) / ltv_last_month) * 100
+    else:
+        ltv_growth_percent = 0
+
 
     return {
         "mrr": mrr,
@@ -502,7 +552,13 @@ async def get_saas_metrics():
         "newSubsThisMonth": new_this_month,
         "churnedThisMonth": churned_this_month,
         "subscribersByMonth": by_month,
-        "recentCanceled": recent_canceled
+        "recentCanceled": recent_canceled,
+        "conversionRate": conversion_rate,
+        "conversionRateLast30Days": conversion_rate_last_30,
+        "arpu": round(arpu, 2),
+        "churnRate": round(churn_rate * 100, 2),
+        "ltv": round(ltv, 2),
+        "ltvGrowth": round(ltv_growth_percent, 2),
     }
 
 @app.get("/api/admin/subscribers")

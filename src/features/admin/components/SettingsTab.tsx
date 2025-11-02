@@ -1,120 +1,71 @@
+import { useSettings } from "@/features/admin/hooks/useSettings";
 import {
-    AlertCircle,
-    Bell,
-    CheckCircle,
-    Database,
-    DollarSign,
-    Globe,
-    Mail,
-    RefreshCw,
-    Save,
-    Shield,
-    Zap
+  AlertCircle,
+  Bell,
+  Database,
+  DollarSign,
+  Globe,
+  Loader2,
+  RefreshCw,
+  Save,
+  Shield,
+  Zap
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-
-// Mock hooks - replace with your actual implementations
-const useSettings = () => {
-  const [settings, setSettings] = useState({
-    // General Settings
-    site_name: "GreenLean",
-    site_description: "Your Health & Fitness Companion",
-    maintenance_mode: false,
-    max_free_ai_generations: 2,
-
-    // Email Settings
-    email_notifications_enabled: true,
-    admin_email: "admin@greenlean.com",
-    smtp_host: "smtp.gmail.com",
-    smtp_port: "587",
-    smtp_username: "",
-    smtp_password: "",
-
-    // Security Settings
-    session_timeout_minutes: 60,
-    max_login_attempts: 5,
-    password_min_length: 8,
-    require_email_verification: true,
-    two_factor_auth_enabled: false,
-
-    // AI Service Settings
-    ai_service_url: "http://localhost:8000",
-    ai_timeout_seconds: 30,
-    ai_rate_limit_per_user: 10,
-    ai_generation_retry_attempts: 3,
-
-    // Notification Settings
-    streak_warning_hours: 20,
-    challenge_reminder_enabled: true,
-    weekly_summary_enabled: true,
-    plan_expiry_warning_days: 7,
-
-    // Database Settings
-    auto_backup_enabled: true,
-    backup_frequency_hours: 24,
-    data_retention_days: 365,
-
-    // Analytics Settings
-    analytics_enabled: true,
-    anonymous_tracking: true,
-
-    // Payment Settings
-    stripe_webhook_secret: "",
-    allow_plan_downgrades: true,
-    trial_period_days: 7,
-  });
-
-  const [loading, setLoading] = useState(false);
-  const [saved, setSaved] = useState(false);
-
-  const updateSettings = async (newSettings: any) => {
-    setLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setSettings(newSettings);
-    setLoading(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
-  };
-
-  return { settings, updateSettings, loading, saved };
-};
+import toast from "react-hot-toast";
 
 const SettingsTab: React.FC = () => {
-  const { settings, updateSettings, loading, saved } = useSettings();
+  const { settings, updateSettings, isLoading, isUpdating } = useSettings();
   const [activeSection, setActiveSection] = useState("general");
   const [formData, setFormData] = useState(settings);
   const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
-    setFormData(settings);
+    if (settings) {
+      setFormData(settings);
+    }
   }, [settings]);
 
   useEffect(() => {
-    setHasChanges(JSON.stringify(formData) !== JSON.stringify(settings));
+    if (settings) {
+      setHasChanges(JSON.stringify(formData) !== JSON.stringify(settings));
+    }
   }, [formData, settings]);
 
   const handleChange = (field: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev: any) => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = () => {
-    updateSettings(formData);
+  const handleSave = async () => {
+    try {
+      await updateSettings(formData!);
+      toast.success("✅ Settings saved successfully");
+    } catch (error) {
+      toast.error((error as Error).message || "Failed to save settings");
+    }
   };
 
   const handleReset = () => {
     setFormData(settings);
+    toast.success("Changes reset");
   };
 
   const sections = [
     { id: "general", name: "General", icon: Globe },
-    { id: "email", name: "Email", icon: Mail },
     { id: "security", name: "Security", icon: Shield },
     { id: "ai", name: "AI Service", icon: Zap },
     { id: "notifications", name: "Notifications", icon: Bell },
     { id: "database", name: "Database", icon: Database },
     { id: "payments", name: "Payments", icon: DollarSign },
   ];
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const renderSection = () => {
     switch (activeSection) {
@@ -136,7 +87,7 @@ const SettingsTab: React.FC = () => {
                 Site Description
               </label>
               <textarea
-                value={formData.site_description}
+                value={formData.site_description || ""}
                 onChange={(e) => handleChange("site_description", e.target.value)}
                 rows={3}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -146,8 +97,9 @@ const SettingsTab: React.FC = () => {
             <div className="flex items-center justify-between p-4 bg-card border border-border rounded-lg">
               <div>
                 <h4 className="font-medium text-foreground">Maintenance Mode</h4>
-                <p className="text-sm text-muted-foreground">
-                  Disable site access for all non-admin users
+                <p className="text-sm text-muted-foreground">Restrict site access to admins only</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Non-admin users will see a maintenance page
                 </p>
               </div>
               <button
@@ -176,92 +128,22 @@ const SettingsTab: React.FC = () => {
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
               <p className="text-sm text-muted-foreground mt-1">
-                Number of free AI plan generations allowed before requiring a subscription
+                Free users can generate {formData.max_free_ai_generations} AI plans before requiring
+                a subscription
               </p>
             </div>
-          </div>
-        );
 
-      case "email":
-        return (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between p-4 bg-card border border-border rounded-lg">
-              <div>
-                <h4 className="font-medium text-foreground">Email Notifications</h4>
-                <p className="text-sm text-muted-foreground">
-                  Enable email notifications system-wide
-                </p>
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-blue-800 dark:text-blue-400">Email Settings</h4>
+                  <p className="text-sm text-blue-700 dark:text-blue-500 mt-1">
+                    All emails are handled by Supabase's built-in email service. Contact form and
+                    streak notifications use Resend via Edge Functions.
+                  </p>
+                </div>
               </div>
-              <button
-                onClick={() =>
-                  handleChange("email_notifications_enabled", !formData.email_notifications_enabled)
-                }
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  formData.email_notifications_enabled ? "bg-primary" : "bg-gray-300"
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    formData.email_notifications_enabled ? "translate-x-6" : "translate-x-1"
-                  }`}
-                />
-              </button>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Admin Email</label>
-              <input
-                type="email"
-                value={formData.admin_email}
-                onChange={(e) => handleChange("admin_email", e.target.value)}
-                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">SMTP Host</label>
-                <input
-                  type="text"
-                  value={formData.smtp_host}
-                  onChange={(e) => handleChange("smtp_host", e.target.value)}
-                  className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">SMTP Port</label>
-                <input
-                  type="text"
-                  value={formData.smtp_port}
-                  onChange={(e) => handleChange("smtp_port", e.target.value)}
-                  className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                SMTP Username
-              </label>
-              <input
-                type="text"
-                value={formData.smtp_username}
-                onChange={(e) => handleChange("smtp_username", e.target.value)}
-                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                SMTP Password
-              </label>
-              <input
-                type="password"
-                value={formData.smtp_password}
-                onChange={(e) => handleChange("smtp_password", e.target.value)}
-                placeholder="••••••••"
-                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              />
             </div>
           </div>
         );
@@ -269,6 +151,21 @@ const SettingsTab: React.FC = () => {
       case "security":
         return (
           <div className="space-y-6">
+            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+              <div className="flex items-start gap-3">
+                <Shield className="h-5 w-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-yellow-800 dark:text-yellow-400">
+                    Auth Managed by Supabase
+                  </h4>
+                  <p className="text-sm text-yellow-700 dark:text-yellow-500 mt-1">
+                    Authentication, password resets, and email verification are handled entirely by
+                    Supabase Auth.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
                 Session Timeout (minutes)
@@ -278,8 +175,12 @@ const SettingsTab: React.FC = () => {
                 value={formData.session_timeout_minutes}
                 onChange={(e) => handleChange("session_timeout_minutes", parseInt(e.target.value))}
                 min="5"
+                max="1440"
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
+              <p className="text-sm text-muted-foreground mt-1">
+                Default: 60 minutes (controlled by Supabase Auth settings)
+              </p>
             </div>
 
             <div>
@@ -291,8 +192,12 @@ const SettingsTab: React.FC = () => {
                 value={formData.max_login_attempts}
                 onChange={(e) => handleChange("max_login_attempts", parseInt(e.target.value))}
                 min="3"
+                max="10"
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
+              <p className="text-sm text-muted-foreground mt-1">
+                Default: 5 attempts before temporary lockout
+              </p>
             </div>
 
             <div>
@@ -304,8 +209,12 @@ const SettingsTab: React.FC = () => {
                 value={formData.password_min_length}
                 onChange={(e) => handleChange("password_min_length", parseInt(e.target.value))}
                 min="6"
+                max="32"
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
+              <p className="text-sm text-muted-foreground mt-1">
+                Default: 8 characters (configured in Supabase Auth)
+              </p>
             </div>
 
             <div className="flex items-center justify-between p-4 bg-card border border-border rounded-lg">
@@ -334,7 +243,9 @@ const SettingsTab: React.FC = () => {
             <div className="flex items-center justify-between p-4 bg-card border border-border rounded-lg">
               <div>
                 <h4 className="font-medium text-foreground">Two-Factor Authentication</h4>
-                <p className="text-sm text-muted-foreground">Require 2FA for admin accounts</p>
+                <p className="text-sm text-muted-foreground">
+                  Required for admin accounts (Supabase setting)
+                </p>
               </div>
               <button
                 onClick={() =>
@@ -357,6 +268,21 @@ const SettingsTab: React.FC = () => {
       case "ai":
         return (
           <div className="space-y-6">
+            <div className="p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+              <div className="flex items-start gap-3">
+                <Zap className="h-5 w-5 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-purple-800 dark:text-purple-400">
+                    ML Service on Railway
+                  </h4>
+                  <p className="text-sm text-purple-700 dark:text-purple-500 mt-1">
+                    Your FastAPI ML service generates workout and nutrition plans. Currently hosted
+                    on Railway.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
                 AI Service URL
@@ -365,9 +291,12 @@ const SettingsTab: React.FC = () => {
                 type="text"
                 value={formData.ai_service_url}
                 onChange={(e) => handleChange("ai_service_url", e.target.value)}
-                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                placeholder="https://greenlean-ml-production.up.railway.app"
+                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-mono text-sm"
               />
-              <p className="text-sm text-muted-foreground mt-1">URL of your FastAPI ML service</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Default local: http://localhost:8000 | Production: Railway URL
+              </p>
             </div>
 
             <div>
@@ -379,8 +308,10 @@ const SettingsTab: React.FC = () => {
                 value={formData.ai_timeout_seconds}
                 onChange={(e) => handleChange("ai_timeout_seconds", parseInt(e.target.value))}
                 min="10"
+                max="120"
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
+              <p className="text-sm text-muted-foreground mt-1">Default: 30 seconds</p>
             </div>
 
             <div>
@@ -392,8 +323,10 @@ const SettingsTab: React.FC = () => {
                 value={formData.ai_rate_limit_per_user}
                 onChange={(e) => handleChange("ai_rate_limit_per_user", parseInt(e.target.value))}
                 min="1"
+                max="100"
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
+              <p className="text-sm text-muted-foreground mt-1">Default: 10 requests per hour</p>
             </div>
 
             <div>
@@ -410,6 +343,7 @@ const SettingsTab: React.FC = () => {
                 max="5"
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
+              <p className="text-sm text-muted-foreground mt-1">Default: 3 retry attempts</p>
             </div>
           </div>
         );
@@ -417,6 +351,24 @@ const SettingsTab: React.FC = () => {
       case "notifications":
         return (
           <div className="space-y-6">
+            <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+              <div className="flex items-start gap-3">
+                <Bell className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-green-800 dark:text-green-400">
+                    Notification System
+                  </h4>
+                  <p className="text-sm text-green-700 dark:text-green-500 mt-1">
+                    Streak warnings and challenge notifications are handled by the{" "}
+                    <code className="px-1 py-0.5 bg-green-100 dark:bg-green-800 rounded">
+                      streak-monitor
+                    </code>{" "}
+                    Edge Function (runs via cron).
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
                 Streak Warning Time (hours before expiry)
@@ -429,6 +381,9 @@ const SettingsTab: React.FC = () => {
                 max="48"
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
+              <p className="text-sm text-muted-foreground mt-1">
+                Default: 20 hours (2 hours before expiry via streak-monitor function)
+              </p>
             </div>
 
             <div className="flex items-center justify-between p-4 bg-card border border-border rounded-lg">
@@ -460,6 +415,9 @@ const SettingsTab: React.FC = () => {
                 <p className="text-sm text-muted-foreground">
                   Send weekly progress summaries to users
                 </p>
+                <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
+                  ⚠️ Not yet implemented - requires Edge Function
+                </p>
               </div>
               <button
                 onClick={() =>
@@ -489,6 +447,7 @@ const SettingsTab: React.FC = () => {
                 max="30"
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
+              <p className="text-sm text-muted-foreground mt-1">Default: 7 days</p>
             </div>
           </div>
         );
@@ -524,8 +483,12 @@ const SettingsTab: React.FC = () => {
                 value={formData.backup_frequency_hours}
                 onChange={(e) => handleChange("backup_frequency_hours", parseInt(e.target.value))}
                 min="1"
+                max="168"
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
+              <p className="text-sm text-muted-foreground mt-1">
+                Default: 24 hours (Supabase provides automatic backups)
+              </p>
             </div>
 
             <div>
@@ -537,33 +500,100 @@ const SettingsTab: React.FC = () => {
                 value={formData.data_retention_days}
                 onChange={(e) => handleChange("data_retention_days", parseInt(e.target.value))}
                 min="30"
+                max="3650"
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
               <p className="text-sm text-muted-foreground mt-1">
-                How long to keep inactive user data and logs
+                Default: 365 days - Used by{" "}
+                <code className="px-1 py-0.5 bg-muted rounded text-xs">run_database_cleanup()</code>{" "}
+                function
               </p>
             </div>
 
             <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
               <div className="flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-500 flex-shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="font-medium text-yellow-800 dark:text-yellow-400">
-                    Database Actions
+                <Database className="h-5 w-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="font-medium text-yellow-800 dark:text-yellow-400 mb-2">
+                    Database Maintenance
                   </h4>
-                  <p className="text-sm text-yellow-700 dark:text-yellow-500 mt-1">
-                    Backup and cleanup operations should be performed during low-traffic periods
+                  <p className="text-sm text-yellow-700 dark:text-yellow-500 mb-3">
+                    Manual operations use existing Supabase functions
                   </p>
-                  <div className="flex gap-2 mt-3">
-                    <button className="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded text-sm font-medium">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={async () => {
+                        try {
+                          toast.success("Triggering backup...");
+                          // Call the trigger_backup() function
+                          await fetch("/api/admin/trigger-backup", { method: "POST" });
+                          toast.success("✅ Backup triggered");
+                        } catch (error) {
+                          toast.error("Failed to trigger backup");
+                        }
+                      }}
+                      className="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded text-sm font-medium transition-colors"
+                    >
                       Run Backup Now
                     </button>
-                    <button className="px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white rounded text-sm font-medium">
+                    <button
+                      onClick={async () => {
+                        try {
+                          toast.success("Running cleanup...");
+                          // Call the run_database_cleanup() function
+                          await fetch("/api/admin/database-cleanup", { method: "POST" });
+                          toast.success("✅ Cleanup completed");
+                        } catch (error) {
+                          toast.error("Failed to run cleanup");
+                        }
+                      }}
+                      className="px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white rounded text-sm font-medium transition-colors"
+                    >
                       Run Cleanup
                     </button>
                   </div>
                 </div>
               </div>
+            </div>
+
+            <div className="flex items-center justify-between p-4 bg-card border border-border rounded-lg">
+              <div>
+                <h4 className="font-medium text-foreground">Analytics Enabled</h4>
+                <p className="text-sm text-muted-foreground">Track usage metrics and engagement</p>
+              </div>
+              <button
+                onClick={() => handleChange("analytics_enabled", !formData.analytics_enabled)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  formData.analytics_enabled ? "bg-primary" : "bg-gray-300"
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    formData.analytics_enabled ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between p-4 bg-card border border-border rounded-lg">
+              <div>
+                <h4 className="font-medium text-foreground">Anonymous Tracking</h4>
+                <p className="text-sm text-muted-foreground">
+                  Use anonymous user IDs for analytics
+                </p>
+              </div>
+              <button
+                onClick={() => handleChange("anonymous_tracking", !formData.anonymous_tracking)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  formData.anonymous_tracking ? "bg-primary" : "bg-gray-300"
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    formData.anonymous_tracking ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </button>
             </div>
           </div>
         );
@@ -577,10 +607,10 @@ const SettingsTab: React.FC = () => {
               </label>
               <input
                 type="password"
-                value={formData.stripe_webhook_secret}
+                value={formData.stripe_webhook_secret || ""}
                 onChange={(e) => handleChange("stripe_webhook_secret", e.target.value)}
                 placeholder="whsec_••••••••"
-                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-mono text-sm"
               />
               <p className="text-sm text-muted-foreground mt-1">
                 Your Stripe webhook signing secret for validating events
@@ -596,8 +626,12 @@ const SettingsTab: React.FC = () => {
                 value={formData.trial_period_days}
                 onChange={(e) => handleChange("trial_period_days", parseInt(e.target.value))}
                 min="0"
+                max="30"
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
+              <p className="text-sm text-muted-foreground mt-1">
+                Default: 7 days free trial for new subscriptions
+              </p>
             </div>
 
             <div className="flex items-center justify-between p-4 bg-card border border-border rounded-lg">
@@ -622,6 +656,28 @@ const SettingsTab: React.FC = () => {
                 />
               </button>
             </div>
+
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <div className="flex items-start gap-3">
+                <DollarSign className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-blue-800 dark:text-blue-400">
+                    Subscription Management
+                  </h4>
+                  <p className="text-sm text-blue-700 dark:text-blue-500 mt-1">
+                    Plan quotas are enforced via{" "}
+                    <code className="px-1 py-0.5 bg-blue-100 dark:bg-blue-800 rounded">
+                      refuse_quiz_over_quota
+                    </code>{" "}
+                    trigger. Monthly resets handled by cron job calling{" "}
+                    <code className="px-1 py-0.5 bg-blue-100 dark:bg-blue-800 rounded">
+                      reset_quiz_usage_monthly()
+                    </code>
+                    .
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         );
 
@@ -632,25 +688,16 @@ const SettingsTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Settings</h1>
+          <h1 className="text-3xl font-bold text-foreground">Platform Settings</h1>
           <p className="text-muted-foreground mt-1">
             Configure your application settings and preferences
           </p>
         </div>
-
-        {saved && (
-          <div className="flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg">
-            <CheckCircle className="h-5 w-5" />
-            <span className="font-medium">Settings saved successfully</span>
-          </div>
-        )}
       </div>
 
       <div className="grid grid-cols-12 gap-6">
-        {/* Sidebar Navigation */}
         <div className="col-span-3">
           <div className="bg-card border border-border rounded-lg p-2 sticky top-6">
             {sections.map((section) => {
@@ -673,15 +720,13 @@ const SettingsTab: React.FC = () => {
           </div>
         </div>
 
-        {/* Main Content */}
         <div className="col-span-9">
           <div className="bg-card border border-border rounded-lg p-6">{renderSection()}</div>
 
-          {/* Action Buttons */}
           <div className="flex items-center justify-end gap-3 mt-6">
             <button
               onClick={handleReset}
-              disabled={!hasChanges || loading}
+              disabled={!hasChanges || isUpdating}
               className="px-6 py-2.5 bg-background border border-border text-foreground rounded-lg font-medium hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               <RefreshCw className="h-4 w-4" />
@@ -689,12 +734,12 @@ const SettingsTab: React.FC = () => {
             </button>
             <button
               onClick={handleSave}
-              disabled={!hasChanges || loading}
+              disabled={!hasChanges || isUpdating}
               className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              {loading ? (
+              {isUpdating ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   Saving...
                 </>
               ) : (
