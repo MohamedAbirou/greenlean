@@ -385,6 +385,7 @@ async def stripe_webhook(request: Request, stripe_signature: str = Header(None))
         logger.error(f"Stripe webhook error: {e}")
         return {"error": str(e)}
 
+    logger.info(f"Received Stripe webhook: {event['type']}")
     # Subscription created or upgraded
     if event["type"] == "checkout.session.completed":
         session = event["data"]["object"]
