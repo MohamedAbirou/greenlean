@@ -128,19 +128,9 @@ Ensure `VITE_ML_SERVICE_URL=http://localhost:8000`
 
 ### 3.1. Supabase Setup
 
-1. Create a project in Supabase
-2. Copy your Project URL, Anon Key, and DB credentials
+1. Create an organization in Supabase
+2. I'll transfer the project with the keys and everything
 3. Add them to `.env` files
-
-### 3.2. Apply Migrations
-
-Run all SQL files in `/supabase/migrations` in order (33 files).
-Each defines tables, functions, and RLS policies.
-
-### 3.3. RLS Verification
-
-After applying migrations, check:
-**Supabase Dashboard → Authentication → Policies**
 
 ### 3.4. Bootstrap Admin User
 
