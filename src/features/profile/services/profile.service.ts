@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase";
 import imageCompression from "browser-image-compression";
 import type { Invoice, Profile, ProfileUpdateData, SubscriptionInfo } from "../types/profile.types";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_BASE_URL = import.meta.env.VITE_ML_SERVICE_URL || "http://localhost:8000";
 
 export class ProfileService {
   static async getProfile(userId: string): Promise<Profile | null> {
@@ -52,25 +52,6 @@ export class ProfileService {
 
     return data.publicUrl;
   }
-
-  // static async uploadAvatar(userId: string, file: File): Promise<string> {
-  //   const fileExt = file.name.split(".").pop();
-  //   const fileName = `${userId}-${Date.now()}.${fileExt}`;
-  //   const filePath = `${userId}/${fileName}`;
-
-  //   const { error: uploadError } = await supabase.storage.from("avatars").upload(filePath, file, {
-  //     upsert: true,
-  //     metadata: { user_id: userId }, // 🔹 crucial for RLS
-  //   });
-
-  //   if (uploadError) throw uploadError;
-
-  //   const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
-
-  //   await this.updateProfile(userId, { avatar_url: data.publicUrl });
-
-  //   return data.publicUrl;
-  // }
 
   static async deleteAvatar(userId: string, avatarUrl: string): Promise<void> {
     const path = avatarUrl.split("/avatars/")[1];
