@@ -277,7 +277,7 @@ If ML service URL changes → update webhook endpoint in Stripe.
 ## 🧠 Final Notes
 
 This guide covers everything you need to **deploy, operate, and maintain** GreenLean.
-For deeper explanations or architecture insights, see the `PROJECT_ANALYSIS_FOR_SALE.md`.
+For deeper explanations or architecture insights, see the `TECH_HIGHLIGHTS_ONE_PAGER.md`.
 
 ---
 
