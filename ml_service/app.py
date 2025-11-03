@@ -368,9 +368,12 @@ async def create_checkout_session(request: Request):
         log_error(e, "Create checkout session", data["user_id"])
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/api/stripe/webhook")
+@app.api_route("/api/stripe/webhook", methods=["POST", "GET", "HEAD"])
 async def stripe_webhook(request: Request, stripe_signature: str = Header(None)):
     """Stripe webhook endpoint"""
+    
+    if request.method != "POST":
+        return {"status": "ok"}  # respond safely to HEAD/GET checks
 
     payload = await request.body()
     sig_header = stripe_signature or request.headers.get("Stripe-Signature")
