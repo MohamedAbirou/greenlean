@@ -245,7 +245,7 @@
 3. Deploy (auto-builds on push to main)
 4. Custom domain (optional): Add in Vercel settings
 
-### ML Service (Render)
+### ML Service (Railway)
 1. Create new Web Service
 2. Connect GitHub repo, set root directory: `ml_service`
 3. Build command: `pip install -r requirements.txt`
