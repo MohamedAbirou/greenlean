@@ -148,6 +148,9 @@ export default function TermsOfService() {
                 only. No real charges will be made. If payment features are available, they use
                 sandbox/test credentials only.
               </p>
+              <p className="text-sm">
+                <strong>Test Card Number:</strong> 4242, 04/44, 444, John Doe
+              </p>
             </div>
           </section>
 
