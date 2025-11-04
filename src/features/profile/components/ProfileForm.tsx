@@ -17,6 +17,7 @@ import type { UseMutateAsyncFunction } from "@tanstack/react-query";
 import { Briefcase, Calendar, Loader, Mail, User } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { Link } from "react-router-dom";
 import type { Profile, ProfileUpdateData } from "../types/profile.types";
 
 interface ProfileFormProps {
@@ -329,7 +330,16 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
       </div>
 
       {/* Submit Button */}
-      <div className="flex justify-end">
+      <div className="flex items-center justify-end gap-4">
+        <div>
+          <Link
+            to="/reset-password"
+            type="button"
+            className="text-muted-foreground hover:text-foreground hover:underline text-sm"
+          >
+            Forgot your password?
+          </Link>
+        </div>
         <Button
           type="submit"
           className="bg-primary hover:bg-primary/90 text-white"

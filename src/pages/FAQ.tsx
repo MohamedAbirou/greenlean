@@ -87,29 +87,93 @@ const faqData: FAQCategory[] = [
     ],
   },
   {
-    title: "Account & Technical",
+    title: "Progress, Points & Gamification",
     questions: [
       {
-        question: "How do I update my profile?",
-        answer:
-          "Access your profile settings through the dashboard menu. Here you can update your weight, goals, dietary preferences, and other personal information. Your plan will automatically adjust based on your updates.",
+        question: "How does the points and badges system work?",
+        answer: "You earn points for completing daily and weekly challenges, workouts, and meeting nutrition goals. Badges are granted for major achievements (like streaks or milestones) and can be viewed in the challenges page."
       },
       {
-        question: "Can I change my plan after starting?",
-        answer:
-          "Yes! You can retake the quiz anytime to get a new plan, or manually select from our library of diet and exercise plans. Your dashboard will update automatically with your new selection.",
+        question: "What are streaks and how do they help me?",
+        answer: "Streaks track your consistency in logging meals or workouts. Maintaining streaks helps keep you motivated. You'll receive warnings and encouraging notifications when a streak is about to expire."
       },
       {
-        question: "Is my information secure?",
-        answer:
-          "We take data security seriously. All personal information is encrypted and stored securely. We never share your data with third parties without your explicit consent. Read our privacy policy for more details.",
-      },
-      {
-        question: "What devices can I use?",
-        answer:
-          "GreenLean is fully responsive and works on all modern devices - smartphones, tablets, and computers. Your progress syncs across devices when you're logged in to your account.",
-      },
+        question: "What happens if I complete a challenge?",
+        answer: "You'll earn bonus points, badges, and occasionally fun confetti animations! All progress goes toward your achievements and profile collections."
+      }
     ],
+  },
+  {
+    title: "Tracking & Logging Features",
+    questions: [
+      {
+        question: "Can I log meals or workouts in the app?",
+        answer: "Yes, you can log your daily meals and workouts for calorie, macro, and adherence tracking. All your logs appear in the dashboard for review."
+      },
+      {
+        question: "Is there a water intake tracker?",
+        answer: "Yes, track your daily water intake with adjustable goals. See your hydration streak and progress on your dashboard."
+      }
+    ],
+  },
+  {
+    title: "Plans, Shopping & Customization",
+    questions: [
+      {
+        question: "How is my shopping list generated?",
+        answer: "When you receive a meal plan, a shopping list is auto-generated, organized by food category and matched to your required portions. You can print or view it anytime."
+      },
+      {
+        question: "Can I adapt meal plans for my budget or grocery store?",
+        answer: "Yes! You can set a budget preference, and swap ingredients based on your available groceries. The app also suggests alternatives and highlights cost-effective options."
+      },
+      {
+        question: "Do you support different diets (vegan, keto, etc.)?",
+        answer: "Absolutely. Our plans are adaptable for vegetarian, vegan, pescatarian, keto, paleo, intermittent fasting, and many dietary restrictions—all handled in your initial quiz and profile settings."
+      }
+    ],
+  },
+  {
+    title: "Registration, Account & Security",
+    questions: [
+      {
+        question: "How do I register and onboard?",
+        answer: "The registration process involves a multi-step flow: enter your info, confirm details, and complete a personalized quiz. It's designed to be quick yet comprehensive for accurate recommendations."
+      },
+      {
+        question: "Can I reset my password?",
+        answer: "Yes, use the 'Reset Password' link on the profile page. You'll get a secure reset email."
+      },
+      {
+        question: "Is my account protected?",
+        answer: "We employ industry-standard security measures: all user data is encrypted, login is handled securely, and you can manage your privacy and notification preferences in account settings."
+      },
+      {
+        question: "How do I delete my account?",
+        answer: "There is an option to permanently delete your account from settings—this wipes your data from our servers."
+      }
+    ],
+  },
+  {
+    title: "Devices, Notifications & Admin",
+    questions: [
+      {
+        question: "Does GreenLean work on mobile and desktop?",
+        answer: "Yes! The entire app is fully responsive and works seamlessly across mobile phones, tablets, and desktop browsers. Progress is synced when you're logged in."
+      },
+      {
+        question: "What notifications will I receive?",
+        answer: "You'll get email notifications for important milestones, password resets, and streak warnings. In-app toast notifications also inform you about achievements, reminders, and errors in real time."
+      },
+      {
+        question: "Who can access the admin dashboard?",
+        answer: "Only authorized admin users can access advanced platform management features—these include analytics, user management, challenge creation, and review of activity metrics. End users do not see admin options."
+      },
+      {
+        question: "Is there Dark Mode?",
+        answer: "Yes, you can enable Dark Mode from your profile or via a toggle. Your preference is saved for future logins."
+      }
+    ]
   },
 ];
 
