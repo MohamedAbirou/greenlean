@@ -15,7 +15,6 @@ import { Tabs } from "@radix-ui/react-tabs";
 import { motion } from "framer-motion";
 import { CreditCard, FileText, Loader, Settings } from "lucide-react";
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 
 const ProfileSettings: React.FC = () => {
   const { user } = useAuth();
