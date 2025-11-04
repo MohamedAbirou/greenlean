@@ -113,7 +113,7 @@ const Footer: React.FC = () => {
 
         <div className="border-t border-border mt-8 pt-8 text-center">
           <p className="text-secondary-foreground">
-            © 2024 GreenLean. All rights
+            © 2025 GreenLean. All rights
             reserved.
           </p>
         </div>

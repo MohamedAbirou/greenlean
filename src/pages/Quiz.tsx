@@ -13,7 +13,7 @@ import { useQuizSubmission } from "@/features/quiz/hooks/useQuizSubmission";
 import type { QuizAnswers } from "@/features/quiz/types";
 import { UpgradeModal } from "@/shared/components/feedback/UpgradeModal";
 import { AnimatePresence } from "framer-motion";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const Quiz: React.FC = () => {
   const {
@@ -51,6 +51,14 @@ const Quiz: React.FC = () => {
 
   const [showSummary, setShowSummary] = useState(false);
   const [completed, setCompleted] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "smooth", // feel free to use 'auto' if you want instant
+    });
+  }, [currentPhase, currentQuestion]);
 
   const toggleMultiSelect = (questionId: keyof QuizAnswers, option: string) => {
     const current = (answers[questionId] as string[]) || [];

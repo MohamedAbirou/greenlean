@@ -73,6 +73,22 @@ export const useQuizState = () => {
     fetchProfile();
   }, [user]);
 
+  useEffect(() => {
+    if (!user) return;
+
+    const savedProgress = loadQuizProgress(user.id);
+    if (savedProgress) {
+      setCurrentPhase(savedProgress.currentPhase || 0);
+      setCurrentQuestion(savedProgress.currentQuestion || 0);
+      setAnswers(savedProgress.answers || {});
+      setHeightUnit(savedProgress.heightUnit || "cm");
+      setWeightUnit(savedProgress.weightUnit || "kg");
+      setProgressRestored(true);
+    } else {
+      setProgressRestored(true);
+    }
+  }, [user]);
+
   // Save progress
   useEffect(() => {
     if (!user || !progressRestored || loadingProfile) return;

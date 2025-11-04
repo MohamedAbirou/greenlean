@@ -30,6 +30,8 @@ const About = lazy(() => import("@/pages/About"));
 const FAQ = lazy(() => import("@/pages/FAQ"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
+const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("@/pages/TermsOfService"));
 
 export const routes: RouteObject[] = [
   {
@@ -67,6 +69,14 @@ export const routes: RouteObject[] = [
       {
         path: "faq",
         element: <FAQ />,
+      },
+      {
+        path: "privacy",
+        element: <PrivacyPolicy />,
+      },
+      {
+        path: "terms",
+        element: <TermsOfService />,
       },
       {
         path: "diet-plans",

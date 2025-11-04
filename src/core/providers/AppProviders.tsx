@@ -16,6 +16,7 @@ import { ProfileService } from "../../features/profile/api/profileService";
 import { getQueryClient } from "../../lib/react-query";
 import CookieConsent from "../../shared/components/CookieConsent";
 import { ErrorBoundary } from "../../shared/components/feedback";
+import { ScrollToTop } from "@/shared/components/ScrollToTop";
 
 interface AppProvidersProps {
   children: ReactNode;
@@ -113,6 +114,7 @@ export function AppProviders({ children }: AppProvidersProps) {
                 v7_relativeSplatPath: true,
               }}
             >
+              <ScrollToTop />
               {children}
 
               {hasConsent && <Analytics />}

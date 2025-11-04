@@ -167,10 +167,10 @@ const Contact: React.FC = () => {
                   <div className="ml-4">
                     <h3 className="text-sm font-medium text-foreground">Email</h3>
                     <a
-                      href="mailto:support@greenlean.com"
+                      href="mailto:support@greenlean.fit"
                       className="text-sm text-muted-foreground hover:text-primary"
                     >
-                      support@greenlean.com
+                      support@greenlean.fit
                     </a>
                   </div>
                 </div>
