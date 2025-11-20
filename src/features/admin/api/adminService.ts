@@ -90,15 +90,20 @@ export class AdminService {
   }
 
   /**
-   * Delete a challenge
+   * Delete/Archive a challenge
+   * Archives if it has participants, deletes if it doesn't
    */
-  static async deleteChallenge(challengeId: string): Promise<void> {
+  static async deleteChallenge(challengeId: string): Promise<{ action: 'archived' | 'deleted'; message: string }> {
     try {
-      const { error } = await supabase.from("challenges").delete().eq("id", challengeId);
+      const { data, error } = await supabase.rpc("archive_challenge", {
+        p_challenge_id: challengeId,
+      });
 
       if (error) throw error;
+
+      return data as { action: 'archived' | 'deleted'; message: string };
     } catch (error) {
-      console.error("Error deleting challenge:", error);
+      console.error("Error deleting/archiving challenge:", error);
       throw error;
     }
   }
