@@ -1,29 +1,21 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
+import { ErrorBoundary } from "./shared/components/feedback/ErrorBoundary";
+import { initSentry } from "./lib/sentry/config";
 import "./index.css";
 
-// Initialize Sentry error tracking (if configured)
-// NOTE: Install @sentry/react package and configure VITE_SENTRY_DSN env var
-// See SENTRY_SETUP.md for complete setup instructions
-let SentryErrorBoundary: any;
+// Initialize Sentry if available (gracefully degrades if not installed)
 try {
-  const { initSentry, SentryErrorBoundary: SentryEB } = await import("./lib/sentry/SentryErrorBoundary");
-  const { initSentry: initSentryConfig } = await import("./lib/sentry/config");
-  initSentryConfig();
-  SentryErrorBoundary = SentryEB;
-  console.log("✅ Sentry error tracking initialized");
+  initSentry();
 } catch (error) {
-  // Fallback to basic ErrorBoundary if Sentry not installed
-  const { ErrorBoundary } = await import("./shared/components/feedback/ErrorBoundary");
-  SentryErrorBoundary = ErrorBoundary;
-  console.log("⚠️ Sentry not configured, using basic ErrorBoundary");
+  console.log("Sentry initialization skipped (package not installed)");
 }
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <SentryErrorBoundary showReportDialog={true}>
+    <ErrorBoundary>
       <App />
-    </SentryErrorBoundary>
+    </ErrorBoundary>
   </StrictMode>
 );
