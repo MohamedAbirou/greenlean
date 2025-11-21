@@ -77,7 +77,7 @@ export class AdminService {
    */
   static async updateChallenge(challengeId: string, updates: Partial<Challenge>): Promise<void> {
     try {
-      const { error } = await supabase.rpc("update_challenge_and_rewards", {
+      const { error } = await supabase.rpc("update_challenge_and_rewards_v2", {
         p_challenge_id: challengeId,
         p_data: updates,
       });
