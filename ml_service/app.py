@@ -1,5 +1,5 @@
 """
-FastAPI application with async background plan generation.
+FastAPI application with async background plan generation, rate limiting, and enhanced security.
 """
 
 import asyncio
@@ -12,6 +12,9 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Header
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from config.settings import settings
 from config.logging_config import logger, log_api_request, log_api_response, log_error
@@ -47,6 +50,11 @@ app = FastAPI(
     version=settings.APP_VERSION,
     lifespan=lifespan
 )
+
+# Initialize rate limiter
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
@@ -140,7 +148,8 @@ async def _generate_meal_plan_background(
             full_prompt,
             request.ai_provider,
             request.model_name,
-            user_id
+            user_id,
+            plan_type='meal'
         )
         
         await db_service.save_meal_plan(
@@ -209,7 +218,8 @@ async def _generate_workout_plan_background(
             prompt,
             request.ai_provider,
             request.model_name,
-            user_id
+            user_id,
+            plan_type='workout'
         )
         
         await db_service.save_workout_plan(
@@ -229,13 +239,16 @@ async def _generate_workout_plan_background(
         await db_service.update_plan_status(user_id, "workout", "failed", str(e))
 
 @app.post("/generate-plans")
+@limiter.limit("5/minute")  # 5 plan generations per minute per IP
 async def generate_plans(
+    request_obj: Request,
     request: GeneratePlansRequest,
     background_tasks: BackgroundTasks
 ) -> Dict[str, Any]:
     """
     Generate plans with instant response and background AI generation.
-    
+
+    Rate limited to 5 requests per minute per IP to prevent abuse.
     Returns calculations immediately and kicks off background tasks for AI plans.
     """
     start_time = time.time()
@@ -370,36 +383,105 @@ async def create_checkout_session(request: Request):
 
 @app.api_route("/api/stripe/webhook", methods=["POST", "GET", "HEAD"])
 async def stripe_webhook(request: Request, stripe_signature: str = Header(None)):
-    """Stripe webhook endpoint"""
-    
+    """
+    Stripe webhook endpoint with proper signature verification.
+
+    SECURITY: This endpoint validates Stripe signatures to prevent unauthorized requests.
+    """
+
     if request.method != "POST":
         return {"status": "ok"}  # respond safely to HEAD/GET checks
 
     payload = await request.body()
     sig_header = stripe_signature or request.headers.get("Stripe-Signature")
     webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
-    event = None
+
+    # Validate webhook secret is configured
+    if not webhook_secret:
+        logger.error("STRIPE_WEBHOOK_SECRET not configured")
+        raise HTTPException(
+            status_code=500,
+            detail="Webhook secret not configured"
+        )
+
+    # Validate signature header exists
+    if not sig_header:
+        logger.error("Missing Stripe-Signature header")
+        raise HTTPException(
+            status_code=400,
+            detail="Missing Stripe-Signature header"
+        )
+
     try:
+        # Verify webhook signature
         event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
+    except stripe.error.SignatureVerificationError as e:
+        logger.error(f"Stripe signature verification failed: {e}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid signature: {str(e)}"
+        )
+    except ValueError as e:
+        logger.error(f"Invalid Stripe webhook payload: {e}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid payload: {str(e)}"
+        )
     except Exception as e:
-        logger.error(f"Stripe webhook error: {e}")
-        return {"error": str(e)}
+        logger.error(f"Unexpected Stripe webhook error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Webhook processing error: {str(e)}"
+        )
 
-    logger.info(f"Received Stripe webhook: {event['type']}")
-    # Subscription created or upgraded
-    if event["type"] == "checkout.session.completed":
-        session = event["data"]["object"]
-        user_id = session["client_reference_id"]
-        customer_id = session["customer"]
-        # Update user profile plan and stripe_customer_id
-        await db_service.set_user_plan(user_id, "pro", customer_id)
-    elif event["type"] == "customer.subscription.deleted":
-        # Downgrade user to free
-        user_id = event["data"]["object"]["client_reference_id"] or await db_service.lookup_user_by_stripe(event["data"]["object"]["customer"])
-        await db_service.set_user_plan(user_id, "free")
-    # Add more Stripe event types as needed
+    logger.info(f"Received verified Stripe webhook: {event['type']}")
 
-    return {"status": "success"}
+    try:
+        # Handle different event types
+        if event["type"] == "checkout.session.completed":
+            session = event["data"]["object"]
+            user_id = session.get("client_reference_id")
+            customer_id = session.get("customer")
+
+            if not user_id or not customer_id:
+                logger.error(f"Missing user_id or customer_id in checkout session: {session.get('id')}")
+                return {"status": "error", "message": "Missing required fields"}
+
+            # Update user profile plan and stripe_customer_id
+            await db_service.set_user_plan(user_id, "pro", customer_id)
+            logger.info(f"User {user_id} upgraded to pro with customer {customer_id}")
+
+        elif event["type"] == "customer.subscription.deleted":
+            # Downgrade user to free
+            subscription = event["data"]["object"]
+            customer_id = subscription.get("customer")
+
+            # Try to get user_id from metadata first, then lookup by customer
+            user_id = subscription.get("metadata", {}).get("user_id")
+            if not user_id and customer_id:
+                user_id = await db_service.lookup_user_by_stripe(customer_id)
+
+            if user_id:
+                await db_service.set_user_plan(user_id, "free")
+                logger.info(f"User {user_id} downgraded to free")
+            else:
+                logger.error(f"Could not find user for canceled subscription: {subscription.get('id')}")
+
+        elif event["type"] == "customer.subscription.updated":
+            # Handle subscription updates (plan changes, etc.)
+            subscription = event["data"]["object"]
+            logger.info(f"Subscription updated: {subscription.get('id')}")
+
+        else:
+            logger.info(f"Unhandled event type: {event['type']}")
+
+    except Exception as e:
+        logger.error(f"Error processing Stripe webhook event: {e}")
+        # Return 200 to acknowledge receipt even if processing fails
+        # This prevents Stripe from retrying and cluttering logs
+        return {"status": "error", "message": str(e)}
+
+    return {"status": "success", "event_type": event["type"]}
 
 
 # ANALYTICS ENDPOINTS
@@ -986,8 +1068,8 @@ async def generate_meal_plan(request: GeneratePlansRequest) -> Dict[str, Any]:
         )
         
         full_prompt = prompt + "\n\nDouble-check all values align with the user's calorie/macro targets before finalizing the JSON output."
-        
-        meal_plan = await ai_service.generate_plan(full_prompt, request.ai_provider, request.model_name, request.user_id)
+
+        meal_plan = await ai_service.generate_plan(full_prompt, request.ai_provider, request.model_name, request.user_id, plan_type='meal')
         
         await db_service.save_meal_plan(
             request.user_id,
@@ -1060,8 +1142,8 @@ async def generate_workout_plan(request: GeneratePlansRequest) -> Dict[str, Any]
             equipment=request.answers.equipment,
             WORKOUT_PLAN_JSON_FORMAT=WORKOUT_PLAN_JSON_FORMAT
         )
-        
-        workout_plan = await ai_service.generate_plan(prompt, request.ai_provider, request.model_name, request.user_id)
+
+        workout_plan = await ai_service.generate_plan(prompt, request.ai_provider, request.model_name, request.user_id, plan_type='workout')
         
         await db_service.save_workout_plan(
             request.user_id,

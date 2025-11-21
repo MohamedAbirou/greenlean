@@ -104,53 +104,47 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({ userId }) => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { data: participants } = await supabase
-        .from("challenge_participants")
-        .select("user_id, completed")
-        .eq("challenge_id", id);
+      // Use database function to handle archive/delete logic
+      const result = await AdminService.deleteChallenge(id);
 
-      if (participants && participants.length > 0) {
-        // Archive instead of deleting
-        const { error } = await supabase
-          .from("challenges")
-          .update({ is_active: false })
-          .eq("id", id);
-        if (error) throw error;
+      // If archived, notify participants
+      if (result.action === 'archived') {
+        const { data: participants } = await supabase
+          .from("challenge_participants")
+          .select("user_id")
+          .eq("challenge_id", id);
 
-        // Notify participants
-        await Promise.all(
-          participants.map((p) =>
-            createNotification({
-              recipient_id: p.user_id,
-              sender_id: userId ?? "",
-              type: "challenge",
-              entity_id: id,
-              entity_type: "challenge",
-              message: `The challenge you participated in "${id}" has been archived.`,
-            })
-          )
-        );
-
-        return { archived: true };
+        if (participants && participants.length > 0) {
+          await Promise.all(
+            participants.map((p) =>
+              createNotification({
+                recipient_id: p.user_id,
+                sender_id: userId ?? "",
+                type: "challenge",
+                entity_id: id,
+                entity_type: "challenge",
+                message: `The challenge you participated in has been archived.`,
+              })
+            )
+          );
+        }
       }
 
-      // No participants → safe to delete
-      const { error } = await supabase.from("challenges").delete().eq("id", id);
-      if (error) throw error;
-
-      return { archived: false };
+      return result;
     },
-    onSuccess: (res) => {
-      if (res.archived) {
-        toast.success("Challenge has participants, it was archived instead of deleted.");
+    onSuccess: (result) => {
+      if (result.action === 'archived') {
+        toast.success(result.message || "Challenge archived (has participants)");
       } else {
+        // Remove from cache if deleted
         queryClient.setQueryData<Challenge[]>(["challenges"], (old = []) =>
           old.filter((c) => c.id !== deleteChallengeId)
         );
-        toast.success("Challenge deleted successfully!");
+        toast.success(result.message || "Challenge deleted successfully!");
       }
+      setDeleteChallengeId(null);
     },
-    onError: (err) => toast.error(err.message || "Failed to delete challenge"),
+    onError: (err: Error) => toast.error(err.message || "Failed to delete challenge"),
   });
 
   // --- FILTERED CHALLENGES ---

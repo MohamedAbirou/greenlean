@@ -2,6 +2,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { supabase } from "@/lib/supabase/client";
 import type { Badge } from "@/shared/types/challenge";
 import { useQuery } from "@tanstack/react-query";
+import { useRewardsRealtime } from "../useSupabaseRealtime";
 
 export interface Reward {
   id: string;
@@ -25,9 +26,14 @@ export const fetchRewards = async (): Promise<Reward[]> => {
   return data;
 };
 
-export const useRewardsQuery = () =>
-  useQuery({
+export const useRewardsQuery = () => {
+  // Subscribe to real-time updates for user rewards
+  useRewardsRealtime(true);
+
+  return useQuery({
     queryKey: queryKeys.rewards,
     queryFn: fetchRewards,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0, // Always check for updates (realtime will invalidate when needed)
+    refetchOnWindowFocus: false, // Rely on realtime instead of window focus
   });
+};

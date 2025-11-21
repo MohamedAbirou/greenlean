@@ -111,6 +111,57 @@ export const quizApi = {
   },
 
   /**
+   * Retry failed plan generation
+   * Fetches user's latest quiz results and regenerates plans
+   */
+  async retryPlanGeneration(userId: string): Promise<{ calculations: any; macros: any }> {
+    try {
+      console.log("Retrying plan generation for user:", userId);
+
+      // Fetch user's latest quiz results
+      const { data: quizResults, error } = await supabase
+        .from("quiz_results")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        throw new Error(`Failed to fetch quiz results: ${error.message}`);
+      }
+
+      if (!quizResults) {
+        throw new Error("No quiz results found. Please complete the quiz first.");
+      }
+
+      // Reset plan generation status to allow retry
+      await supabase
+        .from("plan_generation_status")
+        .upsert({
+          user_id: userId,
+          meal_plan_status: "generating",
+          workout_plan_status: "generating",
+          meal_plan_error: null,
+          workout_plan_error: null,
+          updated_at: new Date().toISOString(),
+        });
+
+      // Trigger new plan generation
+      return await this.generatePlansAsync(
+        userId,
+        quizResults.id,
+        quizResults.answers,
+        "openai",
+        "gpt-4o-mini"
+      );
+    } catch (error) {
+      console.error("Error retrying plan generation:", error);
+      throw error;
+    }
+  },
+
+  /**
    * LEGACY: Generate AI-powered meal and workout plans (synchronous)
    */
   async generateCompletePlan(

@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase/client";
 import type { Challenge } from "@/shared/types/challenge";
 import { useQuery } from "@tanstack/react-query";
+import { useChallengesRealtime } from "../useSupabaseRealtime";
 
 export const fetchChallenges = async (
   userId?: string
@@ -46,9 +47,14 @@ export const fetchChallenges = async (
   return challengesWithStats;
 };
 
-export const useChallengesQuery = (userId?: string) =>
-  useQuery({
+export const useChallengesQuery = (userId?: string) => {
+  // Subscribe to real-time updates for challenges and participants
+  useChallengesRealtime(userId, !!userId);
+
+  return useQuery({
     queryKey: ["challenges", userId],
     queryFn: () => fetchChallenges(userId),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0, // Always check for updates (realtime will invalidate when needed)
+    refetchOnWindowFocus: false, // Rely on realtime instead of window focus
   });
+};

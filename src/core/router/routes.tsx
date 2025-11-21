@@ -3,29 +3,30 @@
  * Lazy-loaded routes for optimal performance
  */
 
-import AdminBootstrap from "@/features/admin/components/AdminBootstrap";
-import AdminDashboard from "@/pages/AdminDashboard";
 import AuthCallback from "@/pages/AuthCallback";
-import Challenges from "@/pages/Challenges";
-import Contact from "@/pages/Contact";
-import Dashboard from "@/pages/Dashboard";
-import DietPlanDetails from "@/pages/DietPlanDetails";
-import DietPlans from "@/pages/DietPlans";
-import ExerciseDetails from "@/pages/ExerciseDetails";
 import Home from "@/pages/Home";
-import MaintenancePage from "@/pages/MaintenancePage";
-import ProfileSettings from "@/pages/ProfileSettings";
-import Quiz from "@/pages/Quiz";
-import QuizHistory from "@/pages/QuizHistory";
-import QuizResult from "@/pages/QuizResult";
 import Register from "@/pages/Register";
-import WeightLoss from "@/pages/WeightLoss";
+import MaintenancePage from "@/pages/MaintenancePage";
 import { lazy } from "react";
 import type { RouteObject } from "react-router-dom";
 import { ProtectedRoute } from "../../features/auth";
 import { FullPageLoader } from "../../shared/components/feedback";
 import Layout from "../../shared/components/layout/Layout";
 
+// Lazy load all heavy pages for optimal performance
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const Quiz = lazy(() => import("@/pages/Quiz"));
+const QuizHistory = lazy(() => import("@/pages/QuizHistory"));
+const QuizResult = lazy(() => import("@/pages/QuizResult"));
+const Challenges = lazy(() => import("@/pages/Challenges"));
+const DietPlans = lazy(() => import("@/pages/DietPlans"));
+const DietPlanDetails = lazy(() => import("@/pages/DietPlanDetails"));
+const ExerciseDetails = lazy(() => import("@/pages/ExerciseDetails"));
+const ProfileSettings = lazy(() => import("@/pages/ProfileSettings"));
+const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
+const AdminBootstrap = lazy(() => import("@/features/admin/components/AdminBootstrap"));
+const Contact = lazy(() => import("@/pages/Contact"));
+const WeightLoss = lazy(() => import("@/pages/WeightLoss"));
 const About = lazy(() => import("@/pages/About"));
 const FAQ = lazy(() => import("@/pages/FAQ"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));

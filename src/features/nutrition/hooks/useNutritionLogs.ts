@@ -1,20 +1,30 @@
 /**
  * Nutrition Logs Hook
- * Manages nutrition logging with React Query
+ * Manages nutrition logging with React Query and real-time updates
  */
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { NutritionService } from "../api/nutritionService";
 import type { MacroTargets, NutritionLog, NutritionStats } from "../types";
+import { useSupabaseRealtime } from "@/shared/hooks/useSupabaseRealtime";
 
 export function useNutritionLogs(userId: string, macroTargets?: MacroTargets) {
   const queryClient = useQueryClient();
+
+  // Subscribe to real-time nutrition logs updates
+  useSupabaseRealtime({
+    table: 'nutrition_logs',
+    queryKey: ['nutrition-logs', userId],
+    filter: userId ? `user_id=eq.${userId}` : undefined,
+    enabled: !!userId,
+  });
 
   const logsQuery = useQuery({
     queryKey: ["nutrition-logs", userId],
     queryFn: () => NutritionService.getTodayLogs(userId),
     enabled: !!userId,
-    staleTime: 1 * 60 * 1000,
+    staleTime: 0, // Always fresh with real-time
+    refetchOnWindowFocus: false, // Rely on realtime
   });
 
   // Calculate stats if macro targets are provided

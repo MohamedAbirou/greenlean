@@ -45,8 +45,7 @@ class Settings:
             "http://localhost:5173",
             "http://localhost:8000",
             "https://rsufjeprivwzzygrbvdb.supabase.co",
-            "https://greenlean.vercel.app/",
-            "*"
+            "https://greenlean.vercel.app",
         ]
 
         # Database Pool Configuration
@@ -65,6 +64,35 @@ class Settings:
             "LOG_FORMAT",
             "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
+
+        # Validate required environment variables on startup
+        self._validate_required_env_vars()
+
+    def _validate_required_env_vars(self) -> None:
+        """
+        Validate that all critical environment variables are set.
+        Raises EnvironmentError if any required variables are missing.
+        """
+        required_vars = {
+            "OPENAI_API_KEY": self.OPENAI_API_KEY,
+            "STRIPE_SECRET_KEY": self.STRIPE_SECRET_KEY,
+            "STRIPE_WEBHOOK_SECRET": self.STRIPE_WEBHOOK_SECRET,
+        }
+
+        missing_vars = [var_name for var_name, value in required_vars.items() if not value]
+
+        if missing_vars:
+            raise EnvironmentError(
+                f"Missing required environment variables: {', '.join(missing_vars)}. "
+                f"Please set these variables in your .env file or environment before starting the service."
+            )
+
+        # Validate at least one AI provider is configured
+        if not any([self.has_openai, self.has_anthropic, self.has_gemini, self.has_llama]):
+            raise EnvironmentError(
+                "No AI provider configured. Please set at least one of: "
+                "OPENAI_API_KEY, ANTHROPIC_API_KEY, GEMINI_API_KEY, or LLAMA_API_KEY"
+            )
 
     @property
     def has_openai(self) -> bool:

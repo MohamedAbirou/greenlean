@@ -1,9 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ProfileService } from "../services/profile.service";
 import type { ProfileUpdateData } from "../types/profile.types";
+import { useProfileRealtime } from "@/shared/hooks/useSupabaseRealtime";
 
 export const useProfile = (userId: string | undefined) => {
   const queryClient = useQueryClient();
+
+  // Subscribe to real-time profile updates
+  useProfileRealtime(userId, !!userId);
 
   const {
     data: profile,
@@ -13,6 +17,8 @@ export const useProfile = (userId: string | undefined) => {
     queryKey: ["profile", userId],
     queryFn: () => ProfileService.getProfile(userId!),
     enabled: !!userId,
+    staleTime: 0, // Always fresh with real-time
+    refetchOnWindowFocus: false, // Rely on realtime
   });
 
   const updateMutation = useMutation({
