@@ -28,7 +28,7 @@ export const initializeAnalytics = () => {
       autocapture: false, // Disable autocapture for explicit tracking
       capture_pageview: true,
       persistence: 'localStorage',
-      loaded: (posthog) => {
+      loaded: () => {
         if (import.meta.env.DEV) {
           console.log('PostHog initialized successfully');
         }
