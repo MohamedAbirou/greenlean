@@ -46,6 +46,8 @@ class Settings:
             "http://localhost:8000",
             "https://rsufjeprivwzzygrbvdb.supabase.co",
             "https://greenlean.vercel.app",
+            "https://www.greenlean.fit",
+            "https://greenlean.fit",
         ]
 
         # Database Pool Configuration
