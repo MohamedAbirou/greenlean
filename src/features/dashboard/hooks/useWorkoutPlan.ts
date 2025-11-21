@@ -4,6 +4,7 @@ import { quizApi } from "@/features/quiz/api/quizApi";
 import type { DashboardWorkoutPlan } from "@/shared/types/dashboard";
 import { useQuery } from "@tanstack/react-query";
 import { DashboardService } from "../api/dashboardService";
+import { useWorkoutPlanRealtime, usePlanStatusRealtime } from "@/shared/hooks/useSupabaseRealtime";
 
 interface PlanStatus {
   meal_plan_status: string;
@@ -27,10 +28,15 @@ interface UseWorkoutPlanReturn {
 }
 
 /**
- * Custom hook to fetch and poll workout plan data
+ * Custom hook to fetch workout plan data with real-time updates
  * Combines workout plan data with generation status
+ * Now uses Supabase Realtime instead of polling for instant updates
  */
 export function useWorkoutPlan(userId: string | undefined): UseWorkoutPlanReturn {
+  // Subscribe to real-time updates for workout plans and plan generation status
+  useWorkoutPlanRealtime(userId, !!userId);
+  usePlanStatusRealtime(userId, !!userId);
+
   // Fetch workout plan and status together
   const {
     data: combinedData,
@@ -51,16 +57,11 @@ export function useWorkoutPlan(userId: string | undefined): UseWorkoutPlanReturn
       return { plan, status };
     },
     enabled: !!userId,
-    refetchInterval: (query) => {
-      // Poll every 5 seconds if plan is generating
-      const data = query.state.data;
-      if (!data) return false;
-
-      const isGenerating = data.status.workout_plan_status === "generating";
-      return isGenerating ? 5000 : false;
-    },
+    // Real-time subscriptions will trigger refetches automatically
+    refetchInterval: false, // Disabled: using real-time instead
     refetchIntervalInBackground: false,
-    staleTime: 30000, // Consider data stale after 30 seconds
+    staleTime: 0, // Always fresh with real-time
+    refetchOnWindowFocus: false, // Rely on realtime
     gcTime: 300000, // Keep unused data in cache for 5 minutes
     retry: (failureCount, error) => {
       // Retry up to 3 times for network errors, but not for 404s
