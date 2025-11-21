@@ -46,7 +46,6 @@ export function useSupabaseRealtime({
   table,
   queryKey,
   filter,
-  events = ['*'],
   enabled = true,
   onDataChange,
   onError,
@@ -88,14 +87,21 @@ export function useSupabaseRealtime({
           }
         }
       )
-      .subscribe((status) => {
+      .subscribe((status, err) => {
         console.log(`[Realtime] Subscription status for ${table}:`, status);
 
-        if (status === 'SUBSCRIPTION_ERROR') {
-          const error = new Error(`Realtime subscription error for table: ${table}`);
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          const error = new Error(`Realtime subscription error for table: ${table}. Status: ${status}`);
           console.error(error);
           if (onError) {
             onError(error);
+          }
+        }
+
+        if (err) {
+          console.error(`[Realtime] Subscription error for ${table}:`, err);
+          if (onError) {
+            onError(err instanceof Error ? err : new Error(String(err)));
           }
         }
       });
