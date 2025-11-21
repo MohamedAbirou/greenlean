@@ -1,8 +1,10 @@
 import { type ExerciseLog, useWorkoutLogs, type WorkoutLog } from "@/features/workout";
-import { AlertCircle, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useWorkoutPlan } from "../../hooks/useWorkoutPlan";
+import { PlanGenerationError } from "@/shared/components/feedback/PlanGenerationError";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   LogWorkoutModal,
   NutritionPanel,
@@ -84,6 +86,7 @@ export const WorkoutSection: React.FC<WorkoutSectionProps> = memo(({ userId }) =
   const [workoutLog, setWorkoutLog] = useState<WorkoutLog>(INITIAL_WORKOUT_LOG);
   const [newExercise, setNewExercise] = useState<ExerciseLog>(INITIAL_EXERCISE);
   const [selectedTab, setSelectedTab] = useState("overview");
+  const queryClient = useQueryClient();
 
   // Unified data fetching with polling
   const {
@@ -239,29 +242,15 @@ export const WorkoutSection: React.FC<WorkoutSectionProps> = memo(({ userId }) =
   // Error state
   if (isError) {
     return (
-      <div className="mx-auto space-y-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-8 border border-red-200 dark:border-red-800">
-            <div className="flex items-start gap-4">
-              <AlertCircle className="h-8 w-8 text-red-600 flex-shrink-0 mt-1" />
-              <div>
-                <h3 className="text-xl font-bold text-red-900 dark:text-red-100 mb-2">
-                  Plan Generation Failed
-                </h3>
-                <p className="text-red-700 dark:text-red-300 mb-4">
-                  {errorMessage || "An error occurred while generating your workout plan."}
-                </p>
-                <button
-                  onClick={() => window.location.reload()}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  Retry
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PlanGenerationError
+        userId={userId}
+        planType="workout"
+        errorMessage={errorMessage}
+        onRetrySuccess={() => {
+          // Invalidate queries to refetch data after retry
+          queryClient.invalidateQueries({ queryKey: ["workoutPlan", userId] });
+        }}
+      />
     );
   }
 

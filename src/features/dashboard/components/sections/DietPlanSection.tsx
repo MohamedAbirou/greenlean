@@ -2,9 +2,11 @@
 
 import { type MacroTargets, useNutritionLogs } from "@/features/nutrition";
 import type { DashboardCalculations } from "@/shared/types/dashboard";
-import { AlertCircle, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { memo, useMemo, useState } from "react";
 import { useDietPlan } from "../../hooks/useDietPlan";
+import { PlanGenerationError } from "@/shared/components/feedback/PlanGenerationError";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   HydrationPanel,
   MealList,
@@ -52,6 +54,7 @@ export const DietPlanSection: React.FC<DietPlanSectionProps> = memo(({ userId, c
   const [showLogModal, setShowLogModal] = useState(false);
   const [expandedMeal, setExpandedMeal] = useState<number | null>(null);
   const [selectedTab, setSelectedTab] = useState(TABS[0].name);
+  const queryClient = useQueryClient();
 
   // Unified data fetching with polling
   const { data: dietPlan, isLoading, isGenerating, isError, errorMessage, hasNoPlan } = useDietPlan(userId);
@@ -140,29 +143,15 @@ export const DietPlanSection: React.FC<DietPlanSectionProps> = memo(({ userId, c
   // Error state
   if (isError) {
     return (
-      <div className="mx-auto space-y-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-8 border border-red-200 dark:border-red-800">
-            <div className="flex items-start gap-4">
-              <AlertCircle className="h-8 w-8 text-red-600 flex-shrink-0 mt-1" />
-              <div>
-                <h3 className="text-xl font-bold text-red-900 dark:text-red-100 mb-2">
-                  Plan Generation Failed
-                </h3>
-                <p className="text-red-700 dark:text-red-300 mb-4">
-                  {errorMessage || "An error occurred while generating your meal plan."}
-                </p>
-                <button
-                  onClick={() => window.location.reload()}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  Retry
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PlanGenerationError
+        userId={userId}
+        planType="meal"
+        errorMessage={errorMessage}
+        onRetrySuccess={() => {
+          // Invalidate queries to refetch data after retry
+          queryClient.invalidateQueries({ queryKey: ["dietPlan", userId] });
+        }}
+      />
     );
   }
 
