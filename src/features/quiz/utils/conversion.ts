@@ -102,6 +102,21 @@ export const prepareAnswersForBackend = (
     }
   });
 
+  // Add default values for removed optional fields (quiz simplification)
+  // These fields are no longer collected in the simplified quiz but required by ML service
+  if (!preparedAnswers.equipment) preparedAnswers.equipment = [];
+  if (!preparedAnswers.injuries) preparedAnswers.injuries = null;
+  if (!preparedAnswers.foodAllergies) preparedAnswers.foodAllergies = null;
+  if (!preparedAnswers.dislikedFoods) preparedAnswers.dislikedFoods = null;
+  if (!preparedAnswers.secondaryGoals) preparedAnswers.secondaryGoals = [];
+  if (!preparedAnswers.challenges) preparedAnswers.challenges = [];
+  if (!preparedAnswers.healthConditions) preparedAnswers.healthConditions = ["None"];
+  if (!preparedAnswers.medications) preparedAnswers.medications = null;
+  if (!preparedAnswers.bodyFat) preparedAnswers.bodyFat = null;
+  if (!preparedAnswers.neck) preparedAnswers.neck = null;
+  if (!preparedAnswers.waist) preparedAnswers.waist = null;
+  if (!preparedAnswers.hip) preparedAnswers.hip = null;
+
   return preparedAnswers;
 };
 
