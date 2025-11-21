@@ -196,3 +196,52 @@ export function usePlanStatusRealtime(userId?: string, enabled: boolean = true) 
     enabled: enabled && !!userId,
   });
 }
+
+/**
+ * Hook for real-time profile updates
+ */
+export function useProfileRealtime(userId?: string, enabled: boolean = true) {
+  useSupabaseRealtime({
+    table: 'profiles',
+    queryKey: ['profile', userId],
+    filter: userId ? `id=eq.${userId}` : undefined,
+    enabled: enabled && !!userId,
+  });
+}
+
+/**
+ * Hook for real-time dashboard data (aggregates multiple tables)
+ */
+export function useDashboardRealtime(userId?: string, enabled: boolean = true) {
+  // Subscribe to profiles for overview data
+  useSupabaseRealtime({
+    table: 'profiles',
+    queryKey: ['dashboard', userId],
+    filter: userId ? `id=eq.${userId}` : undefined,
+    enabled: enabled && !!userId,
+  });
+
+  // Subscribe to quiz_results for calculations
+  useSupabaseRealtime({
+    table: 'quiz_results',
+    queryKey: ['dashboard', userId],
+    filter: userId ? `user_id=eq.${userId}` : undefined,
+    enabled: enabled && !!userId,
+  });
+
+  // Subscribe to ai_meal_plans for diet plan data
+  useSupabaseRealtime({
+    table: 'ai_meal_plans',
+    queryKey: ['dashboard', userId],
+    filter: userId ? `user_id=eq.${userId}` : undefined,
+    enabled: enabled && !!userId,
+  });
+
+  // Subscribe to ai_workout_plans for workout plan data
+  useSupabaseRealtime({
+    table: 'ai_workout_plans',
+    queryKey: ['dashboard', userId],
+    filter: userId ? `user_id=eq.${userId}` : undefined,
+    enabled: enabled && !!userId,
+  });
+}

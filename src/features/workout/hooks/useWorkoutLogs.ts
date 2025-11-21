@@ -1,20 +1,30 @@
 /**
  * Workout Logs Hook
- * Manages workout logging with React Query
+ * Manages workout logging with React Query and real-time updates
  */
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { WorkoutService } from "../api/workoutService";
 import type { WorkoutLog, WorkoutLogData } from "../types";
+import { useSupabaseRealtime } from "@/shared/hooks/useSupabaseRealtime";
 
 export function useWorkoutLogs(userId: string, weeklyTarget = 5) {
   const queryClient = useQueryClient();
+
+  // Subscribe to real-time workout logs updates
+  useSupabaseRealtime({
+    table: 'workout_logs',
+    queryKey: ['workout-logs', userId],
+    filter: userId ? `user_id=eq.${userId}` : undefined,
+    enabled: !!userId,
+  });
 
   const logsQuery = useQuery({
     queryKey: ["workout-logs", userId],
     queryFn: () => WorkoutService.getWeeklyLogs(userId),
     enabled: !!userId,
-    staleTime: 1 * 60 * 1000,
+    staleTime: 0, // Always fresh with real-time
+    refetchOnWindowFocus: false, // Rely on realtime
   });
 
   const stats = WorkoutService.calculateStats(
