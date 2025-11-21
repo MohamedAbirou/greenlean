@@ -1,4 +1,5 @@
 // src/features/quiz/data/phases.ts
+// SIMPLIFIED QUIZ: Reduced from 28 to 15 questions while preserving ALL required Python ML fields
 
 import { Activity, Heart, Target, User, Utensils } from "lucide-react";
 import type { QuizPhase } from "../types";
