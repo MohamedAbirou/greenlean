@@ -53,14 +53,38 @@ export function useSupabaseRealtime({
   const queryClient = useQueryClient();
   const channelRef = useRef<RealtimeChannel | null>(null);
 
+  // Store callbacks in refs to prevent re-subscription loops
+  const onDataChangeRef = useRef(onDataChange);
+  const onErrorRef = useRef(onError);
+
+  // Update refs when callbacks change
   useEffect(() => {
-    if (!enabled) return;
+    onDataChangeRef.current = onDataChange;
+    onErrorRef.current = onError;
+  }, [onDataChange, onError]);
+
+  useEffect(() => {
+    if (!enabled) {
+      // Clean up if disabled
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+      return;
+    }
 
     // Create unique channel name
     const channelName = `realtime:${table}${filter ? `:${filter}` : ''}`;
 
-    // Unsubscribe from previous channel if it exists
+    // Don't recreate if same channel already exists
     if (channelRef.current) {
+      // If the channel name hasn't changed, don't recreate
+      const currentChannelTopic = channelRef.current.topic;
+      if (currentChannelTopic === channelName) {
+        return;
+      }
+
+      // Different channel needed, unsubscribe from old one
       supabase.removeChannel(channelRef.current);
     }
 
@@ -82,40 +106,41 @@ export function useSupabaseRealtime({
           queryClient.invalidateQueries({ queryKey: Array.isArray(queryKey) ? queryKey : [queryKey] });
 
           // Call custom callback if provided
-          if (onDataChange) {
-            onDataChange(payload);
+          if (onDataChangeRef.current) {
+            onDataChangeRef.current(payload);
           }
         }
       )
       .subscribe((status, err) => {
         console.log(`[Realtime] Subscription status for ${table}:`, status);
 
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           const error = new Error(`Realtime subscription error for table: ${table}. Status: ${status}`);
           console.error(error);
-          if (onError) {
-            onError(error);
+          if (onErrorRef.current) {
+            onErrorRef.current(error);
           }
         }
 
         if (err) {
           console.error(`[Realtime] Subscription error for ${table}:`, err);
-          if (onError) {
-            onError(err instanceof Error ? err : new Error(String(err)));
+          if (onErrorRef.current) {
+            onErrorRef.current(err instanceof Error ? err : new Error(String(err)));
           }
         }
       });
 
     channelRef.current = channel;
 
-    // Cleanup on unmount
+    // Cleanup on unmount or when dependencies change
     return () => {
       if (channelRef.current) {
+        console.log(`[Realtime] Cleaning up subscription for ${table}`);
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
       }
     };
-  }, [table, filter, enabled, queryClient, queryKey, onDataChange, onError]);
+  }, [table, filter, enabled, queryClient, queryKey]);
 }
 
 /**

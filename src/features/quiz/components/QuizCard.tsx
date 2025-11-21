@@ -40,6 +40,20 @@ export const QuizCard: React.FC<QuizCardProps> = ({
   onSkip,
   onNext,
 }) => {
+  // Safety check: If question is undefined, show loading state
+  if (!question) {
+    return (
+      <Card>
+        <CardContent className="space-y-6 py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+            <p className="text-sm text-muted-foreground">Loading question...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <motion.div
