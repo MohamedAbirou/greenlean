@@ -23,7 +23,7 @@ class LazyLoadErrorBoundary extends Component<
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: any) {
+  componentDidCatch(error: Error) {
     // Check if it's a chunk load error
     if (
       error.message.includes('Failed to fetch dynamically imported module') ||

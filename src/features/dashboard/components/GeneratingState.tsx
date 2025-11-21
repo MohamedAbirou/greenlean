@@ -19,7 +19,6 @@ interface GenerationProgress {
 interface GeneratingStateProps {
   type: "meal" | "workout";
   startedAt?: Date;
-  status?: string;
 }
 
 const GENERATION_STEPS = {
@@ -64,7 +63,7 @@ const FUN_FACTS = [
   "Your plan adapts to your preferences and constraints!",
 ];
 
-export function GeneratingState({ type, startedAt, status }: GeneratingStateProps) {
+export function GeneratingState({ type, startedAt }: GeneratingStateProps) {
   const [progress, setProgress] = useState<GenerationProgress>({
     progress: 0,
     currentStep: GENERATION_STEPS[type][0].message,

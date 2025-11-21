@@ -26,6 +26,8 @@ from services.database import db_service
 from utils.calculations import calculate_nutrition_profile
 from prompts.meal_plan import MEAL_PLAN_PROMPT
 from prompts.workout_plan import WORKOUT_PLAN_PROMPT
+from prompts.enhanced_meal_plan import generate_enhanced_meal_plan_prompt
+from prompts.enhanced_workout_plan import generate_enhanced_workout_plan_prompt
 
 
 @asynccontextmanager
@@ -90,58 +92,21 @@ async def _generate_meal_plan_background(
     """Background task to generate meal plan - FIXED"""
     try:
         logger.info(f"Starting background meal plan generation for user {user_id}")
-        
+
         macros = nutrition["macros"]
-        display = nutrition["display"]
-        body_fat_str = (
-            f"{nutrition['bodyFatPercentage']}%"
-            if nutrition.get("bodyFatPercentage")
-            else "Not provided"
-        )
-        
-        prompt = MEAL_PLAN_PROMPT.format(
-            age=request.answers.age,
-            gender=request.answers.gender,
-            current_weight=display["weight"],
-            target_weight=display["targetWeight"],
-            height=display["height"],
-            main_goal=request.answers.mainGoal,
-            secondary_goals=request.answers.secondaryGoals,
-            time_frame=request.answers.timeFrame,
-            body_type=request.answers.bodyType,
-            body_fat=body_fat_str,
-            health_conditions=request.answers.healthConditions,
-            health_conditions_other=request.answers.healthConditions_other,
-            medications=request.answers.medications,
-            lifestyle=request.answers.lifestyle,
-            stress_level=request.answers.stressLevel,
-            sleep_quality=request.answers.sleepQuality,
-            motivation_level=request.answers.motivationLevel,
-            occupation_activity=request.answers.occupation_activity,
-            country=request.answers.country,
-            cooking_skill=request.answers.cookingSkill,
-            cooking_time=request.answers.cookingTime,
-            grocery_budget=request.answers.groceryBudget,
-            dietary_style=request.answers.dietaryStyle,
-            disliked_foods=request.answers.dislikedFoods,
-            foodAllergies=request.answers.foodAllergies,
-            meals_per_day=request.answers.mealsPerDay,
-            challenges=request.answers.challenges,
-            exercise_frequency=request.answers.exerciseFrequency,
-            preferred_exercise=request.answers.preferredExercise,
-            daily_calories=nutrition["goalCalories"],
-            protein=macros["protein_g"],
-            carbs=macros["carbs_g"],
-            fats=macros["fat_g"],
-            protein_pct_of_calories=macros["protein_pct_of_calories"],
-            carbs_pct_of_calories=macros["carbs_pct_of_calories"],
-            fat_pct_of_calories=macros["fat_pct_of_calories"],
-            MEAL_PLAN_JSON_FORMAT=MEAL_PLAN_JSON_FORMAT
-        )
-        
-        full_prompt = (
-            prompt + "\n\nDouble-check all values align with the user's "
-            "calorie/macro targets before finalizing the JSON output."
+
+        # Use enhanced prompt generator for better AI reliability
+        calculations_for_prompt = {
+            'target_calories': nutrition["goalCalories"],
+            'protein_grams': macros["protein_g"],
+            'carbs_grams': macros["carbs_g"],
+            'fat_grams': macros["fat_g"],
+        }
+
+        full_prompt = generate_enhanced_meal_plan_prompt(
+            quiz_data=request.answers,
+            calculations=calculations_for_prompt,
+            user_preferences=None  # For initial generation
         )
         
         meal_plan = await ai_service.generate_plan(
@@ -177,43 +142,13 @@ async def _generate_workout_plan_background(
     """Background task to generate workout plan - FIXED"""
     try:
         logger.info(f"Starting background workout plan generation for user {user_id}")
-        
-        display = nutrition["display"]
-        body_fat_str = (
-            f"{nutrition['bodyFatPercentage']}%"
-            if nutrition.get("bodyFatPercentage")
-            else "Not provided"
+
+        # Use enhanced prompt generator for better AI reliability
+        prompt = generate_enhanced_workout_plan_prompt(
+            quiz_data=request.answers,
+            user_preferences=None  # For initial generation
         )
-        
-        prompt = WORKOUT_PLAN_PROMPT.format(
-            age=request.answers.age,
-            gender=request.answers.gender,
-            current_weight=display["weight"],
-            target_weight=display["targetWeight"],
-            height=display["height"],
-            main_goal=request.answers.mainGoal,
-            secondary_goals=request.answers.secondaryGoals,
-            time_frame=request.answers.timeFrame,
-            body_type=request.answers.bodyType,
-            body_fat=body_fat_str,
-            health_conditions=request.answers.healthConditions,
-            health_conditions_other=request.answers.healthConditions_other,
-            injuries=request.answers.injuries,
-            medications=request.answers.medications,
-            lifestyle=request.answers.lifestyle,
-            stress_level=request.answers.stressLevel,
-            sleep_quality=request.answers.sleepQuality,
-            motivation_level=request.answers.motivationLevel,
-            occupation_activity=request.answers.occupation_activity,
-            country=request.answers.country,
-            challenges=request.answers.challenges,
-            exercise_frequency=request.answers.exerciseFrequency,
-            preferred_exercise=request.answers.preferredExercise,
-            training_environment=request.answers.trainingEnvironment,
-            equipment=request.answers.equipment,
-            WORKOUT_PLAN_JSON_FORMAT=WORKOUT_PLAN_JSON_FORMAT
-        )
-        
+
         workout_plan = await ai_service.generate_plan(
             prompt,
             request.ai_provider,
