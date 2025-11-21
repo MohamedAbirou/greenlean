@@ -41,9 +41,7 @@ class Settings:
         self.PORT: int = int(os.getenv("APP_PORT", "8000"))
 
         # CORS Configuration
-        self.ALLOWED_ORIGINS: list = [
-            "http://localhost:5173",
-            "http://localhost:8000",
+        self.ALLOWED_ORIGINS: list = os.getenv("ALLOWED_ORIGINS", [
             "https://rsufjeprivwzzygrbvdb.supabase.co",
             "https://greenlean.vercel.app",
             "https://www.greenlean.fit",
