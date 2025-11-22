@@ -1,11 +1,11 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from "@/components/ui/carousel";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+} from "@/shared/components/ui/carousel";
 import { UserAvatar } from "@/shared/components/ui/UserAvatar";
 import { motion } from "framer-motion";
 import { Quote } from "lucide-react";

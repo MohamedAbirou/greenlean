@@ -1,4 +1,4 @@
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import type { Challenge } from "@/shared/types/challenge";
 import { m } from "framer-motion";
 import * as LucideIcons from "lucide-react";

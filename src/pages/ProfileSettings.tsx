@@ -1,6 +1,5 @@
 // src/pages/ProfileSettings.tsx
 
-import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePlan } from "@/core/providers/AppProviders";
 import { useAuth } from "@/features/auth";
 import { AvatarUpload } from "@/features/profile/components/AvatarUpload";
@@ -11,6 +10,7 @@ import { useProfile } from "@/features/profile/hooks/useProfile";
 import { useSubscription } from "@/features/profile/hooks/useSubscription";
 import { UpgradeModal } from "@/shared/components/feedback/UpgradeModal";
 import { Card, CardContent } from "@/shared/components/ui/card";
+import { TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
 import { Tabs } from "@radix-ui/react-tabs";
 import { motion } from "framer-motion";
 import { CreditCard, FileText, Loader, Settings } from "lucide-react";
