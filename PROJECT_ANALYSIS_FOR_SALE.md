@@ -183,6 +183,8 @@
   - Progress photo uploads (with before/after)
   - Notes and milestones
 
+#### Stats Section (based on Meal and workout logs)
+
 ### 3. 🏆 Gamification & Challenges System
 
 #### Challenge Types
