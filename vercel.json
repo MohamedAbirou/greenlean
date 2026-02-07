@@ -1,5 +1,9 @@
 {
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "destination": "https://greenlean.fit/$1",
+      "permanent": true
+    }
   ]
 }
